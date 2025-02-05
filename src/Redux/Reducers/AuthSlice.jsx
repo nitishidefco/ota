@@ -1,7 +1,7 @@
 import {
   createSlice,
   createAsyncThunk,
-  isRejectedWithValue,
+  rejectWithValue,
 } from '@reduxjs/toolkit';
 import {createAccount} from '../../Services/AuthServices';
 import * as Keychain from 'react-native-keychain';
@@ -41,17 +41,14 @@ const removeToken = async () => {
 };
 export const createUserAccount = createAsyncThunk(
   'auth/createAccount',
-  async ({details}) => {
+  async ({details},{ rejectWithValue }) => {
     try {
-      const response = await createAccount(details);
-      console.log(response.data);
-      if (response.data.token) {
-        await saveToken(response.data.token);
-      }
+      const response = await createAccount({details: details});
       return response.data;
     } catch (err) {
-      return isRejectedWithValue(
-        err.response ? err.response.data : err.message,
+      console.error('Error in creating account:', err);  // Added log for error
+      return rejectWithValue(
+        err.response ? err.response.data : err.message
       );
     }
   },
@@ -109,4 +106,5 @@ const authSlice = createSlice({
   },
 });
 
-export default authSlice;
+export const { resetAuth, logout } = authSlice.actions;
+export default authSlice.reducer;

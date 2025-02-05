@@ -1,8 +1,7 @@
 // --------------- LIBRARIES ---------------
 import {configureStore} from '@reduxjs/toolkit';
-// --------------- ASSETS ---------------
 import rootReducer from './Reducers';
-
+// --------------- ASSETS ---------------
 // Root reducer with persist config
 const reducers = rootReducer;
 

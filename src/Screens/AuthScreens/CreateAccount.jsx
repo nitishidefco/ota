@@ -17,10 +17,39 @@ import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import CustomInput from '../../Components/UI/CustomInput';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { createUserAccount } from '../../Redux/Reducers/AuthSlice';
+import { CountryPicker } from 'react-native-country-codes-picker';
 const CreateAccount = () => {
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [countryCode, setCountryCode] = useState('+971');
+  const [phone, setPhone] = useState('');
+  const [username, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword]=useState('')
+  const [referalCode, setReferalCode] = useState('');
+  const [show, setShow] = useState(false);
+  const userDetailsForCreateAccount = {
+    name,
+    email,
+    phone,
+    password,
+    referalCode,
+  };
+
+  const AuthState = useSelector(state => state.auth);
+  const dispatch = useDispatch()
+  const onCreateAccountPress = async () => {
+    try {
+      
+     const response = await  dispatch(createUserAccount({details: userDetailsForCreateAccount}))
+console.log('response in create account',response?.payload?.message);
+
+    } catch (error) {
+      console.log('Error', 'creating account');
+      
+    }
+  }
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <KeyboardAvoidingView
@@ -36,10 +65,10 @@ const CreateAccount = () => {
               <View style={styles.inputContainer}>
                 <CustomInput
                   label="Name"
-                  value={email}
-                  onChangeText={setEmail}
+                  value={name}
+                  onChangeText={setName}
                   placeholder="Enter your name"
-                  type="email"
+                  type="text"
                   required
                 />
                 <CustomInput
@@ -50,14 +79,26 @@ const CreateAccount = () => {
                   type="email"
                   required
                 />
-                <CustomInput
-                  label="Phone"
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Enter your phone"
-                  type="email"
-                  required
-                />
+                 <View style={styles.phoneNumberContainer}>
+                  <TouchableOpacity
+                    onPress={() => setShow(true)}
+                    style={styles.countryPicker}>
+                    <Text style={styles.countryPickerTextStyle}>
+                      {countryCode}
+                    </Text>
+                  </TouchableOpacity>
+                  <View style={{flex: 1}}>
+                    <CustomInput
+                      label="Phone"
+                      value={phone}
+                      onChangeText={setPhone}
+                      placeholder="Enter your Phone Number"
+                      type="phone"
+                      required
+                      labelStyle={{ right: Matrics.screenWidth * 0.2  }}
+                    />
+                  </View>
+                  </View>
                 <CustomInput
                   label="Password"
                   value={password}
@@ -69,15 +110,15 @@ const CreateAccount = () => {
                 <CustomInput
                   label="Confirm Password"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={setConfirmPassword}
                   placeholder="Confirm your password"
                   type="password"
                   required
                 />
                 <CustomInput
                   label="Referal Code"
-                  value={password}
-                  onChangeText={setPassword}
+                  value={referalCode}
+                  onChangeText={setReferalCode}
                   placeholder="Enter Referall code"
                   type="text"
                 />
@@ -111,7 +152,9 @@ const CreateAccount = () => {
                     </View>
                   </View>
                   <View style={styles.parentButtonContainer}>
-                    <TouchableOpacity style={styles.buttonContainer}>
+                    <TouchableOpacity style={[styles.buttonContainer, AuthState.isLoading && { opacity: 0.5 }]} onPress={onCreateAccountPress}
+                    disabled={AuthState.isLoading}
+                    >
                       <Image
                         style={styles.bottomElipseButtonStlye}
                         source={Images.BOTTOM_ELIPSE_BUTTON}
@@ -121,6 +164,24 @@ const CreateAccount = () => {
                 </View>
               </View>
             </View>
+             <CountryPicker
+                          show={show}
+                          pickerButtonOnPress={item => {
+                            setCountryCode(item.dial_code);
+                            setShow(false);
+                          }}
+                          searchMessage="Search For Country"
+                          onBackdropPress={() => setShow(false)}
+                          style={{
+                            modal: {
+                              height: 500,
+                            },
+                            textInput: {
+                              height: Matrics.vs(40),
+                              borderRadius: Matrics.s(7),
+                            },
+                          }}
+                        />
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -148,7 +209,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     paddingHorizontal: Matrics.s(10),
-    marginTop: Matrics.screenHeight * 0.2,
+    marginTop: Matrics.screenHeight * 0.25,
     flex: 1,
   },
   textStyle: {
@@ -204,6 +265,26 @@ const styles = StyleSheet.create({
     // height: Matrics.screenHeight * 0.3,
     justifyContent: 'center',
     marginTop: Matrics.screenHeight * 0.03,
+  },
+  countryPicker: {
+    width: Matrics.screenWidth * 0.2,
+    backgroundColor: '#F5F5F5',
+    height: Matrics.vs(40),
+    borderRadius: Matrics.s(7),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Matrics.vs(9),
+    marginRight: Matrics.s(5),
+  },
+  countryPickerTextStyle: {
+    color: COLOR.DIM_TEXT_COLOR,
+    fontSize: typography.fontSizes.fs16,
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+  },
+  phoneNumberContainer: {
+    flexDirection: 'row',
+    // backgroundColor: 'red',
+    alignItems: 'center',
   },
 });
 

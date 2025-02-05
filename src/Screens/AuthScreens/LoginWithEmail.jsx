@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     paddingHorizontal: Matrics.s(10),
-    marginTop: Matrics.screenHeight * 0.2,
+    marginTop: Matrics.screenHeight * 0.25,
     flex: 1,
   },
   textStyle: {
