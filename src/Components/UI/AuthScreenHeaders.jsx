@@ -10,19 +10,34 @@ const AuthScreenHeaders = ({
   logo = Images.APP_LOGO,
   title = '',
   customStyles = {},
+  showCreateAccountButton = true,
+  showLoginButton = false
 }) => {
   const navigation = useNavigation();
   return (
     <View style={[styles.container, customStyles.container]}>
-      <TouchableOpacity
-        style={styles.createAccountButton}
-        onPress={() => navigation.navigate('CreateAccount')}>
-        <Text style={{color: COLOR.PRIMARY}}>Create Account</Text>
-        <Image
-          style={styles.arrowRightSmall}
-          source={Images.ARROW_RIGHT_SMALL}
-        />
-      </TouchableOpacity>
+      {showCreateAccountButton && ( // Conditionally render the button
+        <TouchableOpacity
+          style={styles.createAccountButton}
+          onPress={() => navigation.replace('CreateAccount')}>
+          <Text style={{color: COLOR.PRIMARY}}>Create Account</Text>
+          <Image
+            style={styles.arrowRightSmall}
+            source={Images.ARROW_RIGHT_SMALL}
+          />
+        </TouchableOpacity>
+      )}
+      {showLoginButton && ( // Conditionally render the button
+        <TouchableOpacity
+          style={styles.createAccountButton}
+          onPress={() => navigation.replace('Login')}>
+          <Text style={{color: COLOR.PRIMARY}}>Login</Text>
+          <Image
+            style={styles.arrowRightSmall}
+            source={Images.ARROW_RIGHT_SMALL}
+          />
+        </TouchableOpacity>
+      )}
       <View>
         <Image
           style={[styles.bannerImage, customStyles.bannerImage]}

@@ -31,7 +31,10 @@ const CheckEmail = () => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <AuthScreenHeaders title="Check Your Email" />
+              <AuthScreenHeaders
+                title="Check Your Email"
+                showCreateAccountButton={false}
+              />
               <View style={styles.inputContainer}>
                 <Text style={styles.detailText}>
                   We have sent you a password reset link to your email with

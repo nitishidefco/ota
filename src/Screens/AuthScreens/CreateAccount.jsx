@@ -32,7 +32,11 @@ const CreateAccount = () => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <AuthScreenHeaders title="Create New Account" />
+              <AuthScreenHeaders
+                title="Create New Account"
+                showCreateAccountButton={false}
+                showLoginButton={true}
+              />
               <View style={styles.inputContainer}>
                 <CustomInput
                   label="Name"

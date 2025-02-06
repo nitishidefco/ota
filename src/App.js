@@ -12,9 +12,14 @@ import ForgotPassword from './Screens/AuthScreens/ForgotPassword';
 import CheckEmail from './Screens/AuthScreens/CheckEmail';
 import CreateAccount from './Screens/AuthScreens/CreateAccount';
 import NavigationStack from './NavigationStack';
-
+import Toast from 'react-native-toast-message';
 const App = () => {
-  return <NavigationStack />;
+  return (
+    <>
+      <NavigationStack />
+      <Toast />
+    </>
+  );
 };
 
 export default App;

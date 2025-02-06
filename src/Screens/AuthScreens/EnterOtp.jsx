@@ -30,7 +30,10 @@ const EnterOtp = () => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <AuthScreenHeaders title="Login with Phone Number" />
+              <AuthScreenHeaders
+                title="Login with Phone Number"
+                showCreateAccountButton={false}
+              />
               <View style={styles.inputContainer}>
                 <View style={styles.otpHandlerContainer}>
                   <Text style={styles.otpTitle}>OTP</Text>
