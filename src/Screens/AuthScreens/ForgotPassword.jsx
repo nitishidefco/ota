@@ -31,7 +31,10 @@ const ForgotPassword = () => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <AuthScreenHeaders title="Forgot Password" />
+              <AuthScreenHeaders
+                title="Forgot Password"
+                showCreateAccountButton={false}
+              />
               <View style={styles.inputContainer}>
                 <CustomInput
                   label="Email"

@@ -24,7 +24,7 @@ const CreateAccount = () => {
   const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('+971');
   const [phone, setPhone] = useState('');
-  const [username, setEmail] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword]=useState('')
   const [referalCode, setReferalCode] = useState('');
@@ -32,9 +32,9 @@ const CreateAccount = () => {
   const userDetailsForCreateAccount = {
     name,
     email,
-    phone,
+    phone_number: `${countryCode}${phone}`,
     password,
-    referalCode,
+    referal_code: referalCode,
   };
 
   const AuthState = useSelector(state => state.auth);
@@ -61,7 +61,11 @@ console.log('response in create account',response?.payload?.message);
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <AuthScreenHeaders title="Create New Account" />
+              <AuthScreenHeaders
+                title="Create New Account"
+                showCreateAccountButton={false}
+                showLoginButton={true}
+              />
               <View style={styles.inputContainer}>
                 <CustomInput
                   label="Name"
