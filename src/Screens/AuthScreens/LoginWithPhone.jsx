@@ -37,6 +37,7 @@ const LoginWithPhone = () => {
               <AuthScreenHeaders
                 title="Login with Phone Number"
                 showCreateAccountButton={false}
+                showBackButton={true}
               />
               <View style={styles.inputContainer}>
                 <View style={styles.phoneNumberContainer}>

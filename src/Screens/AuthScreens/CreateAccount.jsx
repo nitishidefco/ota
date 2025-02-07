@@ -65,6 +65,7 @@ console.log('response in create account',response?.payload?.message);
                 title="Create New Account"
                 showCreateAccountButton={false}
                 showLoginButton={true}
+                showBackButton={false}
               />
               <View style={styles.inputContainer}>
                 <CustomInput

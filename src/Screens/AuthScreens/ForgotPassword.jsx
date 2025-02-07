@@ -34,6 +34,7 @@ const ForgotPassword = () => {
               <AuthScreenHeaders
                 title="Forgot Password"
                 showCreateAccountButton={false}
+                showBackButton={true}
               />
               <View style={styles.inputContainer}>
                 <CustomInput
