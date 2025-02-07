@@ -10,53 +10,207 @@ import {
   TouchableOpacity,
   Text,
   Image,
-  Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useState} from 'react';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import CustomInput from '../../Components/UI/CustomInput';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
-import { useDispatch, useSelector } from 'react-redux';
-import { createUserAccount } from '../../Redux/Reducers/AuthSlice';
-import { CountryPicker } from 'react-native-country-codes-picker';
+import {useDispatch, useSelector} from 'react-redux';
+import {createUserAccount} from '../../Redux/Reducers/AuthSlice';
+import {CountryPicker} from 'react-native-country-codes-picker';
+import Toast from 'react-native-toast-message';
+import {useNavigation} from '@react-navigation/native';
+import CustomLoader from '../../Components/Loader/CustomLoader';
+
 const CreateAccount = () => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState('Testing');
   const [countryCode, setCountryCode] = useState('+971');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword]=useState('')
+  const [phone, setPhone] = useState('123456789');
+  const [email, setEmail] = useState('t@yopmail.com');
+  const [password, setPassword] = useState('12345678');
+  const [confirmPassword, setConfirmPassword] = useState('12345678');
   const [referalCode, setReferalCode] = useState('');
   const [show, setShow] = useState(false);
-  const userDetailsForCreateAccount = {
-    name,
-    email,
-    phone_number: `${countryCode}${phone}`,
-    password,
-    referal_code: referalCode,
-  };
+
+  // Error states
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
 
   const AuthState = useSelector(state => state.auth);
-  const dispatch = useDispatch()
-  const onCreateAccountPress = async () => {
-    try {
-      
-     const response = await  dispatch(createUserAccount({details: userDetailsForCreateAccount}))
-console.log('response in create account',response?.payload?.message);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  // Validation functions
+  const validateName = value => {
+    if (!value.trim()) {
+      return 'Name is required';
+    }
+    if (value.length < 2) {
+      return 'Name must be at least 2 characters';
+    }
+    if (!/^[a-zA-Z\s]*$/.test(value)) {
+      return 'Name can only contain letters and spaces';
+    }
+    return '';
+  };
 
+  const validateEmail = value => {
+    if (!value.trim()) {
+      return 'Email is required';
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      return 'Please enter a valid email';
+    }
+    return '';
+  };
+
+  const validatePhone = value => {
+    if (!value.trim()) {
+      return 'Phone number is required';
+    }
+    if (!/^\d{7,15}$/.test(value)) {
+      return 'Please enter a valid phone number';
+    }
+    return '';
+  };
+
+  const validatePassword = value => {
+    if (!value) {
+      return 'Password is required';
+    }
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    // if (
+    //   !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
+    //     value,
+    //   )
+    // ) {
+    //   return 'Password must contain uppercase, lowercase, number and special character';
+    // }
+    return '';
+  };
+
+  const validateConfirmPassword = value => {
+    if (!value) {
+      return 'Please confirm your password';
+    }
+    if (value !== password) {
+      return 'Passwords do not match';
+    }
+    return '';
+  };
+
+  // Handle input changes with validation
+  const handleNameChange = value => {
+    setName(value);
+    setErrors(prev => ({...prev, name: validateName(value)}));
+  };
+
+  const handleEmailChange = value => {
+    setEmail(value);
+    setErrors(prev => ({...prev, email: validateEmail(value)}));
+  };
+
+  const handlePhoneChange = value => {
+    setPhone(value);
+    setErrors(prev => ({...prev, phone: validatePhone(value)}));
+  };
+
+  const handlePasswordChange = value => {
+    setPassword(value);
+    setErrors(prev => ({...prev, password: validatePassword(value)}));
+  };
+
+  const handleConfirmPasswordChange = value => {
+    setConfirmPassword(value);
+    setErrors(prev => ({
+      ...prev,
+      confirmPassword: validateConfirmPassword(value),
+    }));
+  };
+
+  const validateForm = () => {
+    const nameError = validateName(name);
+    const emailError = validateEmail(email);
+    const phoneError = validatePhone(phone);
+    const passwordError = validatePassword(password);
+    const confirmPasswordError = validateConfirmPassword(confirmPassword);
+
+    setErrors({
+      name: nameError,
+      email: emailError,
+      phone: phoneError,
+      password: passwordError,
+      confirmPassword: confirmPasswordError,
+    });
+
+    return !(
+      nameError ||
+      emailError ||
+      phoneError ||
+      passwordError ||
+      confirmPasswordError
+    );
+  };
+
+  const onCreateAccountPress = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      const userDetailsForCreateAccount = {
+        name,
+        email,
+        phone_number: `${countryCode}${phone}`,
+        password,
+        referal_code: referalCode,
+      };
+
+      const response = await dispatch(
+        createUserAccount({details: userDetailsForCreateAccount}),
+      );
+      if (response?.payload?.status === true) {
+        Toast.show({
+          type: 'success',
+          text1: 'Account Successfully Created',
+          text2: 'Please check your email to see the activation details',
+        });
+        navigation.replace('Login');
+      } else if (response?.payload?.status === false) {
+        Toast.show({
+          type: 'error',
+          text1: response?.payload?.message,
+        });
+      }
+      console.log('response in create account', response);
     } catch (error) {
       console.log('Error', 'creating account');
-      
     }
-  }
+  };
+
   return (
     <SafeAreaView style={styles.safeAreaView}>
+      {AuthState?.isLoading && (
+        <CustomLoader
+          message="Checking your details..."
+          isVisible={AuthState?.isLoading}
+        />
+      )}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
+            scrollEnabled={AuthState.isLoading ? false : true}
             contentContainerStyle={styles.scrollViewContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
@@ -71,20 +225,22 @@ console.log('response in create account',response?.payload?.message);
                 <CustomInput
                   label="Name"
                   value={name}
-                  onChangeText={setName}
+                  onChangeText={handleNameChange}
                   placeholder="Enter your name"
                   type="text"
                   required
+                  error={errors.name}
                 />
                 <CustomInput
                   label="Email"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={handleEmailChange}
                   placeholder="Enter your email"
                   type="email"
                   required
+                  error={errors.email}
                 />
-                 <View style={styles.phoneNumberContainer}>
+                <View style={styles.phoneNumberContainer}>
                   <TouchableOpacity
                     onPress={() => setShow(true)}
                     style={styles.countryPicker}>
@@ -96,29 +252,32 @@ console.log('response in create account',response?.payload?.message);
                     <CustomInput
                       label="Phone"
                       value={phone}
-                      onChangeText={setPhone}
+                      onChangeText={handlePhoneChange}
                       placeholder="Enter your Phone Number"
                       type="phone"
                       required
-                      labelStyle={{ right: Matrics.screenWidth * 0.2  }}
+                      error={errors.phone}
+                      labelStyle={{right: Matrics.screenWidth * 0.2}}
                     />
                   </View>
-                  </View>
+                </View>
                 <CustomInput
                   label="Password"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={handlePasswordChange}
                   placeholder="Enter your password"
                   type="password"
                   required
+                  error={errors.password}
                 />
                 <CustomInput
                   label="Confirm Password"
-                  value={password}
-                  onChangeText={setConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={handleConfirmPasswordChange}
                   placeholder="Confirm your password"
                   type="password"
                   required
+                  error={errors.confirmPassword}
                 />
                 <CustomInput
                   label="Referal Code"
@@ -157,9 +316,13 @@ console.log('response in create account',response?.payload?.message);
                     </View>
                   </View>
                   <View style={styles.parentButtonContainer}>
-                    <TouchableOpacity style={[styles.buttonContainer, AuthState.isLoading && { opacity: 0.5 }]} onPress={onCreateAccountPress}
-                    disabled={AuthState.isLoading}
-                    >
+                    <TouchableOpacity
+                      style={[
+                        styles.buttonContainer,
+                        AuthState.isLoading && {opacity: 0.5},
+                      ]}
+                      onPress={onCreateAccountPress}
+                      disabled={AuthState.isLoading}>
                       <Image
                         style={styles.bottomElipseButtonStlye}
                         source={Images.BOTTOM_ELIPSE_BUTTON}
@@ -169,24 +332,24 @@ console.log('response in create account',response?.payload?.message);
                 </View>
               </View>
             </View>
-             <CountryPicker
-                          show={show}
-                          pickerButtonOnPress={item => {
-                            setCountryCode(item.dial_code);
-                            setShow(false);
-                          }}
-                          searchMessage="Search For Country"
-                          onBackdropPress={() => setShow(false)}
-                          style={{
-                            modal: {
-                              height: 500,
-                            },
-                            textInput: {
-                              height: Matrics.vs(40),
-                              borderRadius: Matrics.s(7),
-                            },
-                          }}
-                        />
+            <CountryPicker
+              show={show}
+              pickerButtonOnPress={item => {
+                setCountryCode(item.dial_code);
+                setShow(false);
+              }}
+              searchMessage="Search For Country"
+              onBackdropPress={() => setShow(false)}
+              style={{
+                modal: {
+                  height: 500,
+                },
+                textInput: {
+                  height: Matrics.vs(40),
+                  borderRadius: Matrics.s(7),
+                },
+              }}
+            />
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -194,6 +357,7 @@ console.log('response in create account',response?.payload?.message);
   );
 };
 
+export default CreateAccount;
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
@@ -292,5 +456,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
-export default CreateAccount;
