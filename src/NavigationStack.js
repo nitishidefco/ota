@@ -15,6 +15,7 @@ import LoginWithEmail from './Screens/AuthScreens/LoginWithEmail';
 import LoginWithPhone from './Screens/AuthScreens/LoginWithPhone';
 import CreateAccount from './Screens/AuthScreens/CreateAccount';
 import CheckEmail from './Screens/AuthScreens/CheckEmail';
+import HotelsHome from './Screens/Hotels/HotelsHome';
 
 const AuthRoutes = {
   Login,
@@ -24,6 +25,10 @@ const AuthRoutes = {
   ForgotPassword,
   LoginWithEmail,
   LoginWithPhone,
+};
+
+const MainRoutes = {
+  HotelsHome,
 };
 
 const AuthStack = () => {
@@ -46,17 +51,7 @@ const AuthStack = () => {
   );
 };
 const NavigationStack = () => {
-  //   const dispatch = useDispatch();
-  //   const {isAuthenticated, loading} = useSelector(state => state.auth);
-  //   useEffect(() => {
-  //     if (!isAuthenticated) {
-  //       dispatch(checkLoggedIn());
-  //     }
-  //   }, [dispatch, isAuthenticated]);
 
-  // if (loading) {
-  //   return <LoadingScreen />;
-  // }
 
   return (
     <NavigationContainer>

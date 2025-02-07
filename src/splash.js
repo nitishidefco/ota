@@ -1,18 +1,12 @@
 // Splash.js
 import React, {useEffect, useState} from 'react';
 import {View, StyleSheet, Image, Text, SafeAreaView} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import Images from './Config/Images';
 import colors from './Config/AppStyling/colors';
 import {Matrics, typography} from './Config/AppStyling';
 import FastImage from 'react-native-fast-image';
+
 const Splash = () => {
-  const navigation = useNavigation();
-  useEffect(() => {
-    setTimeout(() => {
-      navigation.replace('Login');
-    }, 5000);
-  }, []);
   return (
     <SafeAreaView style={{flex: 1}}>
       <View style={styles.container}>
@@ -25,7 +19,10 @@ const Splash = () => {
           resizeMode="contain"
         />
         <View style={styles.bottomElipseContainer}>
-          <Image source={Images.BOTTOM_ELIPSE} />
+          <Image
+            source={Images.BOTTOM_ELIPSE}
+            style={styles.bottomElipseImage}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -46,7 +43,15 @@ const styles = StyleSheet.create({
   bottomElipseContainer: {
     position: 'absolute',
     bottom: 0,
+    alignItems: 'flex-end',
     left: 0,
+    // height: Matrics.screenHeight * 0.25,
+  },
+  bottomElipseImage: {
+    position: 'relative',
+    width: Matrics.screenWidth * 0.5,
+    bottom: -Matrics.vs(70),
+    resizeMode: 'contain',
   },
   topElipseContainer: {
     position: 'absolute',
