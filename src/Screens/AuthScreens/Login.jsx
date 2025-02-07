@@ -18,7 +18,7 @@ const Login = () => {
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <AuthScreenHeaders title="Welcome to login" />
+        <AuthScreenHeaders title="Welcome to login" showBackButton={false} />
 
         <View style={styles.bottomContainer}>
           <View style={styles.buttonContainer}>

@@ -34,6 +34,7 @@ const CheckEmail = () => {
               <AuthScreenHeaders
                 title="Check Your Email"
                 showCreateAccountButton={false}
+                showBackButton={false}
               />
               <View style={styles.inputContainer}>
                 <Text style={styles.detailText}>

@@ -37,6 +37,7 @@ const LoginWithPhone = () => {
               <AuthScreenHeaders
                 title="Login with Phone Number"
                 showCreateAccountButton={false}
+                showBackButton={true}
               />
               <View style={styles.inputContainer}>
                 <View style={styles.phoneNumberContainer}>
@@ -55,6 +56,7 @@ const LoginWithPhone = () => {
                       placeholder="Enter your Phone Number"
                       type="phone"
                       required
+                      labelStyle={{ right: Matrics.screenWidth * 0.2  }}
                     />
                   </View>
                 </View>

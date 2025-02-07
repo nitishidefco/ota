@@ -129,7 +129,7 @@ const LoginWithEmail = () => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <AuthScreenHeaders title="Login with Email" />
+              <AuthScreenHeaders title="Login with Email" showBackButton={true}/>
               <View style={styles.inputContainer}>
                 <CustomInput
                   label="Email"

@@ -4,6 +4,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Images } from '../../Config';
 import { COLOR, Matrics, typography } from '../../Config/AppStyling';
 import { useNavigation } from '@react-navigation/native';
+import { ChevronLeft } from 'lucide-react-native';
 
 const AuthScreenHeaders = ({
   bannerImage = Images.BANNER,
@@ -11,7 +12,8 @@ const AuthScreenHeaders = ({
   title = '',
   customStyles = {},
   showCreateAccountButton = true,
-  showLoginButton = false
+  showLoginButton = false,
+  showBackButton = true
 }) => {
   const navigation = useNavigation();
   return (
@@ -36,6 +38,11 @@ const AuthScreenHeaders = ({
             style={styles.arrowRightSmall}
             source={Images.ARROW_RIGHT_SMALL}
           />
+        </TouchableOpacity>
+      )}
+      {showBackButton && (
+        <TouchableOpacity onPress={()=>navigation.goBack()} style={styles.backButtonContainer}>
+          <ChevronLeft/>
         </TouchableOpacity>
       )}
       <View>
@@ -120,6 +127,12 @@ const styles = StyleSheet.create({
     height: Matrics.screenHeight * 0.4,
     resizeMode: 'cover',
   },
+  backButtonContainer:{
+    position: 'absolute',
+    zIndex: 10,
+    top: Matrics.vs(13),
+    left: Matrics.s(10)
+  }
 });
 
 export default AuthScreenHeaders;
