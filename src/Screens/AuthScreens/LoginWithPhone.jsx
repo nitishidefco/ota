@@ -56,6 +56,7 @@ const LoginWithPhone = () => {
                       placeholder="Enter your Phone Number"
                       type="phone"
                       required
+                      labelStyle={{ right: Matrics.screenWidth * 0.2  }}
                     />
                   </View>
                 </View>
