@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   Text,
   Image,
-  ActivityIndicator,
 } from 'react-native';
 import React, {useState} from 'react';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
@@ -20,19 +19,23 @@ import {Images} from '../../Config';
 import {useDispatch, useSelector} from 'react-redux';
 import {createUserAccount} from '../../Redux/Reducers/AuthSlice';
 import {CountryPicker} from 'react-native-country-codes-picker';
-import Toast from 'react-native-toast-message';
 import {useNavigation} from '@react-navigation/native';
 import CustomLoader from '../../Components/Loader/CustomLoader';
+import {checkUniversalToken} from '../../Redux/Reducers/ContentTokenSlice';
+import {errorToast, success} from '../../Helpers/ToastMessage';
+import i18n from '../../i18n/i18n';
 
 const CreateAccount = () => {
-  const [name, setName] = useState('Testing');
-  const [countryCode, setCountryCode] = useState('+971');
-  const [phone, setPhone] = useState('123456789');
-  const [email, setEmail] = useState('t@yopmail.com');
-  const [password, setPassword] = useState('12345678');
-  const [confirmPassword, setConfirmPassword] = useState('12345678');
+  const [name, setName] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [referalCode, setReferalCode] = useState('');
   const [show, setShow] = useState(false);
+
+  const token = useSelector(state => state.contentToken.universalToken);
 
   // Error states
   const [errors, setErrors] = useState({
@@ -49,44 +52,53 @@ const CreateAccount = () => {
   // Validation functions
   const validateName = value => {
     if (!value.trim()) {
-      return 'Name is required';
+      const error = i18n.t('validationMessages.noName');
+      return error;
     }
     if (value.length < 2) {
-      return 'Name must be at least 2 characters';
+      const error = i18n.t('validationMessages.shortName');
+      return error;
     }
     if (!/^[a-zA-Z\s]*$/.test(value)) {
-      return 'Name can only contain letters and spaces';
+      const error = i18n.t('validationMessages.invalidName');
+      return error;
     }
     return '';
   };
 
   const validateEmail = value => {
     if (!value.trim()) {
-      return 'Email is required';
+      const error = i18n.t('validationMessages.noEmail');
+      return error;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
-      return 'Please enter a valid email';
+      const error = i18n.t('validationMessages.notValidEmail');
+      return error;
     }
     return '';
   };
 
   const validatePhone = value => {
     if (!value.trim()) {
-      return 'Phone number is required';
+      const error = i18n.t('validationMessages.noPhone');
+      return error;
     }
-    if (!/^\d{7,15}$/.test(value)) {
-      return 'Please enter a valid phone number';
+    if (!/^\d{10}$/.test(value)) {
+      const error = i18n.t('validationMessages.validPhoneLength');
+      return error;
     }
     return '';
   };
 
   const validatePassword = value => {
     if (!value) {
-      return 'Password is required';
+      const error = i18n.t('validationMessages.noPassword');
+      return error;
     }
     if (value.length < 8) {
-      return 'Password must be at least 8 characters';
+      const error = i18n.t('validationMessages.shortPassword');
+      return error;
     }
     // if (
     //   !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
@@ -100,10 +112,12 @@ const CreateAccount = () => {
 
   const validateConfirmPassword = value => {
     if (!value) {
-      return 'Please confirm your password';
+      const error = i18n.t('validationMessages.noConfirmPassword');
+      return error;
     }
     if (value !== password) {
-      return 'Passwords do not match';
+      const error = i18n.t('validationMessages.noMatch');
+      return error;
     }
     return '';
   };
@@ -174,28 +188,41 @@ const CreateAccount = () => {
         password,
         referal_code: referalCode,
       };
+      let currentToken = token;
+      if (!currentToken) {
+        const tokenResult = await dispatch(checkUniversalToken());
+        if (checkUniversalToken.fulfilled.match(tokenResult)) {
+          currentToken = tokenResult.payload.token;
+        } else {
+          // Handle case where token retrieval failed
+          console.log('Unable to get authentication token');
+          return;
+        }
+      }
 
       const response = await dispatch(
-        createUserAccount({details: userDetailsForCreateAccount}),
+        createUserAccount({
+          details: userDetailsForCreateAccount,
+          contentToken: currentToken,
+        }),
       );
       if (response?.payload?.status === true) {
-        Toast.show({
-          type: 'success',
-          text1: 'Account Successfully Created',
-          text2: 'Please check your email to see the activation details',
-        });
+        success(
+          i18n.t('Toast.accountCreatedSuccess'),
+          i18n.t('Toast.checkEmail'),
+        );
         navigation.replace('Login');
       } else if (response?.payload?.status === false) {
-        Toast.show({
-          type: 'error',
-          text1: response?.payload?.message,
-        });
+        errorToast(response?.payload?.message);
+      } else if (response?.error?.message === 'Rejected') {
+        errorToast(response?.payload);
       }
-      console.log('response in create account', response);
     } catch (error) {
       console.log('Error', 'creating account');
     }
   };
+
+  /* -------------------------------- Demo Data ------------------------------- */
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
@@ -216,26 +243,26 @@ const CreateAccount = () => {
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
               <AuthScreenHeaders
-                title="Create New Account"
+                title={i18n.t('CreateAccount.createNewAccount')}
                 showCreateAccountButton={false}
                 showLoginButton={true}
                 showBackButton={false}
               />
               <View style={styles.inputContainer}>
                 <CustomInput
-                  label="Name"
+                  label={i18n.t('CreateAccount.name')}
                   value={name}
                   onChangeText={handleNameChange}
-                  placeholder="Enter your name"
+                  placeholder={i18n.t('CreateAccount.namePlaceholder')}
                   type="text"
                   required
                   error={errors.name}
                 />
                 <CustomInput
-                  label="Email"
+                  label={i18n.t('CreateAccount.email')}
                   value={email}
                   onChangeText={handleEmailChange}
-                  placeholder="Enter your email"
+                  placeholder={i18n.t('CreateAccount.emailPlaceholder')}
                   type="email"
                   required
                   error={errors.email}
@@ -243,56 +270,70 @@ const CreateAccount = () => {
                 <View style={styles.phoneNumberContainer}>
                   <TouchableOpacity
                     onPress={() => setShow(true)}
-                    style={styles.countryPicker}>
+                    style={[
+                      styles.countryPicker,
+                      {
+                        marginTop: errors.phone
+                          ? Matrics.vs(-5)
+                          : Matrics.vs(10.9),
+                      },
+                    ]}>
                     <Text style={styles.countryPickerTextStyle}>
                       {countryCode}
                     </Text>
                   </TouchableOpacity>
                   <View style={{flex: 1}}>
                     <CustomInput
-                      label="Phone"
+                      label={i18n.t('CreateAccount.phone')}
                       value={phone}
                       onChangeText={handlePhoneChange}
-                      placeholder="Enter your Phone Number"
+                      placeholder={i18n.t('CreateAccount.phonePlaceholder')}
                       type="phone"
                       required
                       error={errors.phone}
                       labelStyle={{right: Matrics.screenWidth * 0.2}}
+                      containerStyle={styles.phoneNumberField}
                     />
                   </View>
                 </View>
                 <CustomInput
-                  label="Password"
+                  label={i18n.t('CreateAccount.password')}
                   value={password}
                   onChangeText={handlePasswordChange}
-                  placeholder="Enter your password"
+                  placeholder={i18n.t('CreateAccount.passwordPlaceholder')}
                   type="password"
                   required
                   error={errors.password}
                 />
                 <CustomInput
-                  label="Confirm Password"
+                  label={i18n.t('CreateAccount.confirmPassword')}
                   value={confirmPassword}
                   onChangeText={handleConfirmPasswordChange}
-                  placeholder="Confirm your password"
+                  placeholder={i18n.t(
+                    'CreateAccount.confirmPasswordPlaceholder',
+                  )}
                   type="password"
                   required
                   error={errors.confirmPassword}
                 />
                 <CustomInput
-                  label="Referal Code"
+                  label={i18n.t('CreateAccount.referalCode')}
                   value={referalCode}
                   onChangeText={setReferalCode}
-                  placeholder="Enter Referall code"
+                  placeholder={i18n.t('CreateAccount.referalCodePlaceholder')}
                   type="text"
                 />
                 <View style={styles.lastContainer}>
                   <View style={styles.iconContainer}>
                     <View>
-                      <Text style={styles.orTextStyle}>or</Text>
+                      <Text style={styles.orTextStyle}>
+                        {i18n.t('CreateAccount.or')}
+                      </Text>
                     </View>
                     <View>
-                      <Text style={styles.signInWith}>Sign up with</Text>
+                      <Text style={styles.signInWith}>
+                        {i18n.t('CreateAccount.signUpWith')}
+                      </Text>
                     </View>
                     <View style={styles.socailLoginContainer}>
                       <View>
@@ -338,7 +379,7 @@ const CreateAccount = () => {
                 setCountryCode(item.dial_code);
                 setShow(false);
               }}
-              searchMessage="Search For Country"
+              searchMessage={i18n.t('CreateAccount.searchMessage')}
               onBackdropPress={() => setShow(false)}
               style={{
                 modal: {
@@ -365,7 +406,6 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     flex: 1,
-    backgroundColor: 'green',
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -388,22 +428,22 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   bottomElipseButtonStlye: {
-    //     width: Matrics.screenWidth * 0.3,
-    //     height: Matrics.screenHeight * 0.2,
-    //     resizeMode: 'contain',
+    width: Matrics.screenWidth * 0.5,
+    height: Matrics.screenHeight * 0.2,
+    resizeMode: 'contain',
     //     position: 'absolute',
   },
   iconContainer: {
     paddingLeft: Matrics.s(20),
   },
   buttonContainer: {
-    width: Matrics.screenWidth * 0.38,
+    // width: Matrics.screenWidth * 0.38,
     borderTopLeftRadius: 170,
-    marginRight: Matrics.s(15),
+    marginRight: Matrics.s(-3),
   },
   parentButtonContainer: {
-    alignItems: 'flex-end',
-    width: Matrics.screenWidth * 0.5,
+    // flexDirection: 'row',
+    // width: Matrics.screenWidth * 0.5,
   },
   socailLoginContainer: {
     display: 'flex',
@@ -454,5 +494,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     // backgroundColor: 'red',
     alignItems: 'center',
+  },
+  phoneNumberField: {
+    backgroundColor: 'white',
   },
 });

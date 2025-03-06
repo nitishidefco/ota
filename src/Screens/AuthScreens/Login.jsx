@@ -12,24 +12,28 @@ import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import LoginOptionButton from '../../Components/UI/LoginOptionButton';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import {useNavigation} from '@react-navigation/native';
+import i18n from '../../i18n/i18n';
 
 const Login = () => {
   const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <AuthScreenHeaders title="Welcome to login" showBackButton={false} />
+        <AuthScreenHeaders
+          title={i18n.t('MainScreen.WelcomeToLogin')}
+          showBackButton={false}
+        />
 
         <View style={styles.bottomContainer}>
           <View style={styles.buttonContainer}>
             <LoginOptionButton
-              title={'Email'}
+              title={i18n.t('MainScreen.email')}
               isActive={true}
               iconName={'EMAIL'}
               handlePress={() => navigation.navigate('LoginWithEmail')}
             />
             <LoginOptionButton
-              title={'Phone'}
+              title={i18n.t('MainScreen.phone')}
               isActive={false}
               iconName={'PHONE'}
               handlePress={() => navigation.navigate('LoginWithPhone')}
@@ -37,10 +41,12 @@ const Login = () => {
           </View>
           <View style={styles.lastContainer}>
             <View>
-              <Text style={styles.orTextStyle}>or</Text>
+              <Text style={styles.orTextStyle}>{i18n.t('MainScreen.or')}</Text>
             </View>
             <View>
-              <Text style={styles.signInWith}>Sign in with</Text>
+              <Text style={styles.signInWith}>
+                {i18n.t('MainScreen.signInWith')}
+              </Text>
             </View>
             <View style={styles.socailLoginContainer}>
               <View>

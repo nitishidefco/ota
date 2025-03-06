@@ -45,7 +45,7 @@ const CustomInput = ({
         break;
 
       case 'phone':
-        const phoneRegex = /^\+?[\d\s-]{10,}$/;
+        const phoneRegex = /^\+?[\d\s-]{6,12}$/;
         if (!phoneRegex.test(text)) {
           return 'Please enter a valid phone number';
         }
@@ -59,8 +59,7 @@ const CustomInput = ({
     setTouched(true);
   };
 
-  const currentError = touched ? error || validateInput(value) : '';
-
+  const currentError = touched ? error : '';
   return (
     <View style={[styles.container, containerStyle]}>
       <Text style={[styles.label, labelStyle]}>
@@ -87,7 +86,10 @@ const CustomInput = ({
               ? 'phone-pad'
               : 'default'
           }
-          onFocus={() => setIsFocused(true)}
+          onFocus={() => {
+            setTouched(true);
+            setIsFocused(true);
+          }}
           onBlur={handleBlur}
         />
 

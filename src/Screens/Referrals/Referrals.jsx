@@ -1,12 +1,12 @@
 import {View, Text} from 'react-native';
 import React from 'react';
 
-const HotelsHome = () => {
+const Referrals = () => {
   return (
     <View>
-      <Text>HotelsHome</Text>
+      <Text>Referrals</Text>
     </View>
   );
 };
 
-export default HotelsHome;
+export default Referrals;

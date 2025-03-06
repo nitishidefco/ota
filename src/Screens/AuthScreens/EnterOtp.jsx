@@ -10,14 +10,15 @@ import {
   TouchableOpacity,
   Text,
   Image,
-  Pressable,
 } from 'react-native';
-import React, {useState} from 'react';
+import React from 'react';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
-import CustomInput from '../../Components/UI/CustomInput';
-import {COLOR, Matrics, typography} from '../../Config/AppStyling';
+
+import {Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import OtpHandler from '../../Components/UI/OtpHandler';
+import i18n from '../../i18n/i18n';
+
 const EnterOtp = () => {
   return (
     <SafeAreaView style={styles.safeAreaView}>
@@ -31,13 +32,13 @@ const EnterOtp = () => {
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
               <AuthScreenHeaders
-                title="Login with Phone Number"
+                title={i18n.t('EnterOtp.LoginWithPhone')}
                 showCreateAccountButton={false}
                 showBackButton={true}
               />
               <View style={styles.inputContainer}>
                 <View style={styles.otpHandlerContainer}>
-                  <Text style={styles.otpTitle}>OTP</Text>
+                  <Text style={styles.otpTitle}>{i18n.t('EnterOtp.otp')}</Text>
                   <OtpHandler
                     length={4}
                     onComplete={otp => console.log('Entered OTP:', otp)}
@@ -68,8 +69,10 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     paddingHorizontal: Matrics.s(10),
-    marginTop: Matrics.screenHeight * 0.2,
+    marginTop: Matrics.screenHeight * 0.24,
     flex: 1,
+    justifyContent: 'space-between',
+    // backgroundColor: 'green',
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -83,10 +86,10 @@ const styles = StyleSheet.create({
   parentButtonContainer: {
     alignItems: 'flex-end',
     justifyContent: 'flex-end',
-    flex: 1,
+    // flex: 1,
   },
   buttonContainer: {
-    width: Matrics.screenWidth * 0.38,
+    width: Matrics.screenWidth * 0.438,
     borderTopLeftRadius: 170,
   },
   otpTitle: {
@@ -95,6 +98,11 @@ const styles = StyleSheet.create({
   },
   otpHandlerContainer: {
     justifyContent: 'flex-start',
+  },
+  bottomElipseButtonStlye: {
+    width: Matrics.screenWidth * 0.5,
+    height: Matrics.screenHeight * 0.2,
+    resizeMode: 'contain',
   },
 });
 

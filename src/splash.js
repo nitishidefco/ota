@@ -1,12 +1,13 @@
 // Splash.js
-import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, Image, Text, SafeAreaView} from 'react-native';
+import React from 'react';
+import {View, StyleSheet, Image, SafeAreaView} from 'react-native';
 import Images from './Config/Images';
 import colors from './Config/AppStyling/colors';
-import {Matrics, typography} from './Config/AppStyling';
+import {Matrics} from './Config/AppStyling';
 import FastImage from 'react-native-fast-image';
 
 const Splash = () => {
+ 
   return (
     <SafeAreaView style={{flex: 1}}>
       <View style={styles.container}>

@@ -12,7 +12,14 @@ const LoginOptionButton = ({title, handlePress, iconName, isActive}) => {
           isActive ? styles.buttonActive : styles.button,
           styles.commanButtonStyle,
         ]}>
-        <Image source={Images[iconName]} />
+        <Image
+          style={[
+            styles.imageStyle,
+            {height: iconName === 'PHONE' ? Matrics.s(23) : Matrics.s(25)},
+            {width: iconName === 'PHONE' ? Matrics.s(23) : Matrics.s(25)},
+          ]}
+          source={Images[iconName]}
+        />
         <Text
           style={[
             isActive ? styles.textActive : styles.text,
@@ -52,6 +59,11 @@ const styles = StyleSheet.create({
   },
   text: {
     color: colors.DARK_TEXT_COLOR,
+  },
+  imageStyle: {
+    width: Matrics.s(25),
+    resizeMode: 'contain',
+    height: Matrics.vs(25),
   },
 });
 

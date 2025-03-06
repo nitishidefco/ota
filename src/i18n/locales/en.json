@@ -1,0 +1,66 @@
+{
+  "MainScreen": {
+    "CA": "Create Account",
+    "WelcomeToLogin": "Welcome to Login",
+    "email": "Email",
+    "phone": "Phone",
+    "or": "or",
+    "signInWith": "Sign in with"
+  },
+  "LoginWithEmail": {
+    "loginWithEmail": "Login with Email",
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot Password?"
+  },
+  "LoginWithPhone": {
+    "loginWithPhone": "Login with Phone Number",
+    "phone": "Phone",
+    "phonePlaceholder": "Enter your Phone Number"
+  },
+  "EnterOtp": {
+    "LoginWithPhone": "Login with Phone Number",
+    "otp": "OTP"
+  },
+  "CreateAccount": {
+    "createNewAccount": "Create New Account",
+    "name": "Name",
+    "namePlaceholder": "Enter your name",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "phone": "Phone",
+    "phonePlaceholder": "Enter your Phone Number",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPassword": "Confirm your password",
+    "confirmPasswordPlaceholder": "Re-enter password",
+    "referalCode": "Referal Code",
+    "referalCodePlaceholder": "Enter Referal Code",
+    "or": "or",
+    "signUpWith": "Sign up with",
+    "login": "Login",
+    "searchMessage": "Search For Country"
+  },
+  "validationMessages": {
+    "noEmail": "Email is required",
+    "notValidEmail": "Please enter a valid email",
+    "noPassword": "Password is required",
+    "shortPassword": "Password must be at least 8 characters",
+    "checkingCreditionals": "Checking the credentials",
+    "noPhone": "Phone number is required",
+    "notValidPhone": "Phone number is not valid",
+    "validPhoneLength": "Phone number must be 10 digits",
+    "noName": "Name is required",
+    "shortName": "Name must be at least 2 characters",
+    "invalidName": "Name can only contain letters and spaces",
+    "noConfirmPassword": "Please confirm your password",
+    "noMatch": "Passwords do not match"
+  },
+  "Toast": {
+    "accountCreatedSuccess": "Account Created Successfully",
+    "checkEmail": "Please check your email to see the activation details",
+    "otpSentSuccess": "OTP sent successfully"
+  }
+}

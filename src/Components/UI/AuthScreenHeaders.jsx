@@ -1,10 +1,11 @@
 // TopContainer.js
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { Images } from '../../Config';
-import { COLOR, Matrics, typography } from '../../Config/AppStyling';
-import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft } from 'lucide-react-native';
+import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {Images} from '../../Config';
+import {COLOR, Matrics, typography} from '../../Config/AppStyling';
+import {useNavigation} from '@react-navigation/native';
+import {ChevronLeft} from 'lucide-react-native';
+import i18n from '../../i18n/i18n';
 
 const AuthScreenHeaders = ({
   bannerImage = Images.BANNER,
@@ -13,7 +14,7 @@ const AuthScreenHeaders = ({
   customStyles = {},
   showCreateAccountButton = true,
   showLoginButton = false,
-  showBackButton = true
+  showBackButton = true,
 }) => {
   const navigation = useNavigation();
   return (
@@ -22,7 +23,7 @@ const AuthScreenHeaders = ({
         <TouchableOpacity
           style={styles.createAccountButton}
           onPress={() => navigation.replace('CreateAccount')}>
-          <Text style={{ color: COLOR.PRIMARY }}>Create Account</Text>
+          <Text style={{color: COLOR.PRIMARY}}>{i18n.t('MainScreen.CA')}</Text>
           <Image
             style={styles.arrowRightSmall}
             source={Images.ARROW_RIGHT_SMALL}
@@ -33,7 +34,7 @@ const AuthScreenHeaders = ({
         <TouchableOpacity
           style={styles.createAccountButton}
           onPress={() => navigation.replace('Login')}>
-          <Text style={{ color: COLOR.PRIMARY }}>Login</Text>
+          <Text style={{color: COLOR.PRIMARY}}>Login</Text>
           <Image
             style={styles.arrowRightSmall}
             source={Images.ARROW_RIGHT_SMALL}
@@ -41,8 +42,10 @@ const AuthScreenHeaders = ({
         </TouchableOpacity>
       )}
       {showBackButton && (
-        <TouchableOpacity onPress={()=>navigation.goBack()} style={styles.backButtonContainer}>
-          <ChevronLeft/>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButtonContainer}>
+          <ChevronLeft />
         </TouchableOpacity>
       )}
       <View>
@@ -106,13 +109,14 @@ const styles = StyleSheet.create({
   },
   headerBottomContainer: {
     position: 'absolute',
-    top: Matrics.screenHeight * 0.4,
+    top: Matrics.screenHeight * 0.38,
   },
   appLogoContainer: {
     width: Matrics.screenWidth,
   },
   appLogo: {
     width: Matrics.screenWidth * 0.4,
+    height: Matrics.screenWidth * 0.4,
     resizeMode: 'contain',
     alignSelf: 'center',
   },
@@ -127,12 +131,12 @@ const styles = StyleSheet.create({
     height: Matrics.screenHeight * 0.4,
     resizeMode: 'cover',
   },
-  backButtonContainer:{
+  backButtonContainer: {
     position: 'absolute',
     zIndex: 10,
     top: Matrics.vs(13),
-    left: Matrics.s(10)
-  }
+    left: Matrics.s(10),
+  },
 });
 
 export default AuthScreenHeaders;

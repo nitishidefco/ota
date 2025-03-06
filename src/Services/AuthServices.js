@@ -1,16 +1,21 @@
-import axios from 'axios';
-const AccountManager = axios.create({
-  baseURL: 'https://ota.dev.visionvivante.com:9000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-const vendorId = '669a0e9ba89ea4c142cb7db4';
-export const createAccount = ({details}) => {
-  console.log('Create account details', details);
-  return AccountManager.post(`/auth/signup/${vendorId}`, details);
+import baseApiClient from './baseApiClient';
+
+export const createAccount = ({details, contentToken}) => {
+  return baseApiClient.post('/auth/signup', details, {
+    headers: {
+      'content-token': contentToken,
+    },
+  });
 };
 
 export const loginWithEmail = ({details}) => {
-  return AccountManager.post(`/auth/login/${vendorId}`, details);
+  return baseApiClient.post('/auth/login', details, {});
+};
+
+export const loginWithPhone = ({details, contentToken}) => {
+  return baseApiClient.post('/auth/send-otp', details, {
+    headers: {
+      'content-token': contentToken,
+    },
+  });
 };

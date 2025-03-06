@@ -10,21 +10,121 @@ import {
   TouchableOpacity,
   Text,
   Image,
-  Pressable,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import CustomInput from '../../Components/UI/CustomInput';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import {CountryPicker} from 'react-native-country-codes-picker';
+import {loginUserWithPhone} from '../../Redux/Reducers/AuthSlice';
+import {
+  checkUniversalToken,
+  getUniversalToken,
+} from '../../Redux/Reducers/ContentTokenSlice';
+import {useDispatch, useSelector} from 'react-redux';
+import Toast from 'react-native-toast-message';
+import CustomLoader from '../../Components/Loader/CustomLoader';
+import {useNavigation} from '@react-navigation/native';
+import i18n from '../../i18n/i18n';
+
 const LoginWithPhone = () => {
   const [phone, setPhone] = useState('');
   const [show, setShow] = useState(false);
+  const [errors, setErrors] = useState({
+    phone: '',
+  });
+  const AuthState = useSelector(state => state.auth);
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const token = useSelector(state => state.contentToken.universalToken);
 
-  const [countryCode, setCountryCode] = useState('+971');
+  // useEffect(() => {
+  //   dispatch(getUniversalToken());
+  // }, []);
+  const validatePhone = value => {
+    if (!value.trim()) {
+      const error = i18n.t('validationMessages.noPhone');
+      return error;
+    }
+    if (!/^\d{7,15}$/.test(value)) {
+      const error = i18n.t('validationMessages.notValidPhone');
+      return error;
+    }
+    return '';
+  };
+  const handlePhoneChange = value => {
+    setPhone(value);
+    setErrors(prev => ({...prev, phone: validatePhone(value)}));
+  };
+  const [countryCode, setCountryCode] = useState('+91');
+
+  const validateForm = () => {
+    console.log('validate form');
+
+    const phoneError = validatePhone(phone);
+    console.log(phoneError);
+
+    setErrors({
+      phone: phoneError,
+    });
+    return !phoneError;
+  };
+
+  const onLoginButtonPress = async () => {
+    if (!validateForm()) {
+      console.log('Validation failed');
+
+      return;
+    }
+    console.log('Login button pressed');
+    try {
+      const loginDetails = {
+        phoneNo: phone,
+        countryCode: countryCode,
+        type: 'user',
+      };
+      let currentToken = token;
+      if (!currentToken) {
+        const tokenResult = await dispatch(checkUniversalToken());
+        if (checkUniversalToken.fulfilled.match(tokenResult)) {
+          currentToken = tokenResult.payload.token;
+        } else {
+          // Handle case where token retrieval failed
+          console.log('Unable to get authentication token');
+          return;
+        }
+      }
+
+      const response = await dispatch(
+        loginUserWithPhone({details: loginDetails, contentToken: currentToken}),
+      );
+      if (response?.payload?.status === 200) {
+        navigation.navigate('EnterOtp');
+        Toast.show({
+          type: 'success',
+          text1: i18n.t('Toast.otpSentSuccess'),
+        });
+      } else if (response?.payload?.status === false) {
+        Toast.show({
+          type: 'error',
+          text1: response?.payload?.error,
+        });
+      }
+      console.log('response in login with phone account', response);
+    } catch (error) {
+      console.log('Error', 'login in account', error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeAreaView}>
+      {AuthState?.isLoading && (
+        <CustomLoader
+          message={i18n.t('validationMessages.checkingCreditionals')}
+          isVisible={AuthState?.isLoading}
+        />
+      )}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}>
@@ -35,7 +135,7 @@ const LoginWithPhone = () => {
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
               <AuthScreenHeaders
-                title="Login with Phone Number"
+                title={i18n.t('LoginWithPhone.loginWithPhone')}
                 showCreateAccountButton={false}
                 showBackButton={true}
               />
@@ -43,26 +143,40 @@ const LoginWithPhone = () => {
                 <View style={styles.phoneNumberContainer}>
                   <TouchableOpacity
                     onPress={() => setShow(true)}
-                    style={styles.countryPicker}>
+                    style={[
+                      styles.countryPicker,
+                      {
+                        marginTop: errors.phone
+                          ? Matrics.vs(-5)
+                          : Matrics.vs(10.9),
+                      },
+                    ]}>
                     <Text style={styles.countryPickerTextStyle}>
                       {countryCode}
                     </Text>
                   </TouchableOpacity>
                   <View style={{flex: 1}}>
                     <CustomInput
-                      label="Phone"
+                      label={i18n.t('LoginWithPhone.phone')}
                       value={phone}
-                      onChangeText={setPhone}
-                      placeholder="Enter your Phone Number"
+                      onChangeText={handlePhoneChange}
+                      placeholder={i18n.t('LoginWithPhone.phonePlaceholder')}
                       type="phone"
                       required
-                      labelStyle={{ right: Matrics.screenWidth * 0.2  }}
+                      labelStyle={{right: Matrics.screenWidth * 0.2}}
+                      error={errors.phone}
                     />
                   </View>
                 </View>
 
                 <View style={styles.parentButtonContainer}>
-                  <TouchableOpacity style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.buttonContainer,
+                      AuthState.isLoading && {opacity: 0.5},
+                    ]}
+                    onPress={() => onLoginButtonPress()}
+                    disabled={AuthState?.isLoading}>
                     <Image
                       style={styles.bottomElipseButtonStlye}
                       source={Images.BOTTOM_ELIPSE_BUTTON}
@@ -103,7 +217,6 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     flex: 1,
-    backgroundColor: 'green',
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -126,23 +239,17 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   bottomElipseButtonStlye: {
-    //     width: Matrics.screenWidth * 0.3,
-    //     height: Matrics.screenHeight * 0.2,
-    //     resizeMode: 'contain',
-    //     position: 'absolute',
+    width: Matrics.screenWidth * 0.5,
+    height: Matrics.screenHeight * 0.25,
+    resizeMode: 'contain',
   },
   buttonContainer: {
-    width: Matrics.screenWidth * 0.38,
     borderTopLeftRadius: 170,
-    // right: Matrics.s(-10),
+    marginRight: Matrics.s(-13),
+    marginBottom: Matrics.vs(-6),
   },
   parentButtonContainer: {
-    // position: 'absolute',
-    height: Matrics.screenHeight * 0.3,
     alignItems: 'flex-end',
-    justifyContent: 'flex-end',
-    bottom: 0,
-    right: -1.3,
   },
   countryPicker: {
     width: Matrics.screenWidth * 0.2,

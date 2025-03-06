@@ -1,5 +1,9 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
-import {createAccount, loginWithEmail} from '../../Services/AuthServices';
+import {
+  createAccount,
+  loginWithEmail,
+  loginWithPhone,
+} from '../../Services/AuthServices';
 import * as Keychain from 'react-native-keychain';
 const initialState = {
   isLoading: false,
@@ -12,7 +16,9 @@ const initialState = {
 const saveToken = async token => {
   try {
     // Store the token securely
-    await Keychain.setGenericPassword('auth_token', token);
+    await Keychain.setGenericPassword('auth_token', token, {
+      service: 'auth_service',
+    });
   } catch (error) {
     console.error('Error saving token:', error);
   }
@@ -20,7 +26,9 @@ const saveToken = async token => {
 
 const getToken = async () => {
   try {
-    const credentials = await Keychain.getGenericPassword();
+    const credentials = await Keychain.getGenericPassword({
+      service: 'auth_service',
+    });
     return credentials ? credentials.password : null;
   } catch (error) {
     console.error('Error getting token:', error);
@@ -30,19 +38,24 @@ const getToken = async () => {
 
 const removeToken = async () => {
   try {
-    await Keychain.resetGenericPassword();
+    await Keychain.resetGenericPassword({
+      service: 'auth_service',
+    });
   } catch (error) {
     console.error('Error removing token:', error);
   }
 };
 export const createUserAccount = createAsyncThunk(
   'auth/createAccount',
-  async ({details}, {rejectWithValue}) => {
+  async ({details, contentToken}, {rejectWithValue}) => {
     try {
-      const response = await createAccount({details: details});
+      const response = await createAccount({
+        details: details,
+        contentToken: contentToken,
+      });
       return response.data;
     } catch (err) {
-      console.error('Error in creating account:', err); // Added log for error
+      console.error('Error in creating account:', err);
       return rejectWithValue(err.response ? err.response.data : err.message);
     }
   },
@@ -50,9 +63,14 @@ export const createUserAccount = createAsyncThunk(
 
 export const loginUserWithEmail = createAsyncThunk(
   'auth/loginWithEmail',
-  async ({details}, {rejectWithValue}) => {
+  async ({details, contentToken}, {rejectWithValue}) => {
+    console.log('details', details);
+
     try {
-      const response = await loginWithEmail({details: details});
+      const response = await loginWithEmail({
+        details: details,
+        contentToken: contentToken,
+      });
       console.log('response of login email', response);
 
       return response.data;
@@ -63,11 +81,35 @@ export const loginUserWithEmail = createAsyncThunk(
   },
 );
 
+export const loginUserWithPhone = createAsyncThunk(
+  'auth/loginWithPhone',
+  async ({details, contentToken}, {rejectWithValue}) => {
+    try {
+      console.log('Details', details, contentToken);
+
+      const response = await loginWithPhone({
+        details: details,
+        contentToken: contentToken,
+      });
+
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data : error.message,
+      );
+    }
+  },
+);
+
 export const checkStoredToken = createAsyncThunk(
   'auth/checkStoredToken',
   async (_, {rejectWithValue}) => {
     try {
+      console.log('checking for stored token');
+
       const token = await getToken();
+      console.log(token);
+
       return {token};
     } catch (error) {
       // await removeToken();
@@ -86,8 +128,8 @@ const authSlice = createSlice({
       state.isError = false;
     },
     logout: state => {
-      state.user = null;
-      state.token = null;
+      state.authData = null;
+      state.userToken = null;
       state.isSuccess = false;
       removeToken();
     },
@@ -127,6 +169,42 @@ const authSlice = createSlice({
         saveToken(action.payload.data.token);
       })
       .addCase(loginUserWithEmail.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload;
+      })
+      .addCase(loginUserWithPhone.pending, state => {
+        state.isLoading = true;
+        state.isFailure = false;
+        state.isSuccess = false;
+        state.errorMessage = '';
+      })
+      .addCase(loginUserWithPhone.fulfilled, (state, action) => {
+        console.log('action.payload login user with phone', action.payload);
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.authData = action.payload.data;
+        state.userToken = action.payload.data.token;
+      })
+      .addCase(loginUserWithPhone.rejected, (state, action) => {
+        console.log('action.pyaload login user with phone', action.payload);
+
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload;
+      })
+      .addCase(checkStoredToken.pending, state => {
+        state.isLoading = true;
+        state.isFailure = false;
+        state.isSuccess = false;
+        state.errorMessage = '';
+      })
+      .addCase(checkStoredToken.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.userToken = action.payload.token;
+      })
+      .addCase(checkStoredToken.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;

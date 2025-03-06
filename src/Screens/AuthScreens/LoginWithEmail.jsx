@@ -1,5 +1,4 @@
 import {
-  SafeAreaView,
   ScrollView,
   View,
   KeyboardAvoidingView,
@@ -12,6 +11,7 @@ import {
   Image,
   Pressable,
 } from 'react-native';
+
 import React, {useState} from 'react';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import CustomInput from '../../Components/UI/CustomInput';
@@ -22,13 +22,19 @@ import {loginUserWithEmail} from '../../Redux/Reducers/AuthSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import CustomLoader from '../../Components/Loader/CustomLoader';
+import {checkUniversalToken} from '../../Redux/Reducers/ContentTokenSlice';
+import {errorToast} from '../../Helpers/ToastMessage';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import i18n from '../../i18n/i18n';
+import {useTranslation} from 'react-i18next';
 
 const LoginWithEmail = () => {
   const navigation = useNavigation();
-  const [email, setEmail] = useState('tp@yopmail.com');
-  const [password, setPassword] = useState('12345678');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const AuthState = useSelector(state => state.auth);
-
+  const token = useSelector(state => state.contentToken.universalToken);
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const [errors, setErrors] = useState({
@@ -37,20 +43,24 @@ const LoginWithEmail = () => {
   });
   const validateEmail = value => {
     if (!value.trim()) {
-      return 'Email is required';
+      const error = i18n.t('validationMessages.noEmail');
+      return error;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
-      return 'Please enter a valid email';
+      const error = i18n.t('validationMessages.notValidEmail');
+      return error;
     }
     return '';
   };
   const validatePassword = value => {
     if (!value) {
-      return 'Password is required';
+      const error = i18n.t('validationMessages.noPassword');
+      return error;
     }
     if (value.length < 8) {
-      return 'Password must be at least 8 characters';
+      const error = i18n.t('validationMessages.shortPassword');
+      return error;
     }
     // if (
     //   !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
@@ -63,10 +73,13 @@ const LoginWithEmail = () => {
   };
   const handleEmailChange = value => {
     setEmail(value);
+    console.log('errors', errors);
+
     setErrors(prev => ({...prev, email: validateEmail(value)}));
   };
   const handlePasswordChange = value => {
     setPassword(value);
+    console.log('errors', errors);
     setErrors(prev => ({...prev, password: validatePassword(value)}));
   };
 
@@ -94,18 +107,29 @@ const LoginWithEmail = () => {
         login_with_otp: false,
         type: 'user',
       };
-
+      let currentToken = token;
+      if (!currentToken) {
+        const tokenResult = await dispatch(checkUniversalToken());
+        if (checkUniversalToken.fulfilled.match(tokenResult)) {
+          currentToken = tokenResult.payload.token;
+        } else {
+          // Handle case where token retrieval failed
+          console.log('Unable to get authentication token');
+          return;
+        }
+      }
       const response = await dispatch(
-        loginUserWithEmail({details: userDetailsForCreateAccount}),
+        loginUserWithEmail({
+          details: userDetailsForCreateAccount,
+          contentToken: currentToken,
+        }),
       );
       if (response?.payload?.status === true) {
-
         // navigation.replace('Login');
       } else if (response?.payload?.status === false) {
-        Toast.show({
-          type: 'error',
-          text1: response?.payload?.message,
-        });
+        errorToast(response?.payload?.errors);
+      } else if (response?.error?.message === 'Rejected') {
+        errorToast(response?.payload);
       }
       console.log('response in login with email account', response);
     } catch (error) {
@@ -116,7 +140,7 @@ const LoginWithEmail = () => {
     <SafeAreaView style={styles.safeAreaView}>
       {AuthState?.isLoading && (
         <CustomLoader
-          message="Checking the credentials"
+          message={i18n.t('validationMessages.checkingCreditionals')}
           isVisible={AuthState?.isLoading}
         />
       )}
@@ -129,42 +153,49 @@ const LoginWithEmail = () => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <AuthScreenHeaders title="Login with Email" showBackButton={true}/>
+              <AuthScreenHeaders
+                title={i18n.t('LoginWithEmail.loginWithEmail')}
+                showBackButton={true}
+              />
               <View style={styles.inputContainer}>
                 <CustomInput
-                  label="Email"
+                  label={i18n.t('LoginWithEmail.email')}
                   value={email}
-                  onChangeText={setEmail}
-                  placeholder="Enter your email"
+                  onChangeText={handleEmailChange}
+                  placeholder={i18n.t('LoginWithEmail.emailPlaceholder')}
                   type="email"
+                  error={errors.email}
                   required
                 />
                 <CustomInput
-                  label="Password"
+                  label={i18n.t('LoginWithEmail.password')}
                   value={password}
-                  onChangeText={setPassword}
-                  placeholder="Enter your password"
+                  onChangeText={handlePasswordChange}
+                  placeholder={i18n.t('LoginWithEmail.passwordPlaceholder')}
                   type="password"
+                  error={errors.password}
                   required
                 />
                 <Pressable
                   onPress={() => navigation.navigate('ForgotPassword')}>
-                  <Text style={styles.textStyle}>Forgot Password?</Text>
+                  <Text style={styles.textStyle}>
+                    {i18n.t('LoginWithEmail.forgotPassword')}
+                  </Text>
                 </Pressable>
-                <View style={styles.parentButtonContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.buttonContainer,
-                      AuthState.isLoading && {opacity: 0.5},
-                    ]}
-                    onPress={onLoginUserPress}
-                    disabled={AuthState?.isLoading}>
-                    <Image
-                      style={styles.bottomElipseButtonStlye}
-                      source={Images.BOTTOM_ELIPSE_BUTTON}
-                    />
-                  </TouchableOpacity>
-                </View>
+              </View>
+              <View style={styles.parentButtonContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.buttonContainer,
+                    AuthState.isLoading && {opacity: 0.5},
+                  ]}
+                  onPress={onLoginUserPress}
+                  disabled={AuthState?.isLoading}>
+                  <Image
+                    style={styles.bottomElipseButtonStlye}
+                    source={Images.BOTTOM_ELIPSE_BUTTON}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
@@ -181,7 +212,6 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     flex: 1,
-    backgroundColor: 'green',
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -204,15 +234,13 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   bottomElipseButtonStlye: {
-    //     width: Matrics.screenWidth * 0.3,
-    //     height: Matrics.screenHeight * 0.2,
-    //     resizeMode: 'contain',
-    //     position: 'absolute',
+    width: Matrics.screenWidth * 0.5,
+    height: Matrics.screenHeight * 0.2,
+    resizeMode: 'contain',
   },
   buttonContainer: {
-    width: Matrics.screenWidth * 0.38,
     borderTopLeftRadius: 170,
-    right: Matrics.s(-10),
+    marginRight: Matrics.s(-13),
   },
   parentButtonContainer: {
     alignItems: 'flex-end',

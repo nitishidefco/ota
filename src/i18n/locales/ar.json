@@ -1,0 +1,66 @@
+{
+  "MainScreen": {
+    "CA": "إنشاء حساب",
+    "WelcomeToLogin": "مرحبًا بك في تسجيل الدخول",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "or": "أو",
+    "signInWith": "تسجيل الدخول باستخدام"
+  },
+  "LoginWithEmail": {
+    "loginWithEmail": "تسجيل الدخول باستخدام البريد الإلكتروني",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "passwordPlaceholder": "أدخل كلمة المرور الخاصة بك",
+    "forgotPassword": "نسيت كلمة المرور؟"
+  },
+  "LoginWithPhone": {
+    "loginWithPhone": "تسجيل الدخول باستخدام رقم الهاتف",
+    "phone": "الهاتف",
+    "phonePlaceholder": "أدخل رقم هاتفك"
+  },
+  "EnterOtp": {
+    "LoginWithPhone": "تسجيل الدخول باستخدام رقم الهاتف",
+    "otp": "رمز التحقق (OTP)"
+  },
+  "CreateAccount": {
+    "createNewAccount": "إنشاء حساب جديد",
+    "name": "الاسم",
+    "namePlaceholder": "أدخل اسمك",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "phone": "الهاتف",
+    "phonePlaceholder": "أدخل رقم هاتفك",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور الخاصة بك",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
+    "referalCode": "كود الإحالة",
+    "referalCodePlaceholder": "أدخل كود الإحالة",
+    "or": "أو",
+    "signUpWith": "التسجيل باستخدام",
+    "login": "تسجيل الدخول",
+    "searchMessage": "ابحث عن دولة"
+  },
+  "validationMessages": {
+    "noEmail": "البريد الإلكتروني مطلوب",
+    "notValidEmail": "يرجى إدخال بريد إلكتروني صالح",
+    "noPassword": "كلمة المرور مطلوبة",
+    "shortPassword": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+    "checkingCreditionals": "جارٍ التحقق من بيانات الاعتماد",
+    "noPhone": "رقم الهاتف مطلوب",
+    "notValidPhone": "رقم الهاتف غير صالح",
+    "validPhoneLength": "يجب أن يتكون رقم الهاتف من 10 أرقام",
+    "noName": "الاسم مطلوب",
+    "shortName": "يجب أن يتكون الاسم من حرفين على الأقل",
+    "invalidName": "يمكن أن يحتوي الاسم على حروف ومسافات فقط",
+    "noConfirmPassword": "يرجى تأكيد كلمة المرور الخاصة بك",
+    "noMatch": "كلمات المرور غير متطابقة"
+  },
+  "Toast": {
+    "accountCreatedSuccess": "تم إنشاء الحساب بنجاح",
+    "checkEmail": "يرجى التحقق من بريدك الإلكتروني لرؤية تفاصيل التفعيل",
+    "otpSentSuccess": "تم إرسال رمز التحقق (OTP) بنجاح"
+  }
+}
