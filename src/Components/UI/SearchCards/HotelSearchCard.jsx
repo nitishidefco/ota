@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
-import {Images} from '../../Config';
-import {COLOR, Matrics, typography} from '../../Config/AppStyling';
+import {Images} from '../../../Config';
+import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import debounce from 'lodash/debounce';
 /* --------------------------- External libraries --------------------------- */
 import DateTimePicker from 'react-native-ui-datepicker';
@@ -23,10 +23,10 @@ dayjs.extend(duration);
 import Modal from 'react-native-modal';
 
 /* ------------------------------- Middlewares ------------------------------ */
-import {getCityDetailsThunk} from '../../Redux/Reducers/HotelReducer/GetCitySlice';
+import {getCityDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetCitySlice';
 import {useDispatch, useSelector} from 'react-redux';
-import {getAllHotelsThunk} from '../../Redux/Reducers/HotelReducer/GetHotelSlice';
-import {errorToast} from '../../Helpers/ToastMessage';
+import {getAllHotelsThunk} from '../../../Redux/Reducers/HotelReducer/GetHotelSlice';
+import {errorToast} from '../../../Helpers/ToastMessage';
 const HotelSearchCard = () => {
   const dispatch = useDispatch();
   /* --------------------------------- States --------------------------------- */

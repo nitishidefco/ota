@@ -43,6 +43,18 @@
     "login": "تسجيل الدخول",
     "searchMessage": "ابحث عن دولة"
   },
+  "Hotel": {
+    "hi": "مرحبًا",
+    "bestService": "نقدم أفضل خدمة بأقل سعر",
+    "hotel": "فنادق",
+    "tour": "جولات",
+    "flight": "رحلات جوية",
+    "car": "سيارات",
+    "home": "الرئيسية",
+    "myBookings": "حجوزاتي",
+    "referal": "الإحالات",
+    "profile": "الملف الشخصي"
+  },
   "validationMessages": {
     "noEmail": "البريد الإلكتروني مطلوب",
     "notValidEmail": "يرجى إدخال بريد إلكتروني صالح",

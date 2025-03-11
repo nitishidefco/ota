@@ -52,4 +52,8 @@ export default {
   CROSS: require('../Assets/Images/cross.png'),
   CHECK: require('../Assets/Images/check.png'),
   EDIT_PROFILE_PICTURE: require('../Assets/Images/editProfilePicture.png'),
+  BACK_ROUND: require('../Assets/Images/back-round.png'),
+  HOTEL1: require('../Assets/hotelImages/hotel-1.jpg'),
+  HOTEL2: require('../Assets/hotelImages/bilderboken-rlwE8f8anOc-unsplash.jpg'),
+  HOTEL3: require('../Assets/hotelImages/hotel3.jpg'),
 };

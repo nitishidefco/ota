@@ -1,25 +1,26 @@
 import hotelBaseApiClient from './HotelBaseApiClient';
 import {Store} from '../../Redux/store';
 
-// const API_TIMEOUT = 15000;
-
-export const getHotels = async ({details}) => {
+export const getHotelDetails = async ({details}) => {
   const state = Store.getState();
   const authToken = state.auth.userToken;
   const contentToken = state.contentToken.universalToken;
-  console.log('details of get all hotels', details);
+  console.log('details in service', details);
 
   const config = {
     headers: {
       'x-access-token': authToken,
       'Content-Token': contentToken,
     },
-    // timeout: API_TIMEOUT,
   };
 
   try {
-    const response = await hotelBaseApiClient.post('/hotels', details, config);
-    console.log('response in get hotels', response.data);
+    const response = await hotelBaseApiClient.post(
+      '/Hotel-Details',
+      details,
+      config,
+    );
+    console.log('response in service', response);
 
     return response.data;
   } catch (error) {

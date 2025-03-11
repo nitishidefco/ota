@@ -26,7 +26,7 @@ const NormalHeader = ({
       {showLeftButton ? (
         <TouchableOpacity onPress={onCrossPress}>
           <Image
-            source={leftIconName === 'CROSS' ? Images.CROSS : Images.BACK}
+            source={leftIconName === 'CROSS' ? Images.CROSS : Images.BACK_ROUND}
             style={styles.headerOptions}
           />
         </TouchableOpacity>

@@ -1,28 +1,40 @@
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   Image,
   ImageBackground,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   FlatList,
   ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
-import HotelSearchCard from '../../Components/UI/HotelSearchCard';
+import HotelSearchCard from '../../Components/UI/SearchCards/HotelSearchCard';
 import HotelCard from '../../Components/UI/HotelCard';
+import LanguageSelector from '../../Components/UI/LanguageSelector';
+import i18n from '../../i18n/i18n';
+import {initializeLanguage} from '../../Redux/Reducers/LanguageSlice';
+import TourSearchCard from '../../Components/UI/SearchCards/TourSearchCard';
+import FlightsSearchCard from '../../Components/UI/SearchCards/FlightsSearchCard';
+import CarSearchCard from '../../Components/UI/SearchCards/CarSearchCard';
 
-const Hotels = () => {
-  const [showSearchFlatList, setShowSearchFlatList] = useState(false);
-  const {authData} = useSelector(state => state.auth);
-  const hotelDataS = useSelector(state => state.hotelSlice);
+const Hotels = ({navigation}) => {
+  const [activeTab, setActiveTab] = useState('Hotels');
   const {userProfileData} = useSelector(state => state.userProfile);
+
+  const hotelDataS = useSelector(state => state.hotelSlice);
+
+  const globalLanguage = useSelector(
+    state => state.selectedLanguage.globalLanguage,
+  );
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(initializeLanguage());
+  }, [globalLanguage, dispatch]);
   const icons = {
     fullStar: Images.FULL_STAR,
     halfStar: Images.HALF_STAR,
@@ -35,7 +47,6 @@ const Hotels = () => {
       Gym: Images.GYM,
     },
   };
-  console.log('showSearchFaltList', showSearchFlatList);
 
   const formatHotelData = hotel => ({
     imageSource: Images.HOTEL_CARD_BACKGROUND,
@@ -56,189 +67,134 @@ const Hotels = () => {
   });
 
   const renderHotelCard = ({item}) => (
-    <HotelCard hotel={formatHotelData(item)} icons={icons} />
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate('HotelDetail', {
+          provider: item.provider,
+          hotelId: item.HotelID,
+          GiataId: item.GiataId,
+        })
+      }>
+      <HotelCard
+        hotel={formatHotelData(item)}
+        icons={icons}
+        onBookPress={() =>
+          navigation.navigate('HotelBooking', {
+            provider: item.provider,
+            hotelId: item.HotelID,
+            giataId: item.GiataId,
+          })
+        }
+      />
+    </TouchableOpacity>
   );
 
-  const renderHeader = () => (
-    <View>
-      <ImageBackground
-        source={Images.PROFILE_BACKGROUND}
-        imageStyle={styles.headerImageStyle}>
-        <View style={styles.homeHeaderUpperContainer}>
-          <View>
-            <Text style={styles.homeHeaderTitle}>
-              Hi {userProfileData?.name}
-            </Text>
-          </View>
-          <View style={styles.homeHeaderSecondaryOptions}>
-            <View style={styles.secondaryOptions}>
-              <Image
-                style={styles.secondaryOptionsImages}
-                source={Images.TRANSLATE_ICON}
-              />
-            </View>
-            <View style={styles.secondaryOptions}>
-              <Image
-                style={styles.secondaryOptionsImages}
-                source={Images.CASH_ICON}
-              />
-            </View>
-            <View style={styles.secondaryOptions}>
-              <Image
-                style={styles.secondaryOptionsImages}
-                source={Images.DOTS}
-              />
-            </View>
-          </View>
-        </View>
-        <View>
-          <Text style={styles.homeHeaderSubtitle}>
-            We Give Best Service on Lowest Price
-          </Text>
-        </View>
-        <View style={styles.homeTabContainer}>
-          <View style={styles.homeTabs}>
-            <Image style={styles.homeTabsImage} source={Images.HOTELS_ACTIVE} />
-            <Text style={styles.homeTabsTitle}>Hotels</Text>
-          </View>
-          <View style={styles.homeTabs}>
-            <Image
-              style={styles.homeTabsImage}
-              source={Images.TOURS_INACTIVE}
-            />
-            <Text style={styles.homeTabsTitle}>Tours</Text>
-          </View>
-          <View style={styles.homeTabs}>
-            <Image
-              style={styles.homeTabsImage}
-              source={Images.FLIGHTS_INACTIVE}
-            />
-            <Text style={styles.homeTabsTitle}>Flights</Text>
-          </View>
-          <View style={styles.homeTabs}>
-            <Image style={styles.homeTabsImage} source={Images.CARS_INACTIVE} />
-            <Text style={styles.homeTabsTitle}>Car</Text>
-          </View>
-        </View>
-      </ImageBackground>
-      <HotelSearchCard setShowSearchFlatList={setShowSearchFlatList} />
-    </View>
+  // Custom Tab Component
+  const renderTab = (title, activeIcon, inactiveIcon) => (
+    <TouchableOpacity
+      style={styles.homeTabs}
+      onPress={() => setActiveTab(title)}>
+      <Image
+        style={styles.homeTabsImage}
+        source={activeTab === title ? activeIcon : inactiveIcon}
+      />
+      <Text style={styles.homeTabsTitle}>{title}</Text>
+    </TouchableOpacity>
   );
+  const renderSearchCard = () => {
+    switch (activeTab) {
+      case 'Hotels':
+        return <HotelSearchCard />;
+      case 'Tours':
+        return <TourSearchCard />;
+      case 'Flights':
+        return <FlightsSearchCard />;
+      case 'Car':
+        return <CarSearchCard />;
+    }
+  };
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{flex: 1}}>
-      <ScrollView>
-        <View>
-          <ImageBackground
-            source={Images.PROFILE_BACKGROUND}
-            imageStyle={styles.headerImageStyle}>
-            <View style={styles.homeHeaderUpperContainer}>
-              <View>
-                <Text style={styles.homeHeaderTitle}>
-                  Hi {userProfileData?.name}
-                </Text>
-              </View>
-              <View style={styles.homeHeaderSecondaryOptions}>
-                <View style={styles.secondaryOptions}>
-                  <Image
-                    style={styles.secondaryOptionsImages}
-                    source={Images.TRANSLATE_ICON}
-                  />
-                </View>
-                <View style={styles.secondaryOptions}>
-                  <Image
-                    style={styles.secondaryOptionsImages}
-                    source={Images.CASH_ICON}
-                  />
-                </View>
-                <View style={styles.secondaryOptions}>
-                  <Image
-                    style={styles.secondaryOptionsImages}
-                    source={Images.DOTS}
-                  />
-                </View>
-              </View>
-            </View>
+    <ScrollView>
+      <View>
+        <ImageBackground
+          source={Images.PROFILE_BACKGROUND}
+          imageStyle={styles.headerImageStyle}>
+          <View style={styles.homeHeaderUpperContainer}>
             <View>
-              <Text style={styles.homeHeaderSubtitle}>
-                We Give Best Service on Lowest Price
+              <Text style={styles.homeHeaderTitle}>
+                {i18n.t('Hotel.hi')} {userProfileData?.name}
               </Text>
             </View>
-            <View style={styles.homeTabContainer}>
-              <View style={styles.homeTabs}>
+            <View style={styles.homeHeaderSecondaryOptions}>
+              <LanguageSelector />
+              <View style={styles.secondaryOptions}>
                 <Image
-                  style={styles.homeTabsImage}
-                  source={Images.HOTELS_ACTIVE}
+                  style={styles.secondaryOptionsImages}
+                  source={Images.CASH_ICON}
                 />
-                <Text style={styles.homeTabsTitle}>Hotels</Text>
               </View>
-              <View style={styles.homeTabs}>
+              <View style={styles.secondaryOptions}>
                 <Image
-                  style={styles.homeTabsImage}
-                  source={Images.TOURS_INACTIVE}
+                  style={styles.secondaryOptionsImages}
+                  source={Images.DOTS}
                 />
-                <Text style={styles.homeTabsTitle}>Tours</Text>
-              </View>
-              <View style={styles.homeTabs}>
-                <Image
-                  style={styles.homeTabsImage}
-                  source={Images.FLIGHTS_INACTIVE}
-                />
-                <Text style={styles.homeTabsTitle}>Flights</Text>
-              </View>
-              <View style={styles.homeTabs}>
-                <Image
-                  style={styles.homeTabsImage}
-                  source={Images.CARS_INACTIVE}
-                />
-                <Text style={styles.homeTabsTitle}>Car</Text>
               </View>
             </View>
-          </ImageBackground>
-          <HotelSearchCard />
-        </View>
-        <View style={{height: Matrics.screenHeight}}>
-          <FlatList
-            // ListHeaderComponent={renderHeader}
-            data={hotelDataS.hotels}
-            renderItem={renderHotelCard}
-            keyExtractor={item => item.HotelID.toString()}
-            // contentContainerStyle={{padding: 10}}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled={true}
-            ListEmptyComponent={
-              hotelDataS.loadingHotels ? (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: 200,
-                  }}>
-                  <ActivityIndicator size="large" color="#0000ff" />
-                </View>
-              ) : (
-                <>
-                  <View style={styles.emptyFlatListContainer}>
-                    <Image
-                      style={styles.emptyFlatListImage}
-                      source={Images.EMPTY_FLAT_LIST}
-                    />
-                    <Text style={styles.emptyFlatListText}>
-                      Search to find amazing hotels
-                    </Text>
-                  </View>
-                </>
-              )
-            }
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
-            windowSize={5}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </View>
+          <View>
+            <Text style={styles.homeHeaderSubtitle}>
+              {i18n.t('Hotel.bestService')}
+            </Text>
+          </View>
+          <View style={styles.homeTabContainer}>
+            {renderTab('Hotels', Images.HOTELS_ACTIVE, Images.HOTELS_INACTIVE)}
+            {renderTab('Tours', Images.TOURS_ACTIVE, Images.TOURS_INACTIVE)}
+            {renderTab(
+              'Flights',
+              Images.FLIGHTS_ACTIVE,
+              Images.FLIGHTS_INACTIVE,
+            )}
+            {renderTab('Car', Images.CARS_ACTIVE, Images.CARS_INACTIVE)}
+          </View>
+        </ImageBackground>
+        {renderSearchCard()}
+      </View>
+      <View style={{height: Matrics.screenHeight}}>
+        <FlatList
+          data={activeTab === 'Hotels' ? hotelDataS.hotels : []}
+          renderItem={renderHotelCard}
+          keyExtractor={item => item.HotelID.toString()}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          ListEmptyComponent={
+            hotelDataS.loadingHotels ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  minHeight: 200,
+                }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+              </View>
+            ) : (
+              <View style={styles.emptyFlatListContainer}>
+                <Image
+                  style={styles.emptyFlatListImage}
+                  source={Images.EMPTY_FLAT_LIST}
+                />
+                <Text style={styles.emptyFlatListText}>
+                  Search to find amazing {activeTab.toLowerCase()}
+                </Text>
+              </View>
+            )
+          }
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+        />
+      </View>
+    </ScrollView>
   );
 };
 
@@ -287,7 +243,7 @@ const styles = StyleSheet.create({
     height: Matrics.screenHeight * 0.4,
   },
   homeTabs: {
-    backgroundColor: 'none',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
@@ -310,7 +266,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginHorizontal: Matrics.s(10),
-    marginTop: Matrics.vs(40),
+    marginTop: Matrics.vs(20),
     marginBottom: Matrics.vs(30),
   },
   emptyFlatListText: {

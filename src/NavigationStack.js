@@ -26,6 +26,7 @@ import {COLOR, Matrics, typography} from './Config/AppStyling';
 import HomeStack from './Screens/Home';
 import ProfileStack from './Screens/Profile';
 import {getDeviceLocation} from './Redux/Reducers/LocationReducer';
+import {initializeLanguage} from './Redux/Reducers/LanguageSlice';
 
 // Define Stacks
 const Stack = createNativeStackNavigator();
@@ -182,6 +183,7 @@ const NavigationStack = () => {
       }
 
       dispatch(getDeviceLocation());
+      dispatch(initializeLanguage());
       // Wait for both the token logic and the 5-second delay to complete
       await splashDelay;
       setSplashVisible(false);

@@ -5,7 +5,6 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import {typography} from '../../Config/AppStyling';
 import LinearGradient from 'react-native-linear-gradient';
@@ -68,7 +67,7 @@ const AmenityItem = ({iconSource, name}) => {
 };
 
 // Main Hotel Card Component
-const HotelCard = ({hotel, icons}) => {
+const HotelCard = ({hotel, icons, onBookPress}) => {
   const {
     imageSource,
     name,
@@ -122,11 +121,11 @@ const HotelCard = ({hotel, icons}) => {
             <Text style={styles.perNight}>1 Night (incl.VAT)</Text>
           </View>
 
-          <TouchableOpacity style={{width: '60%'}}>
+          <TouchableOpacity style={{width: '60%'}} onPress={onBookPress}>
             <LinearGradient
-              colors={['#8740AB', '#49225C']} // Top to bottom gradient
-              start={{x: 0, y: 0}} // Start from top
-              end={{x: 0, y: 1}} // End at bottom
+              colors={['#8740AB', '#49225C']}
+              start={{x: 0, y: 0}}
+              end={{x: 0, y: 1}}
               style={styles.bookButton}>
               <Text style={styles.bookButtonText}>Book Now</Text>
             </LinearGradient>
@@ -137,7 +136,6 @@ const HotelCard = ({hotel, icons}) => {
   );
 };
 
-const {width} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   card: {

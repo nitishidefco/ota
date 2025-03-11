@@ -43,6 +43,18 @@
     "login": "Login",
     "searchMessage": "Search For Country"
   },
+  "Hotel": {
+    "hi": "Hi",
+    "bestService": "We Give Best Service on Lowest Price",
+    "hotel": "Hotels",
+    "tour": "Tours",
+    "flight": "Flights",
+    "car": "Cars",
+    "home": "Home",
+    "myBookings": "My Bookings",
+    "referal": "Referrals",
+    "profile": "Profile"
+  },
   "validationMessages": {
     "noEmail": "Email is required",
     "notValidEmail": "Please enter a valid email",
