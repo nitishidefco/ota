@@ -21,6 +21,7 @@ import {initializeLanguage} from '../../Redux/Reducers/LanguageSlice';
 import TourSearchCard from '../../Components/UI/SearchCards/TourSearchCard';
 import FlightsSearchCard from '../../Components/UI/SearchCards/FlightsSearchCard';
 import CarSearchCard from '../../Components/UI/SearchCards/CarSearchCard';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Hotels = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('Hotels');
@@ -114,6 +115,7 @@ const Hotels = ({navigation}) => {
     }
   };
   return (
+    <SafeAreaView>
     <ScrollView>
       <View>
         <ImageBackground
@@ -195,6 +197,7 @@ const Hotels = ({navigation}) => {
         />
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 

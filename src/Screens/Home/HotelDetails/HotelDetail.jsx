@@ -16,6 +16,7 @@ import {Matrics} from '../../../Config/AppStyling';
 import Carousel from 'react-native-reanimated-carousel';
 import {Images} from '../../../Config';
 import {FlatList} from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HotelDetail = ({route, navigation}) => {
   const dispatch = useDispatch();
@@ -50,7 +51,6 @@ const HotelDetail = ({route, navigation}) => {
   }, [dispatch, details]);
 
   const renderItem = ({item}) => {
-    console.log('Item', item);
 
     return (
       <View style={styles.slide}>
@@ -75,6 +75,7 @@ const HotelDetail = ({route, navigation}) => {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}>
+        <SafeAreaView>
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
@@ -98,12 +99,12 @@ const HotelDetail = ({route, navigation}) => {
                 </Text>
               </View>
 
-              <View>
+              <View style={styles.mainCarouselContainer}>
                 {images?.length > 0 ? (
                   <View style={styles.carouselContainer}>
                     <Carousel
                       ref={carouselRef}
-                      width={Matrics.screenWidth * 0.8}
+                      width={Matrics.screenWidth }
                       height={200}
                       data={images}
                       renderItem={renderItem}
@@ -112,9 +113,9 @@ const HotelDetail = ({route, navigation}) => {
                       autoPlayInterval={3000}
                       onSnapToItem={index => setActiveIndex(index)}
                       style={styles.carousel}
+                      mode="parallax"
                     />
-                    {/* <Carousel /> */}
-                    <View style={styles.buttonContainer}>
+                    {/* <View style={styles.buttonContainer}>
                       <TouchableOpacity
                         style={[
                           styles.button,
@@ -139,7 +140,7 @@ const HotelDetail = ({route, navigation}) => {
                         }>
                         <Text style={styles.buttonText}>Next</Text>
                       </TouchableOpacity>
-                    </View>
+                    </View> */}
                   </View>
                 ) : (
                   <Text>No images available</Text>
@@ -159,6 +160,7 @@ const HotelDetail = ({route, navigation}) => {
           )}
         </View>
       </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
@@ -186,21 +188,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  mainCarouselContainer:{
+
+  },
   carouselContainer: {
     alignItems: 'center',
-    marginVertical: Matrics.vs(16),
   },
   slide: {
     width: '100%',
     height: 200,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: Matrics.s(16),
+    borderRadius: Matrics.s(10),
   },
   image: {
     width: Matrics.screenWidth,
     resizeMode: 'cover',
     height: 200,
+    borderRadius: Matrics.s(10),
   },
   buttonContainer: {
     flexDirection: 'row',

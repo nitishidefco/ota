@@ -6,7 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import {typography} from '../../Config/AppStyling';
+import {Matrics, typography} from '../../Config/AppStyling';
 import LinearGradient from 'react-native-linear-gradient';
 
 // Star Rating Component with Custom Icons
@@ -121,7 +121,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
             <Text style={styles.perNight}>1 Night (incl.VAT)</Text>
           </View>
 
-          <TouchableOpacity style={{width: '60%'}} onPress={onBookPress}>
+          <TouchableOpacity style={{width: '60%', height:'100%', paddingHorizontal: Matrics.s(10)}} onPress={onBookPress}>
             <LinearGradient
               colors={['#8740AB', '#49225C']}
               start={{x: 0, y: 0}}
@@ -241,9 +241,11 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.Medium,
   },
   bookButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    // paddingVertical: 12,
+    // paddingHorizontal: 24,
     borderRadius: 8,
+    height: Matrics.vs(35),
+    justifyContent:'center'
   },
   bookButtonText: {
     color: 'white',
