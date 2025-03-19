@@ -2,11 +2,11 @@ import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
 import React from 'react';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 
-const SimpleLoader = () => {
+const SimpleLoader = ({loadingText = 'Just a moment ...'}) => {
   return (
     <View style={styles.simpleLoader}>
       <ActivityIndicator size={'large'} color={COLOR.PRIMARY} />
-      <Text style={styles.loaderText}>Just a moment...</Text>
+      <Text style={styles.loaderText}>{loadingText}</Text>
     </View>
   );
 };

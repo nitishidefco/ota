@@ -6,6 +6,8 @@ export default {
   lightTheme: {
     fontColor: '#fff',
   },
+  GREY: '#ddd',
+  SMALL_CARD_BACKGROUND: '#f5f5f5',
   WHITE: '#fff',
   BLACK: '#000',
   DARK_TEXT_COLOR: '#696969',
@@ -19,6 +21,7 @@ export default {
   RANGE_START: '#3423A6',
   RANGE_MIDDLE: '#9984d4',
   RANGE_END: '#3423A6',
+  RED: '#FF0004',
   //APP THEMING
   dark: {
     backgroundColor: '#343434',

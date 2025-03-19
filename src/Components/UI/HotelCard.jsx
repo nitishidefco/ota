@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
-import {Matrics, typography} from '../../Config/AppStyling';
+import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import LinearGradient from 'react-native-linear-gradient';
 
 // Star Rating Component with Custom Icons
@@ -27,7 +21,6 @@ const StarRating = ({
       <Text style={styles.ratingNumber}>{rating.toFixed(1)}</Text>
 
       <View style={styles.starsContainer}>
-        {/* Full stars */}
         {[...Array(fullStars)].map((_, i) => (
           <Image
             key={`full-${i}`}
@@ -35,13 +28,10 @@ const StarRating = ({
             style={styles.starIcon}
           />
         ))}
-
-        {/* Half star if needed */}
         {halfStar && (
           <Image key="half" source={halfStarIcon} style={styles.starIcon} />
         )}
 
-        {/* Empty stars */}
         {[...Array(emptyStars)].map((_, i) => (
           <Image
             key={`empty-${i}`}
@@ -95,13 +85,18 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
         />
 
         <View style={styles.amenitiesContainer}>
-          {amenities.map((amenity, index) => (
-            <AmenityItem
-              key={index}
-              iconSource={icons.amenities[amenity]}
-              name={amenity}
-            />
-          ))}
+          {amenities?.length > 0 ? (
+            amenities.map((amenity, index) => (
+              <AmenityItem
+                key={index}
+                iconSource={icons.amenities[amenity]}
+                name={amenity}
+              />
+            ))
+          ) : (
+            <Text style={styles.amenityText}>No amenities available</Text>
+          )}
+          {}
         </View>
 
         <View style={styles.bookingContainer}>
@@ -121,7 +116,13 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
             <Text style={styles.perNight}>1 Night (incl.VAT)</Text>
           </View>
 
-          <TouchableOpacity style={{width: '60%', height:'100%', paddingHorizontal: Matrics.s(10)}} onPress={onBookPress}>
+          <TouchableOpacity
+            style={{
+              width: '60%',
+              height: '100%',
+              paddingHorizontal: Matrics.s(10),
+            }}
+            onPress={onBookPress}>
             <LinearGradient
               colors={['#8740AB', '#49225C']}
               start={{x: 0, y: 0}}
@@ -135,7 +136,6 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   card: {
@@ -195,22 +195,27 @@ const styles = StyleSheet.create({
     // justifyContent: 'space-around',
     rowGap: 5,
     gap: 13,
-    // backgroundColor: 'green',
   },
   amenityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    // backgroundColor: 'red',
-    width: '30%',
+    borderColor: COLOR.BORDER_COLOR,
+    borderWidth: 1,
+    borderRadius: Matrics.s(5),
+    paddingVertical: Matrics.vs(3),
+    paddingRight: Matrics.s(4),
+    paddingLeft: Matrics.s(5),
   },
   amenityIcon: {
+    resizeMode: 'contain',
     width: 20,
     height: 20,
+    marginRight: Matrics.s(5),
   },
   amenityText: {
-    fontSize: 14,
+    fontSize: typography.fontSizes.fs12,
     color: '#666',
-    marginLeft: 6,
+    // marginLeft: 6,
     fontFamily: typography.fontFamily.Montserrat.Regular,
   },
   bookingContainer: {
@@ -245,7 +250,7 @@ const styles = StyleSheet.create({
     // paddingHorizontal: 24,
     borderRadius: 8,
     height: Matrics.vs(35),
-    justifyContent:'center'
+    justifyContent: 'center',
   },
   bookButtonText: {
     color: 'white',

@@ -7,6 +7,8 @@ import hotelsReducer from './HotelReducer/GetHotelSlice';
 import deviceLocationReducer from './LocationReducer';
 import languageReducer from './LanguageSlice';
 import hotelDetailReducer from './HotelReducer/GetHotelDetailSlice';
+import roomsReducer from './HotelReducer/RoomsSlice';
+import confirmPriceReducer from './HotelReducer/PriceConfirmSlice';
 const rootReducer = combineReducers({
   auth: authReducer,
   contentToken: contentTokenReducer,
@@ -16,6 +18,8 @@ const rootReducer = combineReducers({
   deviceLocation: deviceLocationReducer,
   selectedLanguage: languageReducer,
   hotelDetail: hotelDetailReducer,
+  rooms: roomsReducer,
+  confirmPrice: confirmPriceReducer,
 });
 
 export default rootReducer;

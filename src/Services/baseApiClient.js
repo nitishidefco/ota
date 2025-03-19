@@ -3,7 +3,7 @@ import {Store} from '../Redux/store';
 import {logout} from '../Redux/Reducers/AuthSlice';
 
 const baseApiClient = axios.create({
-  baseURL: 'https://ota.dev.visionvivante.com:9000',
+  baseURL: 'https://otaapi.visionvivante.com:9000',
   headers: {
     'Content-Type': 'application/json',
   },

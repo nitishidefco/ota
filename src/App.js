@@ -1,3 +1,6 @@
+if (__DEV__) {
+  require('./../ReactotronConfig');
+}
 import React from 'react';
 import NavigationStack from './NavigationStack';
 import {Provider} from 'react-redux';
@@ -8,14 +11,18 @@ import {toastConfig} from './Helpers';
 import {I18nextProvider} from 'react-i18next';
 import i18n from './i18n/i18n';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {RoomProvider} from './Context/RoomContext';
+
 const App = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <SafeAreaProvider>
         <Provider store={Store}>
           <I18nextProvider i18n={i18n}>
-            <NavigationStack />
-            <Toast config={toastConfig} autoHide={true} />
+            <RoomProvider>
+              <NavigationStack />
+              <Toast config={toastConfig} autoHide={true} />
+            </RoomProvider>
           </I18nextProvider>
         </Provider>
       </SafeAreaProvider>

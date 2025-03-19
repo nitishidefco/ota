@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {Images} from '../../Config';
@@ -21,12 +22,11 @@ import {initializeLanguage} from '../../Redux/Reducers/LanguageSlice';
 import TourSearchCard from '../../Components/UI/SearchCards/TourSearchCard';
 import FlightsSearchCard from '../../Components/UI/SearchCards/FlightsSearchCard';
 import CarSearchCard from '../../Components/UI/SearchCards/CarSearchCard';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const Hotels = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('Hotels');
   const {userProfileData} = useSelector(state => state.userProfile);
-
   const hotelDataS = useSelector(state => state.hotelSlice);
 
   const globalLanguage = useSelector(
@@ -40,35 +40,36 @@ const Hotels = ({navigation}) => {
     fullStar: Images.FULL_STAR,
     halfStar: Images.HALF_STAR,
     amenities: {
-      'Air Condition': Images.AC,
+      'Air conditioning': Images.AC,
       Parking: Images.PARKING,
       ATM: Images.ATM,
-      '24H. Reception': Images.RECEPTION,
+      '24-hour reception': Images.RECEPTION,
       'Free Wifi': Images.WIFI,
       Gym: Images.GYM,
+      'Hotel Safe': Images.SAFE,
+      'Currency Exchange': Images.CURRENCY_EXCHANGE,
+      Lifts: Images.CURRENCY_EXCHANGE,
+      Café: Images.CASH_ICON,
+      'Newspaper kiosk': Images.KIOSK,
     },
   };
 
-  const formatHotelData = hotel => ({
-    imageSource: Images.HOTEL_CARD_BACKGROUND,
-    name: hotel.Name,
-    rating: parseFloat(hotel.category),
-    reviewCount: 0,
-    amenities: [
-      'Parking',
-      'ATM',
-      '24H. Reception',
-      'Free Wifi',
-      'Gym',
-      'Air Condition',
-    ],
-    price: hotel.price,
-    originalPrice: hotel.price * 1.15,
-    currency: '$',
-  });
+  const formatHotelData = hotel => {
+    return {
+      imageSource: Images.HOTEL_CARD_BACKGROUND,
+      name: hotel.Name,
+      rating: parseFloat(hotel.category),
+      reviewCount: 0,
+      amenities:
+        hotel.facilities === null ? null : hotel?.facilities?.slice(0, 6),
+      price: hotel.price,
+      originalPrice: hotel.totalprice,
+      currency: '$',
+    };
+  };
 
   const renderHotelCard = ({item}) => (
-    <TouchableOpacity
+    <Pressable
       onPress={() =>
         navigation.navigate('HotelDetail', {
           provider: item.provider,
@@ -87,19 +88,30 @@ const Hotels = ({navigation}) => {
           })
         }
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 
   // Custom Tab Component
   const renderTab = (title, activeIcon, inactiveIcon) => (
     <TouchableOpacity
-      style={styles.homeTabs}
+      style={[
+        styles.homeTabs,
+        {
+          backgroundColor: activeTab === title ? 'white' : COLOR.PRIMARY, // Change background based on activeTab
+        },
+      ]}
       onPress={() => setActiveTab(title)}>
       <Image
         style={styles.homeTabsImage}
         source={activeTab === title ? activeIcon : inactiveIcon}
       />
-      <Text style={styles.homeTabsTitle}>{title}</Text>
+      <Text
+        style={[
+          styles.homeTabsTitle,
+          {color: activeTab === title ? COLOR.PRIMARY : 'white'}, // Active: COLOR.PRIMARY, Inactive: white
+        ]}>
+        {title}
+      </Text>
     </TouchableOpacity>
   );
   const renderSearchCard = () => {
@@ -116,87 +128,91 @@ const Hotels = ({navigation}) => {
   };
   return (
     <SafeAreaView>
-    <ScrollView>
-      <View>
-        <ImageBackground
-          source={Images.PROFILE_BACKGROUND}
-          imageStyle={styles.headerImageStyle}>
-          <View style={styles.homeHeaderUpperContainer}>
-            <View>
-              <Text style={styles.homeHeaderTitle}>
-                {i18n.t('Hotel.hi')} {userProfileData?.name}
-              </Text>
-            </View>
-            <View style={styles.homeHeaderSecondaryOptions}>
-              <LanguageSelector />
-              <View style={styles.secondaryOptions}>
-                <Image
-                  style={styles.secondaryOptionsImages}
-                  source={Images.CASH_ICON}
-                />
-              </View>
-              <View style={styles.secondaryOptions}>
-                <Image
-                  style={styles.secondaryOptionsImages}
-                  source={Images.DOTS}
-                />
-              </View>
-            </View>
-          </View>
-          <View>
-            <Text style={styles.homeHeaderSubtitle}>
-              {i18n.t('Hotel.bestService')}
-            </Text>
-          </View>
-          <View style={styles.homeTabContainer}>
-            {renderTab('Hotels', Images.HOTELS_ACTIVE, Images.HOTELS_INACTIVE)}
-            {renderTab('Tours', Images.TOURS_ACTIVE, Images.TOURS_INACTIVE)}
-            {renderTab(
-              'Flights',
-              Images.FLIGHTS_ACTIVE,
-              Images.FLIGHTS_INACTIVE,
-            )}
-            {renderTab('Car', Images.CARS_ACTIVE, Images.CARS_INACTIVE)}
-          </View>
-        </ImageBackground>
-        {renderSearchCard()}
-      </View>
-      <View style={{height: Matrics.screenHeight}}>
-        <FlatList
-          data={activeTab === 'Hotels' ? hotelDataS.hotels : []}
-          renderItem={renderHotelCard}
-          keyExtractor={item => item.HotelID.toString()}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled={true}
-          ListEmptyComponent={
-            hotelDataS.loadingHotels ? (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minHeight: 200,
-                }}>
-                <ActivityIndicator size="large" color="#0000ff" />
-              </View>
-            ) : (
-              <View style={styles.emptyFlatListContainer}>
-                <Image
-                  style={styles.emptyFlatListImage}
-                  source={Images.EMPTY_FLAT_LIST}
-                />
-                <Text style={styles.emptyFlatListText}>
-                  Search to find amazing {activeTab.toLowerCase()}
+      <ScrollView>
+        <View>
+          <ImageBackground
+            source={Images.PROFILE_BACKGROUND}
+            imageStyle={styles.headerImageStyle}>
+            <View style={styles.homeHeaderUpperContainer}>
+              <View>
+                <Text style={styles.homeHeaderTitle}>
+                  {i18n.t('Hotel.hi')} {userProfileData?.name}
                 </Text>
               </View>
-            )
-          }
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-        />
-      </View>
-    </ScrollView>
+              <View style={styles.homeHeaderSecondaryOptions}>
+                <LanguageSelector />
+                <View style={styles.secondaryOptions}>
+                  <Image
+                    style={styles.secondaryOptionsImages}
+                    source={Images.CASH_ICON}
+                  />
+                </View>
+                <View style={styles.secondaryOptions}>
+                  <Image
+                    style={styles.secondaryOptionsImages}
+                    source={Images.DOTS}
+                  />
+                </View>
+              </View>
+            </View>
+            <View>
+              <Text style={styles.homeHeaderSubtitle}>
+                {i18n.t('Hotel.bestService')}
+              </Text>
+            </View>
+            <View style={styles.homeTabContainer}>
+              {renderTab(
+                'Hotels',
+                Images.HOTELS_ACTIVE,
+                Images.HOTELS_INACTIVE,
+              )}
+              {renderTab('Tours', Images.TOURS_ACTIVE, Images.TOURS_INACTIVE)}
+              {renderTab(
+                'Flights',
+                Images.FLIGHTS_ACTIVE,
+                Images.FLIGHTS_INACTIVE,
+              )}
+              {renderTab('Car', Images.CARS_ACTIVE, Images.CARS_INACTIVE)}
+            </View>
+          </ImageBackground>
+          {renderSearchCard()}
+        </View>
+        <View style={{height: Matrics.screenHeight}}>
+          <FlatList
+            data={activeTab === 'Hotels' ? hotelDataS.hotels : []}
+            renderItem={renderHotelCard}
+            keyExtractor={item => item.HotelID.toString()}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            ListEmptyComponent={
+              hotelDataS.loadingHotels ? (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: 200,
+                  }}>
+                  <ActivityIndicator size="large" color="#0000ff" />
+                </View>
+              ) : (
+                <View style={styles.emptyFlatListContainer}>
+                  <Image
+                    style={styles.emptyFlatListImage}
+                    source={Images.EMPTY_FLAT_LIST}
+                  />
+                  <Text style={styles.emptyFlatListText}>
+                    Search to find amazing {activeTab.toLowerCase()}
+                  </Text>
+                </View>
+              )
+            }
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -246,7 +262,6 @@ const styles = StyleSheet.create({
     height: Matrics.screenHeight * 0.4,
   },
   homeTabs: {
-    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,

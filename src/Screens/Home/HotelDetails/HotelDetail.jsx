@@ -1,3 +1,4 @@
+import React, {useContext, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -6,41 +7,59 @@ import {
   Platform,
   StyleSheet,
   Image,
-  TouchableOpacity,
+  FlatList,
 } from 'react-native';
-import React, {useEffect, useRef, useState, useMemo} from 'react';
-import {getHotelDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetHotelDetailSlice';
 import {useDispatch, useSelector} from 'react-redux';
+import {getHotelDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetHotelDetailSlice';
 import NormalHeader from '../../../Components/UI/NormalHeader';
-import {Matrics} from '../../../Config/AppStyling';
-import Carousel from 'react-native-reanimated-carousel';
+import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import {Images} from '../../../Config';
-import {FlatList} from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import RoomCard from '../../../Components/UI/RoomCard';
+import ModifyCard from '../../../Components/UI/ModifyCard';
+import FacilitiesCard from '../../../Components/UI/FacilitiesCard';
+import HotelCarousel from '../../../Components/UI/HotelCarousel';
+import ReviewCard from '../../../Components/UI/ReviewCard';
+import EachStarRatingComponent from '../../../Components/UI/EachStarRatingComponent';
+import SimpleLoader from '../../../Components/Loader/SimpleLoader';
+import CheckoutToast from '../../../Components/UI/CheckoutToast';
+import {confirmPrice} from '../../../Redux/Reducers/HotelReducer/PriceConfirmSlice';
+import { RoomContext } from '../../../Context/RoomContext';
 
 const HotelDetail = ({route, navigation}) => {
   const dispatch = useDispatch();
+    const {ratePlanId} = useContext(RoomContext);
   const {provider, hotelId, GiataId} = route.params;
   const hotelDetail = useSelector(state => state?.hotelDetail);
-  const carouselRef = useRef(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const rooms = useSelector(state => state?.rooms);
 
-  // Use hotel images from API if available, otherwise use default images
   const images = [Images.HOTEL1, Images.HOTEL2, Images.HOTEL3];
-  console.log('Images', images);
-
+  const listItems = ['Item 1', 'Item 2', 'Item 3', 'Item 4'];
   const details = useMemo(
     () =>
-      GiataId
-        ? {
-            GiataId: GiataId,
-          }
-        : {
-            provider: provider,
-            HotelID: hotelId,
-          },
+      GiataId ? {GiataId: GiataId} : {provider: provider, HotelID: hotelId},
     [GiataId, provider, hotelId],
   );
+  const handleCheckoutPress = async () => {
+    const detailsForPriceConfirm = {
+      RatePlanID: ratePlanId,
+      provider: provider,
+      HotelID: hotelId,
+      CheckInDate: '2025-03-20',
+      CheckOutDate: '2025-03-21',
+      RoomCount: 1,
+      Nationality: 'US',
+      Currency: 'USD',
+      OccupancyDetails: [
+        {
+          ChildCount: 0,
+          AdultCount: 1,
+          RoomNum: 1,
+        },
+      ],
+    };
+    dispatch(confirmPrice({details: detailsForPriceConfirm}));
+  };
 
   useEffect(() => {
     try {
@@ -49,123 +68,184 @@ const HotelDetail = ({route, navigation}) => {
       console.error('Error getting hotel details', error);
     }
   }, [dispatch, details]);
-
-  const renderItem = ({item}) => {
-
-    return (
-      <View style={styles.slide}>
-        <Image source={item} style={styles.image} resizeMode="cover" />
-      </View>
-    );
+  const renderEmptyList = () => {
+    return <Text>No rooms right now</Text>;
   };
-
-  const goToPrevious = () => {
-    if (carouselRef.current) {
-      carouselRef.current.prev();
-    }
-  };
-
-  const goToNext = () => {
-    if (carouselRef.current) {
-      carouselRef.current.next();
-    }
-  };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}>
-        <SafeAreaView>
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        <NormalHeader
-          title="Hotel Details"
-          onCrossPress={() => navigation.goBack()}
-          showLeftButton={true}
-          showRightButton={false}
-          leftIconName="BACK_ROUND"
-        />
-        <View>
-          {hotelDetail?.loadingHotels ? (
-            <Text>Loading</Text>
-          ) : (
-            <>
-              <View style={styles.hotelInfoContainer}>
-                <Text style={styles.hotelName}>{hotelDetail?.hotel?.Name}</Text>
-                <Text style={styles.hotelAddress}>
-                  {hotelDetail?.hotel?.address}
-                </Text>
+      <SafeAreaView>
+        <ScrollView
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <NormalHeader
+            title="Detail Page"
+            onCrossPress={() => navigation.goBack()}
+            showLeftButton={true}
+            showRightButton={false}
+            leftIconName="BACK_ROUND"
+          />
+          <View>
+            {hotelDetail?.loadingHotels ? (
+              <View
+                style={{
+                  height: Matrics.screenHeight * 0.8,
+                  justifyContent: 'center',
+                }}>
+                <SimpleLoader loadingText="Loading the hotel details" />
               </View>
-
-              <View style={styles.mainCarouselContainer}>
-                {images?.length > 0 ? (
-                  <View style={styles.carouselContainer}>
-                    <Carousel
-                      ref={carouselRef}
-                      width={Matrics.screenWidth }
-                      height={200}
-                      data={images}
-                      renderItem={renderItem}
-                      loop={true}
-                      autoPlay={true}
-                      autoPlayInterval={3000}
-                      onSnapToItem={index => setActiveIndex(index)}
-                      style={styles.carousel}
-                      mode="parallax"
-                    />
-                    {/* <View style={styles.buttonContainer}>
-                      <TouchableOpacity
-                        style={[
-                          styles.button,
-                          activeIndex === 0 && styles.disabledButton,
-                        ]}
-                        onPress={goToPrevious}
-                        disabled={
-                          activeIndex === 0 && !carouselRef.current?.loop
-                        }>
-                        <Text style={styles.buttonText}>Previous</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.button,
-                          activeIndex === images?.length - 1 &&
-                            styles.disabledButton,
-                        ]}
-                        onPress={goToNext}
-                        disabled={
-                          activeIndex === images?.length - 1 &&
-                          !carouselRef.current?.loop
-                        }>
-                        <Text style={styles.buttonText}>Next</Text>
-                      </TouchableOpacity>
-                    </View> */}
-                  </View>
-                ) : (
-                  <Text>No images available</Text>
-                )}
-              </View>
-              <View style={styles.amenitiesContainer}>
-                <Text style={styles.amenitiesTitle}>Amenities</Text>
-                <View style={styles.facilitiesList}>
-                  {hotelDetail?.hotel?.facilities?.map((item, index) => (
-                    <Text key={index} style={styles.facilityItem}>
-                      {item}
-                    </Text>
-                  ))}
+            ) : (
+              <>
+                <View style={styles.mainCarouselContainer}>
+                  {images?.length > 0 ? (
+                    <HotelCarousel images={images} />
+                  ) : (
+                    <Text>No images available</Text>
+                  )}
                 </View>
-              </View>
-            </>
-          )}
-        </View>
-      </ScrollView>
+                <View style={styles.hotelInfoContainer}>
+                  <Text style={styles.hotelName}>
+                    {hotelDetail?.hotel?.Name}
+                  </Text>
+                  <View style={styles.reviewsContainer}>
+                    <Text
+                      style={{
+                        fontFamily: typography.fontFamily.Montserrat.Regular,
+                        fontSize: typography.fontSizes.fs14,
+                      }}>
+                      4.2
+                    </Text>
+                    <View style={styles.starContainer}>
+                      <Image
+                        style={styles.startImages}
+                        source={Images.FULL_STAR}
+                      />
+                      <Image
+                        style={styles.startImages}
+                        source={Images.FULL_STAR}
+                      />
+                      <Image
+                        style={styles.startImages}
+                        source={Images.FULL_STAR}
+                      />
+                      <Image
+                        style={styles.startImages}
+                        source={Images.FULL_STAR}
+                      />
+                      <Image
+                        style={styles.startImages}
+                        source={Images.HALF_STAR}
+                      />
+                    </View>
+                    <View>
+                      <Text
+                        style={{
+                          fontFamily: typography.fontFamily.Montserrat.Regular,
+                          fontSize: typography.fontSizes.fs14,
+                        }}>
+                        (147)
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.addressContainer}>
+                    <Image
+                      source={Images.LOCATION}
+                      style={styles.locationPin}
+                    />
+                    <Text style={styles.hotelAddress}>
+                      Abu Dhabi, United Arab Emirates
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    paddingHorizontal: Matrics.s(16),
+                    marginTop: Matrics.vs(25),
+                  }}>
+                  <ModifyCard provider={provider} hotelId={hotelId} />
+                </View>
+                <View style={{paddingHorizontal: Matrics.s(16)}}>
+                  <Text style={styles.title}>Rooms</Text>
+                  {rooms?.loadingRooms === false ? (
+                    <FlatList
+                      data={rooms.rooms}
+                      keyExtractor={(item, index) => index.toString()}
+                      renderItem={({item}) => <RoomCard room={item} />}
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      ListEmptyComponent={renderEmptyList}
+                      ItemSeparatorComponent={() => (
+                        <View style={{width: 20}} />
+                      )}
+                    />
+                  ) : (
+                    <>
+                      <SimpleLoader loadingText="Getting rooms for you" />
+                    </>
+                  )}
+                </View>
+                <View style={styles.amenitiesContainer}>
+                  <Text style={styles.title}>Amenities</Text>
+                  <View style={styles.facilitiesList}>
+                    {hotelDetail?.hotel?.facilities?.length > 0 ? (
+                      hotelDetail?.hotel?.facilities.map((facility, index) => {
+                        return (
+                          <FacilitiesCard
+                            key={index}
+                            icon={facility}
+                            title={facility}
+                          />
+                        );
+                      })
+                    ) : (
+                      <Text>No Facilities available</Text>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.policiesContainer}>
+                  <Text style={styles.title}>Policies</Text>
+                  <View>
+                    <Text>Property Policies</Text>
+                    <Text>
+                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                      Laudantium voluptas similique quasi, qui non libero
+                      deleniti quaerat cumque, minima at aliquid aspernatur nemo
+                      id, aut harum impedit quod sunt quibusdam molestias illo
+                      sit. Minima dolore praesentium odit molestiae nemo
+                      consequatur voluptas ipsum perferendis quibusdam!
+                    </Text>
+                    {listItems.map((item, index) => (
+                      <View key={index} style={styles.listItem}>
+                        <Text style={styles.bullet}>•</Text>
+                        <Text style={styles.text}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+                <View style={styles.reviewContainer}>
+                  <Text style={styles.title}>Reviews</Text>
+                  <View style={styles.reivewVisuals}>
+                    <ReviewCard />
+                    <View>
+                      <EachStarRatingComponent />
+                      <EachStarRatingComponent />
+                      <EachStarRatingComponent />
+                      <EachStarRatingComponent />
+                      <EachStarRatingComponent />
+                    </View>
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
+        </ScrollView>
+        <CheckoutToast handlePress={handleCheckoutPress} />
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
-
-export default HotelDetail;
 
 const styles = StyleSheet.create({
   container: {
@@ -177,77 +257,87 @@ const styles = StyleSheet.create({
     paddingBottom: Matrics.vs(20),
   },
   hotelInfoContainer: {
-    padding: Matrics.s(16),
+    paddingHorizontal: Matrics.s(16),
   },
   hotelName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: Matrics.vs(8),
+    fontFamily: typography.fontFamily.Montserrat.Bold,
+    fontSize: typography.fontSizes.fs24,
   },
   hotelAddress: {
-    fontSize: 16,
+    fontFamily: typography.fontFamily.Montserrat.Medium,
+    fontSize: typography.fontSizes.fs14,
     color: '#666',
-  },
-  mainCarouselContainer:{
-
-  },
-  carouselContainer: {
-    alignItems: 'center',
-  },
-  slide: {
-    width: '100%',
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: Matrics.s(10),
-  },
-  image: {
-    width: Matrics.screenWidth,
-    resizeMode: 'cover',
-    height: 200,
-    borderRadius: Matrics.s(10),
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '80%',
-    marginTop: Matrics.vs(16),
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: Matrics.s(10),
-    borderRadius: Matrics.s(8),
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  disabledButton: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    flex: 1,
   },
   amenitiesContainer: {
     padding: Matrics.s(16),
-  },
-  amenitiesTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: Matrics.vs(12),
   },
   facilitiesList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Matrics.s(8),
   },
-  facilityItem: {
-    fontSize: 16,
-    color: '#666',
-    backgroundColor: '#f5f5f5',
-    padding: Matrics.s(8),
-    borderRadius: Matrics.s(4),
+  addressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginTop: Matrics.vs(5),
   },
-  carousel: {
-    width: Matrics.screenWidth,
+  locationPin: {
+    resizeMode: 'contain',
+    width: Matrics.s(15),
+    height: Matrics.s(15),
+  },
+  reviewsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  startImages: {
+    resizeMode: 'contain',
+    height: Matrics.vs(14),
+    width: Matrics.s(14),
+  },
+  starContainer: {
+    flexDirection: 'row',
+    gap: 5,
+  },
+  title: {
+    fontFamily: typography.fontFamily.Montserrat.Bold,
+    fontSize: typography.fontSizes.fs18,
+    marginBottom: Matrics.vs(10),
+    marginTop: Matrics.vs(10),
+  },
+  reivewVisuals: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  policiesContainer: {
+    padding: Matrics.s(16),
+  },
+  reviewContainer: {
+    padding: Matrics.s(16),
+    width: Matrics.screenWidth * 0.9,
+  },
+  modalStyle: {
+    backgroundColor: COLOR.WHITE,
+    width: Matrics.screenWidth * 0.9,
+    flexDirection: 'row',
+    paddingVertical: Matrics.vs(10),
+    borderRadius: Matrics.s(5),
+    paddingHorizontal: Matrics.s(5),
+    justifyContent: 'space-between',
+    position: 'relative',
+  },
+  modalParent: {
+    position: 'absolute',
+    flex: 1,
+    backgroundColor: 'red',
+  },
+  selectedRoomText: {
+    fontFamily: typography.fontFamily.Montserrat.SemiBold,
+    fontSize: typography.fontSizes.fs16,
   },
 });
+
+export default HotelDetail;
