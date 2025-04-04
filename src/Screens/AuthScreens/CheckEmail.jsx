@@ -18,8 +18,9 @@ import CustomInput from '../../Components/UI/CustomInput';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import OtpHandler from '../../Components/UI/OtpHandler';
+import {useNavigation} from '@react-navigation/native';
 const CheckEmail = () => {
-  const [email, setEmail] = useState('');
+  const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <KeyboardAvoidingView
@@ -42,7 +43,10 @@ const CheckEmail = () => {
                   further instructions. Please check your mail to rest your
                   password.
                 </Text>
-                <TouchableOpacity style={styles.buttonStyle}>
+                <TouchableOpacity
+                  style={styles.buttonStyle}
+                  onPress={() => navigation.replace('LoginWithEmail')}
+                  activeOpacity={0.7}>
                   <Text style={styles.buttonTextStyle}>Back to login</Text>
                 </TouchableOpacity>
               </View>
@@ -61,7 +65,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     paddingHorizontal: Matrics.s(10),
-    marginTop: Matrics.screenHeight * 0.2,
+    marginTop: Matrics.vs(165),
     flex: 1,
   },
   detailText: {

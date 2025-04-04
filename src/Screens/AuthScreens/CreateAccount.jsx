@@ -1,9 +1,9 @@
 import {
   SafeAreaView,
-  ScrollView,
+  // ScrollView,
   View,
-  KeyboardAvoidingView,
-  Platform,
+  // KeyboardAvoidingView,
+  // Platform,
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
@@ -17,17 +17,25 @@ import CustomInput from '../../Components/UI/CustomInput';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import {useDispatch, useSelector} from 'react-redux';
-import {createUserAccount} from '../../Redux/Reducers/AuthSlice';
+import {
+  createUserAccount,
+  facebookLogin,
+  googleLogin,
+} from '../../Redux/Reducers/AuthSlice';
 import {CountryPicker} from 'react-native-country-codes-picker';
 import {useNavigation} from '@react-navigation/native';
 import CustomLoader from '../../Components/Loader/CustomLoader';
 import {checkUniversalToken} from '../../Redux/Reducers/ContentTokenSlice';
 import {errorToast, success} from '../../Helpers/ToastMessage';
 import i18n from '../../i18n/i18n';
+import {countryPhoneLength} from '../../Utils/countryPhoneLength';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 
 const CreateAccount = () => {
   const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
+  const [countryCodeName, setCountryCodeName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,16 +89,50 @@ const CreateAccount = () => {
 
   const validatePhone = value => {
     if (!value.trim()) {
-      const error = i18n.t('validationMessages.noPhone');
-      return error;
+      return i18n.t('validationMessages.noPhone');
     }
-    if (!/^\d{10}$/.test(value)) {
-      const error = i18n.t('validationMessages.validPhoneLength');
-      return error;
+
+    // Find the selected country from the list
+    const country = countryPhoneLength.find(
+      c => c.phone === countryCode.replace('+', ''),
+    );
+    setCountryCodeName(country.code);
+    console.log('country', country);
+
+    if (!country) {
+      return i18n.t('validationMessages.validPhoneLength');
+    }
+
+    const phoneLength =
+      country.phoneLength ||
+      (country.min && country.max ? [country.min, country.max] : null);
+
+    // Handle different phoneLength formats
+    if (Array.isArray(phoneLength)) {
+      if (!phoneLength.includes(value.length)) {
+        return i18n
+          .t('validationMessages.validPhoneLength')
+          .replace('{length}', phoneLength.join(' or '));
+      }
+    } else if (typeof phoneLength === 'number') {
+      if (value.length !== phoneLength) {
+        return i18n
+          .t('validationMessages.validPhoneLength')
+          .replace('{length}', phoneLength);
+      }
+    } else if (country.min && country.max) {
+      if (value.length < country.min || value.length > country.max) {
+        return i18n
+          .t('validationMessages.validPhoneLength')
+          .replace('{length}', `${country.min}-${country.max}`);
+      }
+    }
+
+    if (!/^\d+$/.test(value)) {
+      return i18n.t('validationMessages.validPhoneLength');
     }
     return '';
   };
-
   const validatePassword = value => {
     if (!value) {
       const error = i18n.t('validationMessages.noPassword');
@@ -100,13 +142,6 @@ const CreateAccount = () => {
       const error = i18n.t('validationMessages.shortPassword');
       return error;
     }
-    // if (
-    //   !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
-    //     value,
-    //   )
-    // ) {
-    //   return 'Password must contain uppercase, lowercase, number and special character';
-    // }
     return '';
   };
 
@@ -184,9 +219,13 @@ const CreateAccount = () => {
       const userDetailsForCreateAccount = {
         name,
         email,
-        phone_number: `${countryCode}${phone}`,
+        phone_number: phone,
         password,
-        referal_code: referalCode,
+        referral_code: referalCode,
+        country_code: countryCode,
+        country_code_name: countryCodeName,
+        username: name,
+        role: 'user',
       };
       let currentToken = token;
       if (!currentToken) {
@@ -199,6 +238,7 @@ const CreateAccount = () => {
           return;
         }
       }
+      console.log('userDetailsForCreateAccount', userDetailsForCreateAccount);
 
       const response = await dispatch(
         createUserAccount({
@@ -206,6 +246,9 @@ const CreateAccount = () => {
           contentToken: currentToken,
         }),
       );
+
+      console.log('response sign up', response);
+
       if (response?.payload?.status === true) {
         success(
           i18n.t('Toast.accountCreatedSuccess'),
@@ -215,7 +258,7 @@ const CreateAccount = () => {
       } else if (response?.payload?.status === false) {
         errorToast(response?.payload?.message);
       } else if (response?.error?.message === 'Rejected') {
-        errorToast(response?.payload);
+        errorToast(response?.payload?.message);
       }
     } catch (error) {
       console.log('Error', 'creating account');
@@ -227,173 +270,203 @@ const CreateAccount = () => {
   return (
     <SafeAreaView style={styles.safeAreaView}>
       {AuthState?.isLoading && (
+        <Animated.View
+          entering={FadeIn.duration(25)}
+          exiting={FadeOut.duration(25)}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            height: Matrics.screenHeight,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+          }}
+        />
+      )}
+      {AuthState?.isLoading && (
         <CustomLoader
           message="Checking your details..."
           isVisible={AuthState?.isLoading}
         />
       )}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            scrollEnabled={AuthState.isLoading ? false : true}
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-            <View style={styles.container}>
-              <AuthScreenHeaders
-                title={i18n.t('CreateAccount.createNewAccount')}
-                showCreateAccountButton={false}
-                showLoginButton={true}
-                showBackButton={false}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{flex: 1}}>
+        <KeyboardAwareScrollView style={styles.keyboardAvoidingView}>
+          <View style={styles.container}>
+            <AuthScreenHeaders
+              title={i18n.t('CreateAccount.createNewAccount')}
+              showCreateAccountButton={false}
+              showLoginButton={true}
+              showBackButton={false}
+            />
+            <View style={styles.inputContainer}>
+              <CustomInput
+                label={i18n.t('CreateAccount.name')}
+                value={name}
+                onChangeText={handleNameChange}
+                placeholder={i18n.t('CreateAccount.namePlaceholder')}
+                type="text"
+                required
+                error={errors.name}
               />
-              <View style={styles.inputContainer}>
-                <CustomInput
-                  label={i18n.t('CreateAccount.name')}
-                  value={name}
-                  onChangeText={handleNameChange}
-                  placeholder={i18n.t('CreateAccount.namePlaceholder')}
-                  type="text"
-                  required
-                  error={errors.name}
-                />
-                <CustomInput
-                  label={i18n.t('CreateAccount.email')}
-                  value={email}
-                  onChangeText={handleEmailChange}
-                  placeholder={i18n.t('CreateAccount.emailPlaceholder')}
-                  type="email"
-                  required
-                  error={errors.email}
-                />
-                <View style={styles.phoneNumberContainer}>
-                  <TouchableOpacity
-                    onPress={() => setShow(true)}
-                    style={[
-                      styles.countryPicker,
-                      {
-                        marginTop: errors.phone
-                          ? Matrics.vs(-5)
-                          : Matrics.vs(10.9),
-                      },
-                    ]}>
-                    <Text style={styles.countryPickerTextStyle}>
-                      {countryCode}
-                    </Text>
-                  </TouchableOpacity>
-                  <View style={{flex: 1}}>
-                    <CustomInput
-                      label={i18n.t('CreateAccount.phone')}
-                      value={phone}
-                      onChangeText={handlePhoneChange}
-                      placeholder={i18n.t('CreateAccount.phonePlaceholder')}
-                      type="phone"
-                      required
-                      error={errors.phone}
-                      labelStyle={{right: Matrics.screenWidth * 0.2}}
-                      containerStyle={styles.phoneNumberField}
-                    />
-                  </View>
+              <CustomInput
+                label={i18n.t('CreateAccount.email')}
+                value={email}
+                onChangeText={handleEmailChange}
+                placeholder={i18n.t('CreateAccount.emailPlaceholder')}
+                type="email"
+                required
+                error={errors.email}
+              />
+              <View style={styles.phoneNumberContainer}>
+                <TouchableOpacity
+                  onPress={() => setShow(true)}
+                  style={[
+                    styles.countryPicker,
+                    {
+                      marginTop: errors.phone
+                        ? Matrics.vs(-5)
+                        : Matrics.vs(14),
+                      // position: 'absolute',
+                      // top: 20
+                    },
+                  ]}
+                  activeOpacity={0.7}>
+                  <Text style={styles.countryPickerTextStyle}>
+                    {countryCode}
+                  </Text>
+                </TouchableOpacity>
+                <View style={{flex: 1}}>
+                  <CustomInput
+                    label={i18n.t('CreateAccount.phone')}
+                    value={phone}
+                    onChangeText={handlePhoneChange}
+                    placeholder={i18n.t('CreateAccount.phonePlaceholder')}
+                    type="phone"
+                    required
+                    error={errors.phone}
+                    labelStyle={{right: Matrics.screenWidth * 0.21}}
+                    containerStyle={styles.phoneNumberField}
+                    // inputStyle={{marginBottom: Matrics.s(3)}}
+                  />
                 </View>
-                <CustomInput
-                  label={i18n.t('CreateAccount.password')}
-                  value={password}
-                  onChangeText={handlePasswordChange}
-                  placeholder={i18n.t('CreateAccount.passwordPlaceholder')}
-                  type="password"
-                  required
-                  error={errors.password}
-                />
-                <CustomInput
-                  label={i18n.t('CreateAccount.confirmPassword')}
-                  value={confirmPassword}
-                  onChangeText={handleConfirmPasswordChange}
-                  placeholder={i18n.t(
-                    'CreateAccount.confirmPasswordPlaceholder',
-                  )}
-                  type="password"
-                  required
-                  error={errors.confirmPassword}
-                />
-                <CustomInput
-                  label={i18n.t('CreateAccount.referalCode')}
-                  value={referalCode}
-                  onChangeText={setReferalCode}
-                  placeholder={i18n.t('CreateAccount.referalCodePlaceholder')}
-                  type="text"
-                />
-                <View style={styles.lastContainer}>
-                  <View style={styles.iconContainer}>
-                    <View>
-                      <Text style={styles.orTextStyle}>
-                        {i18n.t('CreateAccount.or')}
-                      </Text>
-                    </View>
-                    <View>
-                      <Text style={styles.signInWith}>
-                        {i18n.t('CreateAccount.signUpWith')}
-                      </Text>
-                    </View>
-                    <View style={styles.socailLoginContainer}>
-                      <View>
-                        <Image
-                          style={styles.socialIcons}
-                          source={Images.GOOGLE}
-                        />
-                      </View>
-                      <View>
-                        <Image
-                          style={styles.socialIcons}
-                          source={Images.FACEBOOK}
-                        />
-                      </View>
-                      <View>
-                        <Image
-                          style={styles.socialIcons}
-                          source={Images.APPLE}
-                        />
-                      </View>
-                    </View>
+              </View>
+              <CustomInput
+                label={i18n.t('CreateAccount.password')}
+                value={password}
+                onChangeText={handlePasswordChange}
+                placeholder={i18n.t('CreateAccount.passwordPlaceholder')}
+                type="password"
+                required
+                error={errors.password}
+                labelStyle={{marginLeft: Matrics.s(3)}}
+              />
+              <CustomInput
+                label={i18n.t('CreateAccount.confirmPassword')}
+                value={confirmPassword}
+                onChangeText={handleConfirmPasswordChange}
+                placeholder={i18n.t('CreateAccount.confirmPasswordPlaceholder')}
+                type="password"
+                required
+                error={errors.confirmPassword}
+                labelStyle={{marginLeft: Matrics.s(3)}}
+              />
+              <CustomInput
+                label={i18n.t('CreateAccount.referalCode')}
+                value={referalCode}
+                onChangeText={setReferalCode}
+                placeholder={i18n.t('CreateAccount.referalCodePlaceholder')}
+                type="text"
+                labelStyle={{marginLeft: Matrics.s(3)}}
+              />
+              <View style={styles.lastContainer}>
+                <View style={styles.iconContainer}>
+                  <View>
+                    <Text style={styles.orTextStyle}>
+                      {i18n.t('CreateAccount.or')}
+                    </Text>
                   </View>
-                  <View style={styles.parentButtonContainer}>
+                  <View>
+                    <Text style={styles.signInWith}>
+                      {i18n.t('CreateAccount.signUpWith')}
+                    </Text>
+                  </View>
+                  <View style={styles.socailLoginContainer}>
                     <TouchableOpacity
-                      style={[
-                        styles.buttonContainer,
-                        AuthState.isLoading && {opacity: 0.5},
-                      ]}
-                      onPress={onCreateAccountPress}
-                      disabled={AuthState.isLoading}>
+                      onPress={() => dispatch(googleLogin())}
+                      activeOpacity={0.7}>
                       <Image
-                        style={styles.bottomElipseButtonStlye}
-                        source={Images.BOTTOM_ELIPSE_BUTTON}
+                        style={styles.socialIcons}
+                        source={Images.GOOGLE}
                       />
                     </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => dispatch(facebookLogin())}
+                      activeOpacity={0.7}>
+                      <Image
+                        style={styles.socialIcons}
+                        source={Images.FACEBOOK}
+                      />
+                    </TouchableOpacity>
+                    <View>
+                      <Image style={styles.socialIcons} source={Images.APPLE} />
+                    </View>
                   </View>
+                </View>
+                <View style={styles.parentButtonContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.buttonContainer,
+                      AuthState.isLoading && {opacity: 0.5},
+                    ]}
+                    onPress={onCreateAccountPress}
+                    disabled={AuthState.isLoading}
+                    activeOpacity={0.7}>
+                    <Image
+                      style={styles.bottomElipseButtonStlye}
+                      source={Images.BOTTOM_ELIPSE_BUTTON}
+                    />
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
             <CountryPicker
               show={show}
               pickerButtonOnPress={item => {
+                console.log('Selected country:', item);
                 setCountryCode(item.dial_code);
                 setShow(false);
               }}
+              popularCountries={['en', 'ua', 'pl']}
               searchMessage={i18n.t('CreateAccount.searchMessage')}
               onBackdropPress={() => setShow(false)}
+              enableModalAvoiding={true}
+              androidWindowSoftInputMode="pan"
               style={{
                 modal: {
-                  height: 500,
+                  height: 350,
                 },
                 textInput: {
                   height: Matrics.vs(40),
                   borderRadius: Matrics.s(7),
+                  fontFamily: typography.fontFamily.Montserrat.Regular,
+                  paddingLeft: Matrics.s(10),
+                },
+                countryName: {
+                  fontFamily: typography.fontFamily.Montserrat.Regular,
+                },
+                dialCode: {
+                  fontFamily: typography.fontFamily.Montserrat.Regular,
+                },
+                countryButtonStyles: {
+                  height: Matrics.vs(50),
                 },
               }}
             />
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+          </View>
+        </KeyboardAwareScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };
@@ -420,6 +493,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Matrics.s(10),
     marginTop: Matrics.screenHeight * 0.25,
     flex: 1,
+    gap: Matrics.vs(10),
   },
   textStyle: {
     fontFamily: typography.fontFamily.Montserrat.Regular,
@@ -463,11 +537,14 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.Medium,
     textAlign: 'left',
     fontSize: typography.fontSizes.fs16,
+    marginBottom: Matrics.vs(20),
+    color: COLOR.DIM_TEXT_COLOR,
   },
   signInWith: {
     fontFamily: typography.fontFamily.Montserrat.SemiBold,
     textAlign: 'left',
     fontSize: typography.fontSizes.fs18,
+    color: COLOR.DIM_TEXT_COLOR,
   },
   lastContainer: {
     flexDirection: 'row',
@@ -482,7 +559,7 @@ const styles = StyleSheet.create({
     borderRadius: Matrics.s(7),
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Matrics.vs(9),
+    // marginTop: Matrics.vs(15),
     marginRight: Matrics.s(5),
   },
   countryPickerTextStyle: {
@@ -496,6 +573,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   phoneNumberField: {
-    backgroundColor: 'white',
+    // backgroundColor: 'red',
+    // marginBottom: Matrics.s(-1)
   },
 });

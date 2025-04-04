@@ -9,6 +9,9 @@ import {initializeLanguage} from '../../Redux/Reducers/LanguageSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import HotelDetail from './HotelDetails/HotelDetail';
 import HotelBooking from './HotelDetails/HotelBooking';
+import PriceConfirmFailed from './HotelDetails/PriceConfirmFailed';
+import ConfirmingPrice from './HotelDetails/ConfirmingPrice';
+import PaymentsPage from './HotelDetails/HotelPaymentsPage';
 
 const Stack = createNativeStackNavigator();
 const HotelStack = createNativeStackNavigator();
@@ -19,6 +22,11 @@ const HotelNavigator = () => {
       <HotelStack.Screen name="HotelList" component={Hotels} />
       <HotelStack.Screen name="HotelDetail" component={HotelDetail} />
       <HotelStack.Screen name="HotelBooking" component={HotelBooking} />
+      <HotelStack.Screen
+        name="PriceConfirmFailed"
+        component={PriceConfirmFailed}
+      />
+      <HotelStack.Screen name="ConfirmingPrice" component={ConfirmingPrice} />
     </HotelStack.Navigator>
   );
 };

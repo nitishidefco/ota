@@ -8,93 +8,51 @@ import {
   Image,
   FlatList,
   ActivityIndicator,
-  Keyboard,
 } from 'react-native';
 import {Images} from '../../../Config';
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import debounce from 'lodash/debounce';
-/* --------------------------- External libraries --------------------------- */
 import DateTimePicker from 'react-native-ui-datepicker';
 import dayjs from 'dayjs';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import duration from 'dayjs/plugin/duration';
-dayjs.extend(isSameOrBefore);
-dayjs.extend(duration);
 import Modal from 'react-native-modal';
-
-/* ------------------------------- Middlewares ------------------------------ */
-import {getCityDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetCitySlice';
 import {useDispatch, useSelector} from 'react-redux';
-import {getAllHotelsThunk} from '../../../Redux/Reducers/HotelReducer/GetHotelSlice';
+import {getCityDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetCitySlice'; // Assuming this can be reused for flights
 import {errorToast} from '../../../Helpers/ToastMessage';
+
 const FlightsSearchCard = () => {
   const dispatch = useDispatch();
+
   /* --------------------------------- States --------------------------------- */
-  const [hotelStayStartDate, setHotelStayStartDate] = useState(
-    dayjs().add(1, 'day'),
-  );
-  const [hotelStayEndDate, setHotelStayEndDate] = useState(
-    dayjs().add(2, 'day'),
-  );
-
+  const [isRoundTrip, setIsRoundTrip] = useState(true); // Toggle between One Way and Round Trip
+  const [departureDate, setDepartureDate] = useState(dayjs().add(1, 'day'));
+  const [returnDate, setReturnDate] = useState(dayjs().add(2, 'day'));
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [guests, setGuests] = useState(1);
-  const [rooms, setRooms] = useState(1);
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [pets, setPets] = useState(0);
+  const [guests, setGuests] = useState(1); // Simplified guest count
   const [showGuestsModal, setShowGuestsModal] = useState(false);
-  const [destination, setDestination] = useState('');
+  const [fromLocation, setFromLocation] = useState('');
+  const [toLocation, setToLocation] = useState('');
+  const [focusedField, setFocusedField] = useState(null); // Track which field (from/to) is focused
+  const [adults, setAdults] = useState(1); // Minimum 1 adult
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [infantsOnLap, setInfantsOnLap] = useState(0);
   const {cityDetails, loadingCityDetails} = useSelector(state => state.getCity);
-  const {loadingHotels} = useSelector(state => state?.hotelSlice);
-  const [selectedCityIndex, setSelectedCityIndex] = useState();
-  const [showFlatList, setShowFlatList] = useState(false);
+  const [selectedFromCityIndex, setSelectedFromCityIndex] = useState(null);
+  const [selectedToCityIndex, setSelectedToCityIndex] = useState(null);
+  const [showFromFlatList, setShowFromFlatList] = useState(false);
+  const [showToFlatList, setShowToFlatList] = useState(false);
 
-  /* ------------------------------ Handle guests ----------------------------- */
-  const handleRooms = action => {
-    if (action === 'incre') {
-      setRooms(rooms + 1);
-    } else if (action === 'decre' && rooms > 1) {
-      setRooms(rooms - 1);
-    }
-  };
-  const handleAdults = action => {
-    if (action === 'incre') {
-      setAdults(adults + 1);
-    } else if (action === 'decre' && adults > 1) {
-      setAdults(adults - 1);
-    }
-  };
-  const handleChildren = action => {
-    if (action === 'incre') {
-      setChildren(children + 1);
-    } else if (action === 'decre' && children > 0) {
-      setChildren(children - 1);
-    }
-  };
-  const handlePets = action => {
-    if (action === 'incre') {
-      setPets(pets + 1);
-    } else if (action === 'decre' && pets > 0) {
-      setPets(pets - 1);
-    }
-  };
-
-  const countGuests = () => {
-    const totalGuest = adults + pets + children;
-    setGuests(totalGuest);
-  };
-
+  /* ------------------------------ Debounced Search ----------------------------- */
   const debouncedSearch = useCallback(
     debounce(async searchText => {
       if (searchText.length < 2) return;
       try {
         await dispatch(getCityDetailsThunk({cityName: searchText}));
       } catch (error) {
-        console.error('Error getting hotel details', error);
+        console.error('Error getting city details', error);
       }
     }, 500),
-    [getCityDetailsThunk],
+    [dispatch],
   );
 
   useEffect(() => {
@@ -102,141 +60,204 @@ const FlightsSearchCard = () => {
       debouncedSearch.cancel();
     };
   }, [debouncedSearch]);
-  /* --------------------------- handle search press --------------------------- */
-  const handleSearchPress = async () => {
-    if (cityDetails.length === 0 || destination === '') {
-      errorToast('Please select destination');
-      return;
-    }
 
-    if (dayjs(hotelStayStartDate).isSameOrBefore(dayjs(), 'day')) {
-      console.log('Inside hotel stay start date');
-      errorToast('Check-in date must be a future date');
-      return;
-    }
-    const stayDuration = dayjs
-      .duration(dayjs(hotelStayEndDate).diff(dayjs(hotelStayStartDate)))
-      .asDays();
-    if (stayDuration > 20) {
-      errorToast('Stay duration cannot be more than 20 days');
-      return;
-    }
-    const detailsForDestinationSearch = {
-      cityName: cityDetails[selectedCityIndex].cityName,
-      destinationName: cityDetails[selectedCityIndex].destinationName,
-      countryCode: cityDetails[selectedCityIndex].countryCode,
-      countryName: cityDetails[selectedCityIndex].countryName,
-      CheckInDate: dayjs(hotelStayStartDate).format('YYYY-MM-DD'),
-      CheckOutDate: dayjs(hotelStayEndDate).format('YYYY-MM-DD'),
-      RoomCount: rooms,
-      RealTimeOccupancy: {
-        AdultCount: adults,
-        ChildCount: children,
-        ChildAgeDetails: [],
-      },
-      Nationality: 'IN',
-      Currency: 'INR',
-    };
-    const response = await dispatch(
-      getAllHotelsThunk({details: detailsForDestinationSearch}),
-    );
-    if (response.error) {
-      errorToast(response.payload);
+  /* ------------------------------ Handle Guests ----------------------------- */
+  const handleAdults = action => {
+    if (action === 'incre') {
+      setAdults(adults + 1);
+    } else if (action === 'decre' && adults > 1) {
+      setAdults(adults - 1);
     }
   };
 
-  /* ------------------------- handle flastlist press ------------------------- */
-  const handleFlatListPress = (cityName, index) => {
-    setSelectedCityIndex(index);
-    setDestination(cityName);
-    setShowFlatList(false);
-    // Keyboard.dismiss();
+  const handleChildren = action => {
+    if (action === 'incre') {
+      setChildren(children + 1);
+    } else if (action === 'decre' && children > 0) {
+      setChildren(children - 1);
+    }
   };
 
-  const handleFlatListShow = text => {
-    if (text.length === 0) {
-      setShowFlatList(false);
+  const handleInfants = action => {
+    if (action === 'incre') {
+      setInfants(infants + 1);
+    } else if (action === 'decre' && infants > 0) {
+      setInfants(infants - 1);
+    }
+  };
+
+  const handleInfantsOnLap = action => {
+    if (action === 'incre') {
+      setInfantsOnLap(infantsOnLap + 1);
+    } else if (action === 'decre' && infantsOnLap > 0) {
+      setInfantsOnLap(infantsOnLap - 1);
+    }
+  };
+
+  const calculateTotalGuests = () => {
+    const total = adults + children + infants + infantsOnLap;
+    setGuests(total);
+  };
+
+  /* --------------------------- Handle Search Press --------------------------- */
+  const handleSearchPress = () => {
+    if (!fromLocation || !toLocation) {
+      errorToast('Please select both departure and arrival locations');
+      return;
+    }
+    if (dayjs(departureDate).isSameOrBefore(dayjs(), 'day')) {
+      errorToast('Departure date must be a future date');
+      return;
+    }
+    if (isRoundTrip && dayjs(returnDate).isSameOrBefore(departureDate, 'day')) {
+      errorToast('Return date must be after departure date');
+      return;
+    }
+    // Add logic to dispatch flight search API here
+    console.log('Searching flights:', {
+      from: fromLocation,
+      to: toLocation,
+      departureDate: dayjs(departureDate).format('YYYY-MM-DD'),
+      returnDate: isRoundTrip ? dayjs(returnDate).format('YYYY-MM-DD') : null,
+      guests,
+    });
+  };
+
+  /* ------------------------- Handle FlatList Press ------------------------- */
+  const handleFlatListPress = (cityName, index, field) => {
+    if (field === 'from') {
+      setSelectedFromCityIndex(index);
+      setFromLocation(cityName);
+      setShowFromFlatList(false);
     } else {
-      setShowFlatList(true);
+      setSelectedToCityIndex(index);
+      setToLocation(cityName);
+      setShowToFlatList(false);
     }
   };
+
+  const handleFlatListShow = (text, field) => {
+    if (field === 'from') {
+      setShowFromFlatList(text.length > 0);
+    } else {
+      setShowToFlatList(text.length > 0);
+    }
+  };
+
   return (
     <View style={styles.mainContainer}>
       <View>
         <Text style={styles.cardTitle}>Flights</Text>
       </View>
-      <View style={styles.searchBarContainer}>
-        <View style={styles.searchBarLeftContainer}>
-          <View>
-            <Image
-              style={[styles.locationPinIcon, styles.searchBarIcon]}
-              source={Images.LOCATION_PIN}
-            />
-          </View>
-          <View style={styles.container}>
+      <View style={styles.toggleContainer}>
+        <TouchableOpacity
+          style={[
+            styles.toggleButton,
+            !isRoundTrip && styles.toggleButtonActive,
+          ]}
+          onPress={() => setIsRoundTrip(false)}
+          activeOpacity={0.7}>
+          <Text
+            style={[
+              styles.toggleText,
+              !isRoundTrip && styles.toggleTextActive,
+            ]}>
+            One Way
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.toggleButton,
+            isRoundTrip && styles.toggleButtonActive,
+          ]}
+          onPress={() => setIsRoundTrip(true)}
+          activeOpacity={0.7}>
+          <Text
+            style={[styles.toggleText, isRoundTrip && styles.toggleTextActive]}>
+            Round Trip
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.locationContainer}>
+        <View style={styles.searchBarContainer}>
+          <Image
+            style={[styles.locationPinIcon, styles.searchBarIcon]}
+            source={Images.LOCATION_PIN}
+          />
+          <View style={styles.fromToContainer}>
             <TextInput
+              style={[
+                styles.searchBarTextInput,
+                !fromLocation && styles.placeholderText,
+              ]}
+              placeholder="From"
               placeholderTextColor={COLOR.DIM_TEXT_COLOR}
-              placeholder="Search Destination"
-              value={destination}
+              value={fromLocation}
               onChangeText={text => {
-                setDestination(text);
+                setFromLocation(text);
                 debouncedSearch(text);
-                handleFlatListShow(text);
+                handleFlatListShow(text, 'from');
               }}
               onFocus={() => {
-                setDestination('');
-                setShowFlatList(false);
+                setFocusedField('from');
+                setFromLocation('');
+                setShowFromFlatList(false);
               }}
-              style={styles.searchBarTextInput}
-              keyboardShouldPersistTaps="handled"
             />
-            <View style={styles.dropdownContainer}>
-              {loadingCityDetails && showFlatList ? (
-                <View style={styles.flatListStyle}>
-                  <ActivityIndicator
-                    size="large"
-                    color={COLOR.PRIMARY}
-                    style={styles.loader}
-                  />
-                </View>
-              ) : (
-                showFlatList &&
-                cityDetails?.length > 0 && (
-                  <FlatList
-                    data={cityDetails}
-                    style={styles.flatListStyle}
-                    keyExtractor={(item, index) => index.toString()}
-                    keyboardShouldPersistTaps="handled"
-                    nestedScrollEnabled={true}
-                    renderItem={({item, index}) => (
-                      <TouchableOpacity
-                        style={styles.cityItem}
-                        onPress={() =>
-                          handleFlatListPress(item.cityName, index)
-                        }>
-                        <Text style={styles.cityName}>{item.cityName}</Text>
-                        <Text style={styles.destinationName}>
-                          {item.destinationName}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                )
-              )}
-            </View>
+            <Image style={styles.swapIcon} source={Images.SWAP} />
+            <TextInput
+              style={[
+                styles.searchBarTextInput,
+                !toLocation && styles.placeholderText,
+              ]}
+              placeholder="To"
+              placeholderTextColor={COLOR.DIM_TEXT_COLOR}
+              value={toLocation}
+              onChangeText={text => {
+                setToLocation(text);
+                debouncedSearch(text);
+                handleFlatListShow(text, 'to');
+              }}
+              onFocus={() => {
+                setFocusedField('to');
+                setToLocation('');
+                setShowToFlatList(false);
+              }}
+            />
           </View>
         </View>
-        <TouchableOpacity
-          onPress={() => {
-            setDestination('');
-            setShowFlatList(false);
-          }}
-          style={styles.crossIconContainer}>
-          <Image
-            style={[styles.searchBarIcon, styles.closeIcon]}
-            source={Images.CLOSE}
-          />
-        </TouchableOpacity>
+        {focusedField && (
+          <View style={styles.dropdownContainer}>
+            {loadingCityDetails && (showFromFlatList || showToFlatList) ? (
+              <View style={styles.flatListStyle}>
+                <ActivityIndicator size="large" color={COLOR.PRIMARY} />
+              </View>
+            ) : (
+              (showFromFlatList || showToFlatList) &&
+              cityDetails?.length > 0 && (
+                <FlatList
+                  data={cityDetails}
+                  style={styles.flatListStyle}
+                  keyExtractor={(item, index) => index.toString()}
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({item, index}) => (
+                    <TouchableOpacity
+                      style={styles.cityItem}
+                      onPress={() =>
+                        handleFlatListPress(item.cityName, index, focusedField)
+                      }
+                      activeOpacity={0.7}>
+                      <Text style={styles.cityName}>{item.cityName}</Text>
+                      <Text style={styles.destinationName}>
+                        {item.destinationName}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )
+            )}
+          </View>
+        )}
       </View>
       <View style={styles.dateAndPeoplePickerContainer}>
         <View style={styles.datePickerContainer}>
@@ -245,17 +266,25 @@ const FlightsSearchCard = () => {
             source={Images.CALENDAR}
           />
           <View style={styles.startEndDateContainer}>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}>
               <Text style={styles.date}>
-                {dayjs(hotelStayStartDate)?.format('D MMM')}
+                {dayjs(departureDate).format('D MMM')}
               </Text>
             </TouchableOpacity>
-            <Text>-</Text>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text style={styles.date}>
-                {dayjs(hotelStayEndDate).format('D MMM')}
-              </Text>
-            </TouchableOpacity>
+            {isRoundTrip && (
+              <>
+                <Text>-</Text>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(true)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.date}>
+                    {dayjs(returnDate).format('D MMM')}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
         <View style={styles.datePickerContainer}>
@@ -263,7 +292,9 @@ const FlightsSearchCard = () => {
             style={[styles.locationPinIcon, styles.searchBarIcon]}
             source={Images.PEOPLE}
           />
-          <TouchableOpacity onPress={() => setShowGuestsModal(true)}>
+          <TouchableOpacity
+            onPress={() => setShowGuestsModal(true)}
+            activeOpacity={0.7}>
             <Text style={styles.date}>{`${guests} Guests`}</Text>
           </TouchableOpacity>
         </View>
@@ -271,41 +302,35 @@ const FlightsSearchCard = () => {
       <TouchableOpacity
         style={styles.searchButtonContainer}
         onPress={handleSearchPress}
-        disabled={loadingHotels}>
-        {loadingHotels ? (
-          <View style={styles.searchBarIcon}>
-            <ActivityIndicator size={'large'} color={COLOR.WHITE} />
-          </View>
-        ) : (
-          <>
-            <Image
-              source={Images.SEARCH_GLASS}
-              style={[styles.locationPinIcon, styles.searchBarIcon]}
-            />
-            <Text style={styles.searchBarText}>Search</Text>
-          </>
-        )}
+        activeOpacity={0.7}>
+        <Image
+          source={Images.SEARCH_GLASS}
+          style={[styles.locationPinIcon, styles.searchBarIcon]}
+        />
+        <Text style={styles.searchBarText}>Search</Text>
       </TouchableOpacity>
-      {/* Date picker model */}
+
+      {/* Date Picker Modal */}
       <Modal
         isVisible={showDatePicker}
         onBackdropPress={() => setShowDatePicker(false)}>
         <View>
           <DateTimePicker
-            showOutsideDays={false}
-            navigationPosition="right"
-            mode="range"
-            startDate={hotelStayStartDate}
-            endDate={hotelStayEndDate}
+            mode={isRoundTrip ? 'range' : 'single'}
+            startDate={departureDate}
+            endDate={isRoundTrip ? returnDate : null}
             onChange={({startDate, endDate}) => {
-              setHotelStayStartDate(startDate);
-              setHotelStayEndDate(endDate);
+              setDepartureDate(startDate);
+              if (isRoundTrip && endDate) {
+                setReturnDate(endDate);
+              }
             }}
             styles={datePickerStyles}
           />
         </View>
       </Modal>
-      {/* Guests modal */}
+
+      {/* Guests Modal */}
       <Modal
         isVisible={showGuestsModal}
         onBackdropPress={() => setShowGuestsModal(false)}
@@ -313,43 +338,32 @@ const FlightsSearchCard = () => {
         hideModalContentWhileAnimating={true}
         backdropTransitionOutTiming={0}
         style={styles.modalStyle}
-        onModalHide={countGuests}>
+        onModalHide={calculateTotalGuests}>
         <View style={styles.guestModalContainer}>
           <View style={styles.hr} />
-          <Text style={styles.guestModalTitle}>Guests</Text>
+          <Text style={styles.guestModalTitle}>Select Traveller</Text>
           <View style={styles.guestOptions}>
-            <View>
-              <Text style={styles.guestOptionsTitle}>Room</Text>
-            </View>
+            <Text style={styles.guestOptionsTitle}>Adults</Text>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleRooms('decre')}>
-                <Image
-                  source={Images.MINUS}
-                  style={styles.guestOptionsControllerImages}
-                />
-              </TouchableOpacity>
-              <Text style={styles.guestText}>{rooms}</Text>
-              <TouchableOpacity onPress={() => handleRooms('incre')}>
-                <Image
-                  source={Images.PLUS}
-                  style={styles.guestOptionsControllerImages}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.guestOptions}>
-            <View>
-              <Text style={styles.guestOptionsTitle}>Adults</Text>
-            </View>
-            <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleAdults('decre')}>
-                <Image
-                  source={Images.MINUS}
-                  style={styles.guestOptionsControllerImages}
-                />
+              <TouchableOpacity
+                onPress={() => handleAdults('decre')}
+                activeOpacity={0.7}>
+                {adults === 1 ? (
+                  <Image
+                    source={Images.MINUS_DISABLED}
+                    style={styles.guestOptionsControllerImages}
+                  />
+                ) : (
+                  <Image
+                    source={Images.MINUS}
+                    style={styles.guestOptionsControllerImages}
+                  />
+                )}
               </TouchableOpacity>
               <Text style={styles.guestText}>{adults}</Text>
-              <TouchableOpacity onPress={() => handleAdults('incre')}>
+              <TouchableOpacity
+                onPress={() => handleAdults('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -358,11 +372,11 @@ const FlightsSearchCard = () => {
             </View>
           </View>
           <View style={styles.guestOptions}>
-            <View>
-              <Text style={styles.guestOptionsTitle}>Children</Text>
-            </View>
+            <Text style={styles.guestOptionsTitle}>Children</Text>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleChildren('decre')}>
+              <TouchableOpacity
+                onPress={() => handleChildren('decre')}
+                activeOpacity={0.7}>
                 {children === 0 ? (
                   <Image
                     source={Images.MINUS_DISABLED}
@@ -375,12 +389,12 @@ const FlightsSearchCard = () => {
                   />
                 )}
               </TouchableOpacity>
-              {children === 0 ? (
-                <Text style={styles.guestText}>-</Text>
-              ) : (
-                <Text style={styles.guestText}>{children}</Text>
-              )}
-              <TouchableOpacity onPress={() => handleChildren('incre')}>
+              <Text style={styles.guestText}>
+                {children === 0 ? '-' : children}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleChildren('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -388,13 +402,13 @@ const FlightsSearchCard = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <View style={styles.guestOptionsLast}>
-            <View>
-              <Text style={styles.guestOptionsTitle}>Pets</Text>
-            </View>
+          <View style={styles.guestOptions}>
+            <Text style={styles.guestOptionsTitle}>Infants</Text>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handlePets('decre')}>
-                {pets === 0 ? (
+              <TouchableOpacity
+                onPress={() => handleInfants('decre')}
+                activeOpacity={0.7}>
+                {infants === 0 ? (
                   <Image
                     source={Images.MINUS_DISABLED}
                     style={styles.guestOptionsControllerImages}
@@ -406,12 +420,43 @@ const FlightsSearchCard = () => {
                   />
                 )}
               </TouchableOpacity>
-              {pets === 0 ? (
-                <Text style={styles.guestText}>-</Text>
-              ) : (
-                <Text style={styles.guestText}>{pets}</Text>
-              )}
-              <TouchableOpacity onPress={() => handlePets('incre')}>
+              <Text style={styles.guestText}>
+                {infants === 0 ? '-' : infants}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleInfants('incre')}
+                activeOpacity={0.7}>
+                <Image
+                  source={Images.PLUS}
+                  style={styles.guestOptionsControllerImages}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.guestOptionsLast}>
+            <Text style={styles.guestOptionsTitle}>Infants (on lap)</Text>
+            <View style={styles.guestOptionsTitleController}>
+              <TouchableOpacity
+                onPress={() => handleInfantsOnLap('decre')}
+                activeOpacity={0.7}>
+                {infantsOnLap === 0 ? (
+                  <Image
+                    source={Images.MINUS_DISABLED}
+                    style={styles.guestOptionsControllerImages}
+                  />
+                ) : (
+                  <Image
+                    source={Images.MINUS}
+                    style={styles.guestOptionsControllerImages}
+                  />
+                )}
+              </TouchableOpacity>
+              <Text style={styles.guestText}>
+                {infantsOnLap === 0 ? '-' : infantsOnLap}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleInfantsOnLap('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -435,53 +480,73 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: Matrics.vs(250),
   },
+  toggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginBottom: Matrics.vs(10),
+  },
+  toggleButton: {
+    paddingVertical: Matrics.vs(5),
+    paddingHorizontal: Matrics.s(15),
+    marginRight: Matrics.s(10),
+  },
+  toggleButtonActive: {
+    backgroundColor: COLOR.PRIMARY,
+    borderColor: COLOR.PRIMARY,
+    borderRadius: Matrics.s(5),
+  },
+  toggleText: {
+    fontFamily: typography.fontFamily.Montserrat.Medium,
+    fontSize: typography.fontSizes.fs14,
+    color: COLOR.PRIMARY,
+  },
+  toggleTextActive: {
+    color: COLOR.WHITE,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   searchBarContainer: {
     borderColor: COLOR.BORDER_COLOR,
     borderWidth: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: Matrics.s(10),
     borderRadius: Matrics.s(5),
     height: Matrics.vs(45),
-    // backgroundColor: 'red',
-    position: 'relative',
+    flex: 1,
   },
-  searchBarLeftContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  swapIcon: {
+    width: Matrics.s(20),
+    height: Matrics.vs(20),
+    marginHorizontal: Matrics.s(5),
   },
   searchBarTextInput: {
     fontFamily: typography.fontFamily.Montserrat.Regular,
     fontSize: typography.fontSizes.fs16,
     color: COLOR.BLACK,
+    flex: 1,
   },
   searchBarIcon: {
     resizeMode: 'contain',
   },
   locationPinIcon: {
     width: Matrics.s(20),
-  },
-  crossIconContainer: {
-    position: 'absolute',
-    right: 4,
-    zIndex: 10,
-    // backgroundColor: 'red',
-  },
-  closeIcon: {
-    width: Matrics.s(25),
+    marginRight: Matrics.s(10),
   },
   cardTitle: {
     fontFamily: typography.fontFamily.Montserrat.Bold,
     fontSize: typography.fontSizes.fs24,
     color: COLOR.PRIMARY,
+    marginBottom: Matrics.vs(10),
   },
   datePickerContainer: {
     borderColor: COLOR.BORDER_COLOR,
     borderWidth: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    //     justifyContent: 'space-between',
     paddingHorizontal: Matrics.s(10),
     borderRadius: Matrics.s(5),
     height: Matrics.vs(45),
@@ -490,6 +555,7 @@ const styles = StyleSheet.create({
   dateAndPeoplePickerContainer: {
     flexDirection: 'row',
     gap: 10,
+    marginVertical: Matrics.vs(10),
   },
   searchButtonContainer: {
     backgroundColor: COLOR.PRIMARY,
@@ -508,20 +574,16 @@ const styles = StyleSheet.create({
   startEndDateContainer: {
     flexDirection: 'row',
     flex: 1,
-    marginLeft: Matrics.screenWidth < 412 ? Matrics.s(10) : Matrics.s(10),
     gap: 5,
   },
   date: {
     fontFamily: typography.fontFamily.Montserrat.Medium,
     fontSize: typography.fontSizes.fs14,
     color: COLOR.DARK_TEXT_COLOR,
-    marginLeft: Matrics.screenWidth < 412 ? 0 : Matrics.s(5),
   },
   guestModalContainer: {
     backgroundColor: COLOR.WHITE,
     padding: Matrics.s(10),
-    //     flex: 1,
-    justifyContent: 'flex-end',
     borderRadius: Matrics.s(10),
   },
   guestOptionsTitle: {
@@ -547,14 +609,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomColor: COLOR.BORDER_COLOR,
-    borderBottomWidth: 1,
     paddingVertical: Matrics.vs(10),
-  },
-  guestOptionsLast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   modalStyle: {
     justifyContent: 'flex-end',
@@ -574,32 +629,9 @@ const styles = StyleSheet.create({
   },
   container: {
     position: 'relative',
-    width: '100%',
-    paddingHorizontal: Matrics.s(10),
+    flex: 1,
   },
-  dropdownContainer: {
-    position: 'absolute',
-    top: Matrics.vs(40),
-    borderRadius: Matrics.s(10),
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    height: Matrics.screenHeight * 0.4,
-    zIndex: 1000,
-    left: Matrics.s(-20),
-  },
-  flatListStyle: {
-    backgroundColor: 'white',
-    paddingHorizontal: Matrics.s(20),
-    paddingVertical: Matrics.s(10),
-    width: Matrics.screenWidth * 0.8,
-    borderRadius: Matrics.s(10),
-    height: '100%',
-    // zIndex: 100,
-    // overflow: 'hidden',
-  },
+
   cityItem: {
     borderBottomWidth: 1,
     borderBottomColor: COLOR.BORDER_COLOR,
@@ -613,7 +645,39 @@ const styles = StyleSheet.create({
   destinationName: {
     fontFamily: typography.fontFamily.Montserrat.Regular,
   },
+  fromToContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  fromToTouchable: {
+    flex: 1,
+    paddingVertical: Matrics.vs(5),
+  },
+  placeholderText: {
+    color: COLOR.DIM_TEXT_COLOR,
+  },
+  dropdownContainer: {
+    position: 'absolute',
+    top: Matrics.vs(50),
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+  },
+  flatListStyle: {
+    backgroundColor: 'white',
+    paddingHorizontal: Matrics.s(20),
+    paddingVertical: Matrics.s(10),
+    borderRadius: Matrics.s(10),
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    maxHeight: Matrics.screenHeight * 0.4,
+  },
 });
+
 const datePickerStyles = StyleSheet.create({
   outside_label: {
     color: COLOR.DARK_TEXT_COLOR,
@@ -623,16 +687,12 @@ const datePickerStyles = StyleSheet.create({
     borderBottomRightRadius: Matrics.s(5),
     borderBottomLeftRadius: Matrics.s(5),
   },
-  day_cell: {},
-
   day_label: {
     color: 'black',
     fontSize: typography.fontSizes.fs14,
     fontFamily: typography.fontFamily.Montserrat.Medium,
   },
-
   weekdays: {
-    //     display: 'none', // Hide week labels
     backgroundColor: COLOR.WHITE,
     height: Matrics.vs(30),
     paddingHorizontal: Matrics.s(10),
@@ -640,7 +700,6 @@ const datePickerStyles = StyleSheet.create({
   weekday_label: {
     fontFamily: typography.fontFamily.Montserrat.SemiBold,
   },
-
   month_selector_label: {
     fontSize: typography.fontSizes.fs20,
     fontFamily: typography.fontFamily.Montserrat.SemiBold,

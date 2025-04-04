@@ -1,6 +1,7 @@
 import React, {useState, useRef} from 'react';
 import {View, TextInput, StyleSheet} from 'react-native';
 import {Matrics} from '../../Config/AppStyling';
+import {KeyboardAvoidingView} from 'react-native-keyboard-controller';
 
 const OtpHandler = ({length = 4, onComplete}) => {
   const [otp, setOtp] = useState(new Array(length).fill(''));

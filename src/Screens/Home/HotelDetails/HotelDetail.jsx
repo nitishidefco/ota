@@ -1,3 +1,4 @@
+// Change the path for additional details
 import React, {useContext, useEffect, useMemo} from 'react';
 import {
   View,
@@ -10,66 +11,136 @@ import {
   FlatList,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
-import {getHotelDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetHotelDetailSlice';
+import {
+  getAdditionalDetail,
+  getHotelDetailsThunk,
+} from '../../../Redux/Reducers/HotelReducer/GetHotelDetailSlice';
+
 import NormalHeader from '../../../Components/UI/NormalHeader';
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import {Images} from '../../../Config';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import RoomCard from '../../../Components/UI/RoomCard';
 import ModifyCard from '../../../Components/UI/ModifyCard';
-import FacilitiesCard from '../../../Components/UI/FacilitiesCard';
 import HotelCarousel from '../../../Components/UI/HotelCarousel';
-import ReviewCard from '../../../Components/UI/ReviewCard';
-import EachStarRatingComponent from '../../../Components/UI/EachStarRatingComponent';
 import SimpleLoader from '../../../Components/Loader/SimpleLoader';
-import CheckoutToast from '../../../Components/UI/CheckoutToast';
 import {confirmPrice} from '../../../Redux/Reducers/HotelReducer/PriceConfirmSlice';
-import { RoomContext } from '../../../Context/RoomContext';
+import {RoomContext} from '../../../Context/RoomContext';
+import {errorToast} from '../../../Helpers/ToastMessage';
+import dayjs from 'dayjs';
+import HotelAmenities from './HotelAmenities';
+import RoomPolicies from './RoomPolicies';
+import HotelReviews from './HotelReviews';
+import i18n from '../../../i18n/i18n';
+const StarRating = ({rating = 0, reviewCount = 0}) => {
+  return (
+    <View style={styles.ratingContainer}>
+      <View
+        style={{
+          backgroundColor: COLOR.PRIMARY,
+          flexDirection: 'row',
+          paddingHorizontal: Matrics.s(10),
+          paddingVertical: Matrics.vs(3),
+          borderRadius: Matrics.s(4),
+          alignItems: 'center',
+        }}>
+        <Text style={styles.ratingNumber}>{rating}</Text>
+        <Image
+          source={Images.FULL_STAR_WHITE}
+          style={{
+            width: Matrics.s(17),
+            resizeMode: 'contain',
+            height: Matrics.vs(17),
+          }}
+        />
+      </View>
 
+      <Text style={styles.reviewCount}>({reviewCount} reviews)</Text>
+    </View>
+  );
+};
 const HotelDetail = ({route, navigation}) => {
+  const selectedCurrency = useSelector(
+    state => state.currency.selectedCurrency,
+  );
   const dispatch = useDispatch();
-    const {ratePlanId} = useContext(RoomContext);
+  const {ratePlanId} = useContext(RoomContext);
   const {provider, hotelId, GiataId} = route.params;
   const hotelDetail = useSelector(state => state?.hotelDetail);
-  const rooms = useSelector(state => state?.rooms);
+  const roomState = useSelector(state => state?.rooms);
+  console.log('Hotel detail', hotelDetail);
 
+  const priceConfirmAllState = useSelector(state => state?.confirmPrice);
   const images = [Images.HOTEL1, Images.HOTEL2, Images.HOTEL3];
-  const listItems = ['Item 1', 'Item 2', 'Item 3', 'Item 4'];
   const details = useMemo(
     () =>
       GiataId ? {GiataId: GiataId} : {provider: provider, HotelID: hotelId},
     [GiataId, provider, hotelId],
   );
-  const handleCheckoutPress = async () => {
-    const detailsForPriceConfirm = {
-      RatePlanID: ratePlanId,
-      provider: provider,
-      HotelID: hotelId,
-      CheckInDate: '2025-03-20',
-      CheckOutDate: '2025-03-21',
-      RoomCount: 1,
-      Nationality: 'US',
-      Currency: 'USD',
-      OccupancyDetails: [
-        {
-          ChildCount: 0,
-          AdultCount: 1,
-          RoomNum: 1,
-        },
-      ],
-    };
-    dispatch(confirmPrice({details: detailsForPriceConfirm}));
-  };
 
   useEffect(() => {
-    try {
-      dispatch(getHotelDetailsThunk({details}));
-    } catch (error) {
-      console.error('Error getting hotel details', error);
+    console.log('Fetching hotel details');
+
+    const fetchData = async () => {
+      try {
+        // Fetch hotel details first
+        await dispatch(getHotelDetailsThunk({details})).unwrap();
+      } catch (error) {
+        console.error('Error in fetching hotel details:', error);
+      }
+    };
+
+    fetchData();
+  }, [details]);
+  useEffect(() => {
+    console.log('Geting Additional Details', hotelDetail?.additionalDetails);
+
+    if (Object.keys(hotelDetail?.additionalDetails).length > 0) {
+      return;
     }
-  }, [dispatch, details]);
+    console.log('Geting Additional Details', hotelDetail?.additionalDetails);
+
+    if (
+      hotelDetail?.hotel?.Name &&
+      hotelDetail?.hotel?.longitude &&
+      hotelDetail?.hotel?.latitude
+    ) {
+      const detailsForAdditionalDetails = {
+        Name: hotelDetail.hotel.Name,
+        Longitude: hotelDetail.hotel.longitude,
+        Latitude: hotelDetail.hotel.latitude,
+      };
+
+      dispatch(getAdditionalDetail({details: detailsForAdditionalDetails}));
+    }
+  }, [hotelDetail?.hotel, dispatch]);
   const renderEmptyList = () => {
     return <Text>No rooms right now</Text>;
+  };
+
+  const renderStars = cate => {
+    const totalStars = 5;
+    const stars = [];
+
+    for (let i = 0; i < cate; i++) {
+      stars.push(
+        <Image
+          key={`purple-${i}`}
+          source={Images.FULL_PURPLE_STAR}
+          style={styles.starIcon}
+        />,
+      );
+    }
+    for (let i = cate; i < totalStars; i++) {
+      stars.push(
+        <Image
+          key={`grey-${i}`}
+          source={Images.FULL_GREY_STAR}
+          style={styles.starIcon}
+        />,
+      );
+    }
+    return stars;
   };
   return (
     <KeyboardAvoidingView
@@ -81,7 +152,7 @@ const HotelDetail = ({route, navigation}) => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <NormalHeader
-            title="Detail Page"
+            title={i18n.t('hotelDetails.hotelDetailPageTitle')}
             onCrossPress={() => navigation.goBack()}
             showLeftButton={true}
             showRightButton={false}
@@ -94,7 +165,9 @@ const HotelDetail = ({route, navigation}) => {
                   height: Matrics.screenHeight * 0.8,
                   justifyContent: 'center',
                 }}>
-                <SimpleLoader loadingText="Loading the hotel details" />
+                <SimpleLoader
+                  loadingText={i18n.t('loading.loadingHotelDetail')}
+                />
               </View>
             ) : (
               <>
@@ -106,58 +179,34 @@ const HotelDetail = ({route, navigation}) => {
                   )}
                 </View>
                 <View style={styles.hotelInfoContainer}>
-                  <Text style={styles.hotelName}>
-                    {hotelDetail?.hotel?.Name}
-                  </Text>
-                  <View style={styles.reviewsContainer}>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.Montserrat.Regular,
-                        fontSize: typography.fontSizes.fs14,
-                      }}>
-                      4.2
-                    </Text>
-                    <View style={styles.starContainer}>
-                      <Image
-                        style={styles.startImages}
-                        source={Images.FULL_STAR}
-                      />
-                      <Image
-                        style={styles.startImages}
-                        source={Images.FULL_STAR}
-                      />
-                      <Image
-                        style={styles.startImages}
-                        source={Images.FULL_STAR}
-                      />
-                      <Image
-                        style={styles.startImages}
-                        source={Images.FULL_STAR}
-                      />
-                      <Image
-                        style={styles.startImages}
-                        source={Images.HALF_STAR}
-                      />
-                    </View>
-                    <View>
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.Montserrat.Regular,
-                          fontSize: typography.fontSizes.fs14,
-                        }}>
-                        (147)
+                  <View style={styles.container}>
+                    <Text style={styles.hotelName}>
+                      <Text style={styles.nameText}>
+                        {hotelDetail?.hotel?.Name}
                       </Text>
-                    </View>
+                      <View style={{flexDirection: 'row'}}>
+                        {renderStars(hotelDetail?.hotel?.category)}
+                      </View>
+                    </Text>
                   </View>
+                  <StarRating
+                    rating={hotelDetail?.additionalDetails?.result?.rating}
+                    reviewCount={
+                      hotelDetail?.additionalDetails?.result?.total_reviews
+                    }
+                  />
                   <View style={styles.addressContainer}>
                     <Image
                       source={Images.LOCATION}
                       style={styles.locationPin}
                     />
                     <Text style={styles.hotelAddress}>
-                      Abu Dhabi, United Arab Emirates
+                      {hotelDetail?.additionalDetails?.result?.address}
                     </Text>
                   </View>
+                </View>
+                <View>
+                  <HotelAmenities hotelDetail={hotelDetail?.hotel} />
                 </View>
                 <View
                   style={{
@@ -168,9 +217,9 @@ const HotelDetail = ({route, navigation}) => {
                 </View>
                 <View style={{paddingHorizontal: Matrics.s(16)}}>
                   <Text style={styles.title}>Rooms</Text>
-                  {rooms?.loadingRooms === false ? (
+                  {roomState?.loadingRooms === false ? (
                     <FlatList
-                      data={rooms.rooms}
+                      data={roomState.rooms}
                       keyExtractor={(item, index) => index.toString()}
                       renderItem={({item}) => <RoomCard room={item} />}
                       horizontal
@@ -182,66 +231,20 @@ const HotelDetail = ({route, navigation}) => {
                     />
                   ) : (
                     <>
-                      <SimpleLoader loadingText="Getting rooms for you" />
+                      <SimpleLoader
+                        loadingText={i18n.t('loading.gettingRooms')}
+                      />
                     </>
                   )}
                 </View>
-                <View style={styles.amenitiesContainer}>
-                  <Text style={styles.title}>Amenities</Text>
-                  <View style={styles.facilitiesList}>
-                    {hotelDetail?.hotel?.facilities?.length > 0 ? (
-                      hotelDetail?.hotel?.facilities.map((facility, index) => {
-                        return (
-                          <FacilitiesCard
-                            key={index}
-                            icon={facility}
-                            title={facility}
-                          />
-                        );
-                      })
-                    ) : (
-                      <Text>No Facilities available</Text>
-                    )}
-                  </View>
-                </View>
-                <View style={styles.policiesContainer}>
-                  <Text style={styles.title}>Policies</Text>
-                  <View>
-                    <Text>Property Policies</Text>
-                    <Text>
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Laudantium voluptas similique quasi, qui non libero
-                      deleniti quaerat cumque, minima at aliquid aspernatur nemo
-                      id, aut harum impedit quod sunt quibusdam molestias illo
-                      sit. Minima dolore praesentium odit molestiae nemo
-                      consequatur voluptas ipsum perferendis quibusdam!
-                    </Text>
-                    {listItems.map((item, index) => (
-                      <View key={index} style={styles.listItem}>
-                        <Text style={styles.bullet}>•</Text>
-                        <Text style={styles.text}>{item}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-                <View style={styles.reviewContainer}>
-                  <Text style={styles.title}>Reviews</Text>
-                  <View style={styles.reivewVisuals}>
-                    <ReviewCard />
-                    <View>
-                      <EachStarRatingComponent />
-                      <EachStarRatingComponent />
-                      <EachStarRatingComponent />
-                      <EachStarRatingComponent />
-                      <EachStarRatingComponent />
-                    </View>
-                  </View>
-                </View>
+                {roomState?.rooms?.length > 0 && (
+                  <RoomPolicies roomInfo={roomState?.rooms} />
+                )}
+                <HotelReviews hotelDetail={hotelDetail} />
               </>
             )}
           </View>
         </ScrollView>
-        <CheckoutToast handlePress={handleCheckoutPress} />
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -280,12 +283,15 @@ const styles = StyleSheet.create({
   addressContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
+    alignItems: 'flex-start',
     marginTop: Matrics.vs(5),
+    gap: 3,
   },
   locationPin: {
     resizeMode: 'contain',
     width: Matrics.s(15),
     height: Matrics.s(15),
+    marginTop: 3,
   },
   reviewsContainer: {
     flexDirection: 'row',
@@ -315,10 +321,7 @@ const styles = StyleSheet.create({
   policiesContainer: {
     padding: Matrics.s(16),
   },
-  reviewContainer: {
-    padding: Matrics.s(16),
-    width: Matrics.screenWidth * 0.9,
-  },
+
   modalStyle: {
     backgroundColor: COLOR.WHITE,
     width: Matrics.screenWidth * 0.9,
@@ -337,6 +340,28 @@ const styles = StyleSheet.create({
   selectedRoomText: {
     fontFamily: typography.fontFamily.Montserrat.SemiBold,
     fontSize: typography.fontSizes.fs16,
+  },
+  starIcon: {
+    width: 14,
+    height: 14,
+    marginHorizontal: 1,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: Matrics.vs(8),
+    gap: 8,
+  },
+  ratingNumber: {
+    fontSize: 16,
+    marginRight: 4,
+    fontFamily: typography.fontFamily.Montserrat.Medium,
+    color: COLOR.WHITE,
+  },
+  reviewCount: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: typography.fontFamily.Montserrat.Medium,
   },
 });
 

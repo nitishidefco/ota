@@ -17,6 +17,7 @@ const NormalHeader = ({
   showLeftButton = true,
   showRightButton = true,
   leftIconName = 'CROSS',
+  rightIconName = 'CHECK',
 }) => {
   return (
     <ImageBackground
@@ -24,7 +25,7 @@ const NormalHeader = ({
       source={Images.PROFILE_BACKGROUND}>
       {/* Left Button */}
       {showLeftButton ? (
-        <TouchableOpacity onPress={onCrossPress}>
+        <TouchableOpacity onPress={onCrossPress} activeOpacity={0.7}>
           <Image
             source={leftIconName === 'CROSS' ? Images.CROSS : Images.BACK_ROUND}
             style={styles.headerOptions}
@@ -39,8 +40,19 @@ const NormalHeader = ({
 
       {/* Right Button */}
       {showRightButton ? (
-        <TouchableOpacity onPress={onCheckPress}>
-          <Image source={Images.CHECK} style={styles.headerOptions} />
+        <TouchableOpacity onPress={onCheckPress} activeOpacity={0.7}>
+          {rightIconName === 'CHECK' ? (
+            <Image source={Images.CHECK} style={styles.headerOptions} />
+          ) : (
+            <Text
+              style={{
+                fontFamily: typography.fontFamily.Montserrat.Medium,
+                color: COLOR.WHITE,
+                fontSize: typography.fontSizes.fs14,
+              }}>
+              Next
+            </Text>
+          )}
         </TouchableOpacity>
       ) : (
         <View style={styles.placeholder} />

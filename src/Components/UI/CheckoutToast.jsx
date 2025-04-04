@@ -1,74 +1,45 @@
 import React, {useContext, useEffect, useRef} from 'react';
-import {View, Text, TouchableOpacity, Animated, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  StyleSheet,
+  Image,
+} from 'react-native';
 import {RoomContext} from '../../Context/RoomContext';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
+import {Images} from '../../Config';
 
 const CheckoutToast = ({handlePress}) => {
-  const {showCheckoutToast} = useContext(RoomContext);
-  const slideAnim = useRef(new Animated.Value(100)).current;
-
-  useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: showCheckoutToast ? 0 : 100,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [showCheckoutToast]);
-
-  if (!showCheckoutToast) return null;
-
   return (
-    <Animated.View
-      style={[styles.toastContainer, {transform: [{translateY: slideAnim}]}]}>
-      <View style={styles.toastContent}>
-        <Text style={styles.text}>Room selected</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.checkoutButton} onPress={handlePress}>
-            <Text style={styles.checkoutText}>Proceed to Checkout</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Animated.View>
+    <TouchableOpacity
+      style={styles.checkoutButton}
+      onPress={handlePress}
+      activeOpacity={0.7}>
+      <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+      <Image
+        source={Images.RIGHT_ARROW_TAIL}
+        style={{
+          width: Matrics.s(20),
+          height: Matrics.s(20),
+          resizeMode: 'contain',
+        }}
+      />
+    </TouchableOpacity>
   );
 };
 
 export default CheckoutToast;
 const styles = StyleSheet.create({
-  toastContainer: {
-    position: 'absolute',
-    bottom: 15,
-    left: 0,
-    right: 0,
-    backgroundColor: COLOR.WHITE,
-    borderRadius: Matrics.s(7),
-    paddingHorizontal: Matrics.s(10),
-    marginHorizontal: Matrics.s(20),
-    paddingVertical: Matrics.vs(10),
-  },
-  toastContent: {
+  checkoutButton: {
+    backgroundColor: COLOR.PRIMARY,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 16,
-    color: '#333',
-    fontFamily: typography.fontFamily.Montserrat.Regular,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dismissText: {
-    color: 'red',
-    marginRight: 10,
-    fontSize: 14,
-  },
-  checkoutButton: {
-    backgroundColor: 'green',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
+    marginTop: Matrics.vs(10),
   },
   checkoutText: {
     color: '#fff',

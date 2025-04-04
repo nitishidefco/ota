@@ -19,9 +19,11 @@ export default {
   INFO: '#187498',
   BORDER_COLOR: '#dddddd',
   RANGE_START: '#3423A6',
-  RANGE_MIDDLE: '#9984d4',
+  RANGE_MIDDLE: '#f7f0ff',
   RANGE_END: '#3423A6',
   RED: '#FF0004',
+  COLORED_BORDER: '#6D338A33',
+  ACTIVE_STAR_FILTER: '#F6E4FF',
   //APP THEMING
   dark: {
     backgroundColor: '#343434',

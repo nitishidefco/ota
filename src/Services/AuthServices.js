@@ -19,3 +19,11 @@ export const loginWithPhone = ({details, contentToken}) => {
     },
   });
 };
+
+export const socialLogin = ({details}) => {
+  return baseApiClient.post('/auth/social-login', details);
+};
+
+export const forgotPasswordSer = ({details}) => {
+  return baseApiClient.post('/auth/forgot-password', details);
+};

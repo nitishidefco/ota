@@ -1,7 +1,8 @@
-import React, {createContext, useState} from 'react';
+import React, {createContext, useEffect, useState} from 'react';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import duration from 'dayjs/plugin/duration';
+import {useSelector} from 'react-redux';
 dayjs.extend(isSameOrBefore);
 dayjs.extend(duration);
 export const RoomContext = createContext();
@@ -10,12 +11,8 @@ export const RoomProvider = ({children}) => {
   const [selectedRoomId, setSelectedRoomId] = useState('');
   const [showCheckoutToast, setShowCheckoutToast] = useState(false);
   const [ratePlanId, setRatePlanId] = useState('');
-  const [hotelStayStartDate, setHotelStayStartDate] = useState(
-    dayjs().add(1, 'day'),
-  );
-  const [hotelStayEndDate, setHotelStayEndDate] = useState(
-    dayjs().add(2, 'day'),
-  );
+  const [hotelStayStartDate, setHotelStayStartDate] = useState(null);
+  const [hotelStayEndDate, setHotelStayEndDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [guests, setGuests] = useState(1);
   const [rooms, setRooms] = useState(1);
@@ -26,6 +23,17 @@ export const RoomProvider = ({children}) => {
   const [destination, setDestination] = useState('');
   const [selectedCityIndex, setSelectedCityIndex] = useState();
   const [showFlatList, setShowFlatList] = useState(false);
+  const roomState = useSelector(state => state?.rooms);
+  console.log('Room state', roomState);
+  useEffect(() => {
+    if (roomState?.rooms?.length > 0 && !selectedRoomId) {
+      console.log('inside');
+      const firstRoom = roomState?.rooms[0];
+      setSelectedRoomId(firstRoom.RatePlanID);
+      setRatePlanId(firstRoom.RatePlanID);
+      setShowCheckoutToast(true);
+    }
+  }, [roomState?.rooms, selectedRoomId]);
   return (
     <RoomContext.Provider
       value={{

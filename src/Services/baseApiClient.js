@@ -3,7 +3,7 @@ import {Store} from '../Redux/store';
 import {logout} from '../Redux/Reducers/AuthSlice';
 
 const baseApiClient = axios.create({
-  baseURL: 'https://otaapi.visionvivante.com:9000',
+  baseURL: 'https://otaapi.visionvivante.in',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,6 +14,7 @@ baseApiClient.interceptors.request.use(
     const state = Store.getState();
     const authToken = state.auth.userToken;
     const contentToken = state.contentToken.universalToken;
+    console.log(authToken, contentToken);
 
     if (authToken) {
       config.headers['x-access-token'] = `${authToken}`;

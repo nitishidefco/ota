@@ -40,7 +40,11 @@ export const getUniversalToken = createAsyncThunk(
   'contentToken/getUniversalToken',
   async (_, {rejectWithValue}) => {
     try {
+      console.log('getting universal token');
+
       const response = await getContentToken();
+      console.log(response);
+      
       return response;
     } catch (error) {
       return rejectWithValue('Error getting universal token');

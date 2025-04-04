@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,11 @@ import {
   TouchableOpacity,
   Pressable,
 } from 'react-native';
+import dayjs from 'dayjs';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(isSameOrBefore);
+dayjs.extend(duration);
 import {useDispatch, useSelector} from 'react-redux';
 import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
@@ -23,19 +28,65 @@ import TourSearchCard from '../../Components/UI/SearchCards/TourSearchCard';
 import FlightsSearchCard from '../../Components/UI/SearchCards/FlightsSearchCard';
 import CarSearchCard from '../../Components/UI/SearchCards/CarSearchCard';
 import {SafeAreaView} from 'react-native-safe-area-context';
-
+import CurrencySelector from '../../Components/UI/CurrencySelector';
+import {getUserProfileData} from '../../Redux/Reducers/UserProfileSlice';
+import BottomSheet from '../../Components/UI/BottomSheet';
+import {FilterContext} from '../../Context/FilterContext';
+import Ratings from '../../Components/UI/FilterModal/Ratings';
+import Amenities from '../../Components/UI/FilterModal/Amenities';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import {errorToast} from '../../Helpers/ToastMessage';
+import {RoomContext} from '../../Context/RoomContext';
+import {getAllHotelsThunk} from '../../Redux/Reducers/HotelReducer/GetHotelSlice';
+import {HeaderOptionContext} from '../../Context/HeaderOptionContext';
+import {TouchableWithoutFeedback} from '@gorhom/bottom-sheet';
 const Hotels = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('Hotels');
   const {userProfileData} = useSelector(state => state.userProfile);
   const hotelDataS = useSelector(state => state.hotelSlice);
-
+  const {
+    setShowFilterModal,
+    showFilterModal,
+    selectedStars,
+    selectedAmenities,
+    setSelectedStars,
+    setSelectedAmenities,
+  } = useContext(FilterContext);
+  const [filteredHotels, setFilteredHotels] = useState([]);
+  const userToken = useSelector(state => state.auth.userToken);
+  const contentToken = useSelector(state => state.contentToken.universalToken);
   const globalLanguage = useSelector(
     state => state.selectedLanguage.globalLanguage,
   );
+  const selectedCurrency = useSelector(
+    state => state.currency.selectedCurrency,
+  );
+  const {showModal, setShowModal, setShowCurrencyModal} =
+    useContext(HeaderOptionContext);
+  const {cityDetails} = useSelector(state => state.getCity);
+  useEffect(() => {
+    dispatch(getUserProfileData({userToken, contentToken}));
+  }, []);
+
+  const {
+    hotelStayStartDate,
+    hotelStayEndDate,
+    rooms,
+    adults,
+    pluaralChild,
+    selectedCityIndex,
+    destination,
+  } = useContext(RoomContext);
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(initializeLanguage());
   }, [globalLanguage, dispatch]);
+  useEffect(() => {
+    if (hotelDataS.hotels.length > 0) {
+      setFilteredHotels(hotelDataS.hotels);
+    }
+  }, [hotelDataS.hotels]);
+
   const icons = {
     fullStar: Images.FULL_STAR,
     halfStar: Images.HALF_STAR,
@@ -55,16 +106,20 @@ const Hotels = ({navigation}) => {
   };
 
   const formatHotelData = hotel => {
+    // console.log(hotel);
+
     return {
       imageSource: Images.HOTEL_CARD_BACKGROUND,
       name: hotel.Name,
-      rating: parseFloat(hotel.category),
-      reviewCount: 0,
+      rating: hotel?.rating,
+      reviewCount: hotel?.total_reviews,
       amenities:
         hotel.facilities === null ? null : hotel?.facilities?.slice(0, 6),
       price: hotel.price,
       originalPrice: hotel.totalprice,
+      // TODO: Change according to currency
       currency: '$',
+      category: hotel.category,
     };
   };
 
@@ -97,10 +152,14 @@ const Hotels = ({navigation}) => {
       style={[
         styles.homeTabs,
         {
-          backgroundColor: activeTab === title ? 'white' : COLOR.PRIMARY, // Change background based on activeTab
+          backgroundColor: activeTab === title ? 'white' : 'transparent',
+          paddingHorizontal:
+            Matrics.screenWidth <= 360 ? Matrics.s(5) : Matrics.s(10),
+          border: activeTab === title ? 'none' : '#864AA4',
         },
       ]}
-      onPress={() => setActiveTab(title)}>
+      onPress={() => setActiveTab(title)}
+      activeOpacity={0.7}>
       <Image
         style={styles.homeTabsImage}
         source={activeTab === title ? activeIcon : inactiveIcon}
@@ -110,7 +169,7 @@ const Hotels = ({navigation}) => {
           styles.homeTabsTitle,
           {color: activeTab === title ? COLOR.PRIMARY : 'white'}, // Active: COLOR.PRIMARY, Inactive: white
         ]}>
-        {title}
+        {i18n.t(`Hotel.${title}`)}
       </Text>
     </TouchableOpacity>
   );
@@ -126,93 +185,302 @@ const Hotels = ({navigation}) => {
         return <CarSearchCard />;
     }
   };
+
+  /* --------------------- Details for destination search --------------------- */
+  const detailsForDestinationSearch = {
+    cityName: cityDetails?.[selectedCityIndex]?.cityName,
+    destinationName: cityDetails?.[selectedCityIndex]?.destinationName,
+    countryCode: cityDetails?.[selectedCityIndex]?.countryCode,
+    countryName: cityDetails?.[selectedCityIndex]?.countryName,
+    CheckInDate: dayjs(hotelStayStartDate).format('YYYY-MM-DD'),
+    CheckOutDate: dayjs(hotelStayEndDate).format('YYYY-MM-DD'),
+    RoomCount: rooms,
+    RealTimeOccupancy: {
+      AdultCount: adults,
+      ChildCount: pluaralChild,
+      ChildAgeDetails: [],
+    },
+    Nationality: 'IN',
+    Currency: selectedCurrency ?? 'USD',
+    star_rating: selectedStars,
+  };
+  const handleDonePress = async () => {
+    if (cityDetails.length === 0 || destination === '') {
+      const error = i18n.t('Toast.selectDestination');
+      errorToast(error);
+      return;
+    }
+
+    setShowFilterModal(false);
+    if (selectedStars.length > 0) {
+      const response = await dispatch(
+        getAllHotelsThunk({details: detailsForDestinationSearch}),
+      );
+      if (response.error) {
+        errorToast(response.payload);
+      }
+    } else if (selectedAmenities.length > 0) {
+      const filtered = hotelDataS.hotels.filter(hotel => {
+        if (!hotel.facilities) {
+          return false;
+        } // Handle null/undefined facilities
+        return selectedAmenities.every(amenity =>
+          hotel.facilities.includes(amenity),
+        );
+      });
+      setFilteredHotels(filtered);
+    } else {
+      dispatch(getAllHotelsThunk({details: detailsForDestinationSearch}));
+      setFilteredHotels(hotelDataS.hotels);
+    }
+  };
+
+  const handleReset = async () => {
+    setSelectedStars([]);
+    setSelectedAmenities([]);
+    setShowFilterModal(false);
+    if (destination) {
+      dispatch(getAllHotelsThunk({details: detailsForDestinationSearch}));
+    }
+  };
+  const shortenTheName = name => {
+    if (!name || typeof name !== 'string') {
+      return '';
+    }
+
+    const firstName = name.split(' ')[0];
+
+    if (name.length > 9) {
+      return `${firstName.substring(0, 7)}...`;
+    }
+
+    return name;
+  };
+
   return (
     <SafeAreaView>
-      <ScrollView>
-        <View>
-          <ImageBackground
-            source={Images.PROFILE_BACKGROUND}
-            imageStyle={styles.headerImageStyle}>
-            <View style={styles.homeHeaderUpperContainer}>
+      {showFilterModal && (
+        <Animated.View
+          entering={FadeIn.duration(250)}
+          exiting={FadeOut.duration(250)}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            height: Matrics.screenHeight,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999,
+          }}
+        />
+      )}
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            setShowModal(false);
+            setShowCurrencyModal(false);
+            console.log('[TouchableWithoutFeedback] Dismissing keyboard');
+          }}>
+          <View>
+            <ImageBackground
+              source={Images.PROFILE_BACKGROUND}
+              imageStyle={styles.headerImageStyle}>
+              <View style={styles.homeHeaderUpperContainer}>
+                <View>
+                  <Text style={styles.homeHeaderTitle}>
+                    {i18n.t('Hotel.hi')} {shortenTheName(userProfileData?.name)}
+                  </Text>
+                </View>
+                <View style={styles.homeHeaderSecondaryOptions}>
+                  <LanguageSelector />
+                  <CurrencySelector />
+
+                  <View style={styles.secondaryOptions}>
+                    <Image
+                      style={styles.secondaryOptionsImages}
+                      source={Images.DOTS}
+                    />
+                  </View>
+                </View>
+              </View>
               <View>
-                <Text style={styles.homeHeaderTitle}>
-                  {i18n.t('Hotel.hi')} {userProfileData?.name}
+                <Text style={styles.homeHeaderSubtitle}>
+                  {i18n.t('Hotel.bestService')}
                 </Text>
               </View>
-              <View style={styles.homeHeaderSecondaryOptions}>
-                <LanguageSelector />
-                <View style={styles.secondaryOptions}>
-                  <Image
-                    style={styles.secondaryOptionsImages}
-                    source={Images.CASH_ICON}
-                  />
-                </View>
-                <View style={styles.secondaryOptions}>
-                  <Image
-                    style={styles.secondaryOptionsImages}
-                    source={Images.DOTS}
-                  />
-                </View>
+              <View style={styles.homeTabContainer}>
+                {renderTab(
+                  'Hotels',
+                  Images.HOTELS_ACTIVE,
+                  Images.HOTELS_INACTIVE,
+                )}
+                {renderTab('Tours', Images.TOURS_ACTIVE, Images.TOURS_INACTIVE)}
+                {renderTab(
+                  'Flights',
+                  Images.FLIGHTS_ACTIVE,
+                  Images.FLIGHTS_INACTIVE,
+                )}
+                {renderTab('Car', Images.CARS_ACTIVE, Images.CARS_INACTIVE)}
+              </View>
+            </ImageBackground>
+            {renderSearchCard()}
+          </View>
+          <View style={styles.filterSortContainer}>
+            <TouchableOpacity
+              style={styles.filterSortItem}
+              onPress={() => setShowFilterModal(true)}
+              disabled={hotelDataS.hotels.length === 0}>
+              {hotelDataS.hotels.length > 0 ? (
+                <Image
+                  source={Images.FILTER_ACTIVE}
+                  style={styles.filterImage}
+                />
+              ) : (
+                <Image
+                  source={Images.FILTER_INACTIVE}
+                  style={styles.filterImage}
+                />
+              )}
+              <Text
+                style={[
+                  styles.filterSortText,
+                  {
+                    color:
+                      hotelDataS.hotels.length > 0
+                        ? COLOR.PRIMARY
+                        : COLOR.DARK_TEXT_COLOR,
+                  },
+                ]}>
+                {i18n.t('Hotel.filter')}
+              </Text>
+            </TouchableOpacity>
+            {/* <TouchableOpacity
+              style={styles.filterSortItem}
+              disabled={hotelDataS.hotels.length === 0}>
+              {hotelDataS.hotels.length > 0 ? (
+                <Image
+                  source={Images.SORT_ACTIVE}
+                  style={styles.filterSortImage}
+                />
+              ) : (
+                <Image
+                  source={Images.SORT_INACTIVE}
+                  style={styles.filterSortImage}
+                />
+              )}
+              <Text
+                style={[
+                  styles.filterSortText,
+                  {
+                    color: hotelDataS.hotels.length > 0 ? COLOR.PRIMARY : COLOR.DARK_TEXT_COLOR,
+                  },
+                ]}>
+                Sort
+              </Text>
+            </TouchableOpacity> */}
+          </View>
+          <View style={{height: Matrics.screenHeight}}>
+            <FlatList
+              data={activeTab === 'Hotels' ? filteredHotels : []}
+              renderItem={renderHotelCard}
+              keyExtractor={item => item.HotelID.toString()}
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled={true}
+              ListEmptyComponent={
+                hotelDataS.loadingHotels ? (
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      minHeight: 200,
+                    }}>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                  </View>
+                ) : (
+                  <View style={styles.emptyFlatListContainer}>
+                    <Image
+                      style={styles.emptyFlatListImage}
+                      source={Images.NO_RESULT_FOUND}
+                    />
+                    <Text style={styles.emptyFlatListText}>
+                      No Result Found
+                    </Text>
+                    <Text style={styles.emptyFlatListSubText}>
+                      Try changing the dates of your search
+                    </Text>
+                  </View>
+                )
+              }
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+            />
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+
+      <View
+        style={{
+          width: Matrics.screenWidth * 0.95,
+          marginHorizontal: 'auto',
+          zIndex: 1001,
+        }}>
+        <BottomSheet
+          visible={showFilterModal}
+          onClose={() => setShowFilterModal(false)}>
+          <View>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.filterModalHeaderTitle}>Filter</Text>
+              <View style={{flexDirection: 'row', gap: 10}}>
+                {selectedAmenities?.length > 0 || selectedStars?.length > 0 ? (
+                  <>
+                    <Pressable
+                      onPress={() => {
+                        handleReset();
+                      }}>
+                      <Text style={styles.filterModalHeaderText}>Reset</Text>
+                    </Pressable>
+                    <Pressable onPress={() => handleDonePress()}>
+                      <Text style={styles.filterModalHeaderText}>Done</Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <Pressable onPress={() => handleDonePress()}>
+                      <Text style={styles.filterModalHeaderText}>Done</Text>
+                    </Pressable>
+                  </>
+                )}
               </View>
             </View>
             <View>
-              <Text style={styles.homeHeaderSubtitle}>
-                {i18n.t('Hotel.bestService')}
-              </Text>
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: COLOR.BORDER_COLOR,
+                  width: '95%',
+                  marginHorizontal: 'auto',
+                }}>
+                <Text style={styles.filterModalOptions}>Rating</Text>
+                <Ratings />
+                {/* <Text>Heelo</Text> */}
+              </View>
+              <View
+                style={{
+                  width: '95%',
+                  marginHorizontal: 'auto',
+                  marginBottom: Matrics.vs(370),
+                }}>
+                <Text style={styles.filterModalOptions}>Hotel Amenity</Text>
+                <Amenities />
+              </View>
             </View>
-            <View style={styles.homeTabContainer}>
-              {renderTab(
-                'Hotels',
-                Images.HOTELS_ACTIVE,
-                Images.HOTELS_INACTIVE,
-              )}
-              {renderTab('Tours', Images.TOURS_ACTIVE, Images.TOURS_INACTIVE)}
-              {renderTab(
-                'Flights',
-                Images.FLIGHTS_ACTIVE,
-                Images.FLIGHTS_INACTIVE,
-              )}
-              {renderTab('Car', Images.CARS_ACTIVE, Images.CARS_INACTIVE)}
-            </View>
-          </ImageBackground>
-          {renderSearchCard()}
-        </View>
-        <View style={{height: Matrics.screenHeight}}>
-          <FlatList
-            data={activeTab === 'Hotels' ? hotelDataS.hotels : []}
-            renderItem={renderHotelCard}
-            keyExtractor={item => item.HotelID.toString()}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled={true}
-            ListEmptyComponent={
-              hotelDataS.loadingHotels ? (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: 200,
-                  }}>
-                  <ActivityIndicator size="large" color="#0000ff" />
-                </View>
-              ) : (
-                <View style={styles.emptyFlatListContainer}>
-                  <Image
-                    style={styles.emptyFlatListImage}
-                    source={Images.EMPTY_FLAT_LIST}
-                  />
-                  <Text style={styles.emptyFlatListText}>
-                    Search to find amazing {activeTab.toLowerCase()}
-                  </Text>
-                </View>
-              )
-            }
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
-            windowSize={5}
-          />
-        </View>
-      </ScrollView>
+          </View>
+        </BottomSheet>
+      </View>
     </SafeAreaView>
   );
 };
@@ -223,7 +491,7 @@ const styles = StyleSheet.create({
   homeHeaderTitle: {
     fontFamily: typography.fontFamily.Montserrat.Bold,
     color: COLOR.WHITE,
-    fontSize: typography.fontSizes.fs24,
+    fontSize: typography.fontSizes.fs22,
   },
   homeHeaderSubtitle: {
     fontFamily: typography.fontFamily.Montserrat.Regular,
@@ -237,6 +505,7 @@ const styles = StyleSheet.create({
     gap: 5,
     alignItems: 'center',
     marginTop: Matrics.vs(10),
+    zIndex: 1000,
   },
   homeHeaderUpperContainer: {
     flexDirection: 'row',
@@ -251,12 +520,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   secondaryOptions: {
-    backgroundColor: COLOR.PRIMARY,
-    paddingHorizontal: Matrics.s(12),
-    paddingVertical: Matrics.vs(7),
-    borderRadius: Matrics.s(10),
-    borderColor: COLOR.DIM_TEXT_COLOR,
-    borderWidth: 1,
+    paddingHorizontal: Matrics.s(6),
+    paddingVertical: Matrics.vs(11),
   },
   headerImageStyle: {
     height: Matrics.screenHeight * 0.4,
@@ -266,7 +531,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     borderWidth: 1,
-    borderColor: COLOR.BORDER_COLOR,
+    borderColor: '#864AA4',
     borderRadius: Matrics.s(10),
     paddingHorizontal: Matrics.s(10),
     paddingVertical: Matrics.vs(8),
@@ -300,5 +565,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: Matrics.screenHeight * 0.3,
+  },
+  filterSortContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    // marginHorizontal: Matrics.s(10),
+    margin: 'auto',
+    marginTop: Matrics.vs(10),
+    width: Matrics.screenWidth * 0.7,
+  },
+  filterSortItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  filterSortText: {
+    fontFamily: typography.fontFamily.Montserrat.SemiBold,
+    color: COLOR.PRIMARY,
+    fontSize: typography.fontSizes.fs14,
+  },
+  filterSortImage: {
+    width: Matrics.s(20),
+    height: Matrics.vs(20),
+    resizeMode: 'contain',
+  },
+  filterImage: {
+    width: Matrics.s(20),
+    height: Matrics.vs(20),
+    resizeMode: 'contain',
+  },
+  filterModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Matrics.s(10),
+    paddingVertical: Matrics.vs(10),
+  },
+  filterModalHeaderText: {
+    fontFamily: typography.fontFamily.Montserrat.Medium,
+    color: COLOR.PRIMARY,
+    fontSize: typography.fontSizes.fs14,
+    borderWidth: 1,
+    borderColor: COLOR.BORDER_COLOR,
+    paddingHorizontal: Matrics.s(10),
+    paddingVertical: Matrics.vs(5),
+    borderRadius: Matrics.s(10),
+  },
+  filterModalHeaderTitle: {
+    fontFamily: typography.fontFamily.Montserrat.Bold,
+    fontSize: typography.fontSizes.fs24,
+    color: COLOR.PRIMARY,
+  },
+  filterModalOptions: {
+    fontFamily: typography.fontFamily.Montserrat.Medium,
+    fontSize: typography.fontSizes.fs14,
+    color: COLOR.BLACK,
+    paddingHorizontal: Matrics.s(10),
+    // marginBottom: Matrics.vs(10),
+  },
+  emptyFlatListSubText: {
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+    color: COLOR.DIM_TEXT_COLOR,
   },
 });

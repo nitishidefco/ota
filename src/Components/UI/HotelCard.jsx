@@ -2,46 +2,36 @@ import React from 'react';
 import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import LinearGradient from 'react-native-linear-gradient';
+import FastImage from 'react-native-fast-image';
+import {Images} from '../../Config';
+import {useSelector} from 'react-redux';
+import i18n from '../../i18n/i18n';
 
 // Star Rating Component with Custom Icons
-const StarRating = ({
-  rating,
-  reviewCount,
-  fullStarIcon,
-  halfStarIcon,
-  emptyStarIcon,
-  maxStars = 5,
-}) => {
-  const fullStars = Math.floor(rating);
-  const halfStar = rating % 1 >= 0.5;
-  const emptyStars = maxStars - fullStars - (halfStar ? 1 : 0);
-
+const StarRating = ({rating = 0, reviewCount = 0}) => {
   return (
     <View style={styles.ratingContainer}>
-      <Text style={styles.ratingNumber}>{rating.toFixed(1)}</Text>
-
-      <View style={styles.starsContainer}>
-        {[...Array(fullStars)].map((_, i) => (
-          <Image
-            key={`full-${i}`}
-            source={fullStarIcon}
-            style={styles.starIcon}
-          />
-        ))}
-        {halfStar && (
-          <Image key="half" source={halfStarIcon} style={styles.starIcon} />
-        )}
-
-        {[...Array(emptyStars)].map((_, i) => (
-          <Image
-            key={`empty-${i}`}
-            source={emptyStarIcon}
-            style={styles.starIcon}
-          />
-        ))}
+      <View
+        style={{
+          backgroundColor: COLOR.PRIMARY,
+          flexDirection: 'row',
+          paddingHorizontal: Matrics.s(10),
+          paddingVertical: Matrics.vs(3),
+          borderRadius: Matrics.s(4),
+          alignItems: 'center',
+        }}>
+        <Text style={styles.ratingNumber}>{rating || 0}</Text>
+        <Image
+          source={Images.FULL_STAR_WHITE}
+          style={{
+            width: Matrics.s(17),
+            resizeMode: 'contain',
+            height: Matrics.vs(17),
+          }}
+        />
       </View>
 
-      <Text style={styles.reviewCount}>({reviewCount} reviews)</Text>
+      <Text style={styles.reviewCount}>({reviewCount || 0} reviews)</Text>
     </View>
   );
 };
@@ -58,6 +48,10 @@ const AmenityItem = ({iconSource, name}) => {
 
 // Main Hotel Card Component
 const HotelCard = ({hotel, icons, onBookPress}) => {
+  // console.log('Hotel', hotel);
+  const selectedCurrency = useSelector(
+    state => state.currency.selectedCurrency,
+  );
   const {
     imageSource,
     name,
@@ -67,22 +61,54 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
     price,
     originalPrice,
     currency = '$',
+    category,
   } = hotel;
+  const getCurrencySymbol = selectCurrency => {
+    return selectCurrency === 'USD' || selectCurrency === 'CAD' ? '$' : '₹';
+  };
+  const renderStars = cate => {
+    const totalStars = 5;
+    const stars = [];
 
+    for (let i = 0; i < cate; i++) {
+      stars.push(
+        <Image
+          key={`purple-${i}`}
+          source={Images.FULL_PURPLE_STAR}
+          style={styles.starIcon}
+        />,
+      );
+    }
+    for (let i = cate; i < totalStars; i++) {
+      stars.push(
+        <Image
+          key={`grey-${i}`}
+          source={Images.FULL_GREY_STAR}
+          style={styles.starIcon}
+        />,
+      );
+    }
+    return stars;
+  };
   return (
     <View style={styles.card}>
-      <Image source={imageSource} style={styles.image} resizeMode="cover" />
+      <View style={styles.imageContainer}>
+        <FastImage
+          source={imageSource}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.hotelName}>{name}</Text>
+        <View style={styles.container}>
+          <Text style={styles.hotelName}>
+            <Text style={styles.nameText}>{name}</Text>
+            <View style={{flexDirection: 'row'}}>{renderStars(category)}</View>
+          </Text>
+        </View>
 
-        <StarRating
-          rating={rating}
-          reviewCount={reviewCount}
-          fullStarIcon={icons.fullStar}
-          halfStarIcon={icons.halfStar}
-          emptyStarIcon={icons.emptyStar}
-        />
+        <StarRating rating={rating} reviewCount={reviewCount} />
 
         <View style={styles.amenitiesContainer}>
           {amenities?.length > 0 ? (
@@ -94,7 +120,9 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
               />
             ))
           ) : (
-            <Text style={styles.amenityText}>No amenities available</Text>
+            <Text style={styles.amenityText}>
+              {i18n.t('HotelCard.noAmenityAvailable')}
+            </Text>
           )}
           {}
         </View>
@@ -103,8 +131,8 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
           <View>
             <View style={styles.priceContainer}>
               <Text style={styles.price}>
-                {currency}
-                {Math.floor(price)}
+                {getCurrencySymbol(selectedCurrency)}
+                {price}
               </Text>
               {originalPrice && (
                 <Text style={styles.originalPrice}>
@@ -118,17 +146,18 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
 
           <TouchableOpacity
             style={{
-              width: '60%',
-              height: '100%',
-              paddingHorizontal: Matrics.s(10),
+              width: '50%',
             }}
-            onPress={onBookPress}>
+            onPress={onBookPress}
+            activeOpacity={0.7}>
             <LinearGradient
               colors={['#8740AB', '#49225C']}
               start={{x: 0, y: 0}}
               end={{x: 0, y: 1}}
               style={styles.bookButton}>
-              <Text style={styles.bookButtonText}>Book Now</Text>
+              <Text style={styles.bookButtonText}>
+                {i18n.t('HotelCard.bookNow')}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -141,21 +170,19 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     backgroundColor: 'white',
-    // shadowColor: '#000',
-    // shadowOffset: {width: 0, height: 2},
-    // shadowOpacity: 0.1,
-    // shadowRadius: 80,
-    elevation: 3,
     margin: 16,
     overflow: 'hidden',
-    // width: width - 32,
   },
   image: {
     width: '100%',
     height: 200,
   },
+  imageContainer: {
+    padding: 13,
+  },
   contentContainer: {
-    padding: 16,
+    paddingHorizontal: Matrics.s(15),
+    paddingBottom: Matrics.vs(10),
   },
   hotelName: {
     fontSize: 22,
@@ -171,15 +198,16 @@ const styles = StyleSheet.create({
   ratingNumber: {
     fontSize: 16,
     marginRight: 4,
-    fontFamily: typography.fontFamily.Montserrat.Bold,
+    fontFamily: typography.fontFamily.Montserrat.Medium,
+    color: COLOR.WHITE,
   },
   starsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   starIcon: {
-    width: 16,
-    height: 16,
+    width: 12,
+    height: 12,
     marginHorizontal: 1,
   },
   reviewCount: {
@@ -221,7 +249,6 @@ const styles = StyleSheet.create({
   bookingContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginTop: 8,
   },
   priceContainer: {
@@ -249,14 +276,22 @@ const styles = StyleSheet.create({
     // paddingVertical: 12,
     // paddingHorizontal: 24,
     borderRadius: 8,
-    height: Matrics.vs(35),
+    height: Matrics.vs(45),
     justifyContent: 'center',
+    marginTop: 6,
   },
   bookButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
     fontFamily: typography.fontFamily.Montserrat.Bold,
+  },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  nameText: {
+    marginRight: 12,
   },
 });
 

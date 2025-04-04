@@ -2,7 +2,6 @@ import {
   SafeAreaView,
   ScrollView,
   View,
-  KeyboardAvoidingView,
   Platform,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -11,26 +10,33 @@ import {
   Text,
   Image,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
+import React, {useEffect, useState, useRef} from 'react';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import CustomInput from '../../Components/UI/CustomInput';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import {CountryPicker} from 'react-native-country-codes-picker';
 import {loginUserWithPhone} from '../../Redux/Reducers/AuthSlice';
-import {
-  checkUniversalToken,
-  getUniversalToken,
-} from '../../Redux/Reducers/ContentTokenSlice';
+import {checkUniversalToken} from '../../Redux/Reducers/ContentTokenSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
 import CustomLoader from '../../Components/Loader/CustomLoader';
 import {useNavigation} from '@react-navigation/native';
 import i18n from '../../i18n/i18n';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import {countryPhoneLength} from '../../Utils/countryPhoneLength';
+import {errorToast} from '../../Helpers/ToastMessage';
 
 const LoginWithPhone = () => {
+  const globalLanguage = useSelector(
+    state => state.selectedLanguage.globalLanguage,
+  );
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [phone, setPhone] = useState('');
   const [show, setShow] = useState(false);
+  const [countryCodeName, setCountryCodeName] = useState('');
+  const scrollRef = useRef(null);
   const [errors, setErrors] = useState({
     phone: '',
   });
@@ -42,15 +48,68 @@ const LoginWithPhone = () => {
   // useEffect(() => {
   //   dispatch(getUniversalToken());
   // }, []);
+  useEffect(() => {
+    // Listener for when the keyboard appears
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true); // Keyboard is visible
+      },
+    );
+
+    // Listener for when the keyboard hides
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false); // Keyboard is hidden
+      },
+    );
+
+    // Cleanup listeners on unmount
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
   const validatePhone = value => {
-    if (!value.trim()) {
-      const error = i18n.t('validationMessages.noPhone');
-      return error;
+    if (!value.trim()) return i18n.t('validationMessages.noPhone');
+
+    // Find the selected country from the list
+    const country = countryPhoneLength.find(
+      c => c.phone === countryCode.replace('+', ''),
+    );
+    setCountryCodeName(country.code);
+    console.log('country', country);
+
+    if (!country) return i18n.t('validationMessages.validPhoneLength');
+
+    const phoneLength =
+      country.phoneLength ||
+      (country.min && country.max ? [country.min, country.max] : null);
+
+    // Handle different phoneLength formats
+    if (Array.isArray(phoneLength)) {
+      if (!phoneLength.includes(value.length)) {
+        return i18n
+          .t('validationMessages.validPhoneLength')
+          .replace('{length}', phoneLength.join(' or '));
+      }
+    } else if (typeof phoneLength === 'number') {
+      if (value.length !== phoneLength) {
+        return i18n
+          .t('validationMessages.validPhoneLength')
+          .replace('{length}', phoneLength);
+      }
+    } else if (country.min && country.max) {
+      if (value.length < country.min || value.length > country.max) {
+        return i18n
+          .t('validationMessages.validPhoneLength')
+          .replace('{length}', `${country.min}-${country.max}`);
+      }
     }
-    if (!/^\d{7,15}$/.test(value)) {
-      const error = i18n.t('validationMessages.notValidPhone');
-      return error;
-    }
+
+    if (!/^\d+$/.test(value))
+      return i18n.t('validationMessages.validPhoneLength');
     return '';
   };
   const handlePhoneChange = value => {
@@ -70,7 +129,11 @@ const LoginWithPhone = () => {
     });
     return !phoneError;
   };
-
+  const scrollToInput = reactNode => {
+    if (reactNode) {
+      scrollRef.current?.scrollToFocusedInput(reactNode);
+    }
+  };
   const onLoginButtonPress = async () => {
     if (!validateForm()) {
       console.log('Validation failed');
@@ -99,6 +162,8 @@ const LoginWithPhone = () => {
       const response = await dispatch(
         loginUserWithPhone({details: loginDetails, contentToken: currentToken}),
       );
+      console.log('Phone response', response);
+
       if (response?.payload?.status === 200) {
         navigation.navigate('EnterOtp');
         Toast.show({
@@ -106,10 +171,10 @@ const LoginWithPhone = () => {
           text1: i18n.t('Toast.otpSentSuccess'),
         });
       } else if (response?.payload?.status === false) {
-        Toast.show({
-          type: 'error',
-          text1: response?.payload?.error,
-        });
+        errorToast(response?.payload?.error);
+        console.log('or this');
+      } else if (response?.error) {
+        errorToast('Phone No. does not exist');
       }
       console.log('response in login with phone account', response);
     } catch (error) {
@@ -120,92 +185,124 @@ const LoginWithPhone = () => {
   return (
     <SafeAreaView style={styles.safeAreaView}>
       {AuthState?.isLoading && (
+        <Animated.View
+          entering={FadeIn.duration(25)}
+          exiting={FadeOut.duration(25)}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            height: Matrics.screenHeight,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+          }}
+        />
+      )}
+      {AuthState?.isLoading && (
         <CustomLoader
           message={i18n.t('validationMessages.checkingCreditionals')}
           isVisible={AuthState?.isLoading}
         />
       )}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-            <View style={styles.container}>
-              <AuthScreenHeaders
-                title={i18n.t('LoginWithPhone.loginWithPhone')}
-                showCreateAccountButton={false}
-                showBackButton={true}
-              />
-              <View style={styles.inputContainer}>
-                <View style={styles.phoneNumberContainer}>
-                  <TouchableOpacity
-                    onPress={() => setShow(true)}
-                    style={[
-                      styles.countryPicker,
-                      {
-                        marginTop: errors.phone
-                          ? Matrics.vs(-5)
-                          : Matrics.vs(10.9),
-                      },
-                    ]}>
-                    <Text style={styles.countryPickerTextStyle}>
-                      {countryCode}
-                    </Text>
-                  </TouchableOpacity>
-                  <View style={{flex: 1}}>
-                    <CustomInput
-                      label={i18n.t('LoginWithPhone.phone')}
-                      value={phone}
-                      onChangeText={handlePhoneChange}
-                      placeholder={i18n.t('LoginWithPhone.phonePlaceholder')}
-                      type="phone"
-                      required
-                      labelStyle={{right: Matrics.screenWidth * 0.2}}
-                      error={errors.phone}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.parentButtonContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.buttonContainer,
-                      AuthState.isLoading && {opacity: 0.5},
-                    ]}
-                    onPress={() => onLoginButtonPress()}
-                    disabled={AuthState?.isLoading}>
-                    <Image
-                      style={styles.bottomElipseButtonStlye}
-                      source={Images.BOTTOM_ELIPSE_BUTTON}
-                    />
-                  </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{flex: 1}}>
+        <KeyboardAwareScrollView style={{flex: 1}}>
+          <View style={styles.container}>
+            <AuthScreenHeaders
+              title={i18n.t('LoginWithPhone.loginWithPhone')}
+              showCreateAccountButton={false}
+              showBackButton={true}
+            />
+            <View style={styles.inputContainer}>
+              <View style={styles.phoneNumberContainer}>
+                <TouchableOpacity
+                  onPress={() => setShow(true)}
+                  style={[
+                    styles.countryPicker,
+                    {
+                      marginTop: errors.phone ? Matrics.vs(-5) : Matrics.vs(14),
+                    },
+                  ]}
+                  activeOpacity={0.7}>
+                  <Text style={styles.countryPickerTextStyle}>
+                    {countryCode}
+                  </Text>
+                </TouchableOpacity>
+                <View style={{flex: 1}}>
+                  <CustomInput
+                    label={i18n.t('LoginWithPhone.phone')}
+                    value={phone}
+                    onChangeText={handlePhoneChange}
+                    placeholder={i18n.t('LoginWithPhone.phonePlaceholder')}
+                    type="phone"
+                    required
+                    labelStyle={{right: Matrics.screenWidth * 0.2}}
+                    error={errors.phone}
+                    onFocus={event => {
+                      scrollToInput(event.target);
+                    }}
+                  />
                 </View>
               </View>
+
+              <View
+                style={[
+                  styles.parentButtonContainer,
+                  {
+                    alignItems:
+                      globalLanguage === 'ar' ? 'flex-start' : 'flex-end',
+                    marginLeft: globalLanguage === 'ar' ? -15 : 0,
+                    marginTop: globalLanguage === 'ar' ? 10 : 0,
+                  },
+                ]}>
+                <TouchableOpacity
+                  style={[
+                    styles.buttonContainer,
+                    AuthState.isLoading && {opacity: 0.5},
+                  ]}
+                  onPress={() => onLoginButtonPress()}
+                  disabled={AuthState?.isLoading}
+                  activeOpacity={0.7}>
+                  <Image
+                    style={styles.bottomElipseButtonStlye}
+                    source={Images.BOTTOM_ELIPSE_BUTTON}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
-            <CountryPicker
-              show={show}
-              pickerButtonOnPress={item => {
-                setCountryCode(item.dial_code);
-                setShow(false);
-              }}
-              searchMessage="Search For Country"
-              onBackdropPress={() => setShow(false)}
-              style={{
-                modal: {
-                  height: 500,
-                },
-                textInput: {
-                  height: Matrics.vs(40),
-                  borderRadius: Matrics.s(7),
-                },
-              }}
-            />
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+          </View>
+          <CountryPicker
+            show={show}
+            pickerButtonOnPress={item => {
+              setCountryCode(item.dial_code);
+              setShow(false);
+            }}
+            searchMessage="Search For Country"
+            onBackdropPress={() => setShow(false)}
+            style={{
+              modal: {
+                height: 350,
+              },
+              textInput: {
+                height: Matrics.vs(40),
+                borderRadius: Matrics.s(7),
+                fontFamily: typography.fontFamily.Montserrat.Regular,
+                paddingLeft: Matrics.s(10),
+              },
+              countryName: {
+                fontFamily: typography.fontFamily.Montserrat.Regular,
+              },
+              dialCode: {
+                fontFamily: typography.fontFamily.Montserrat.Regular,
+              },
+              countryButtonStyles: {
+                height: Matrics.vs(50),
+              },
+            }}
+          />
+        </KeyboardAwareScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };
@@ -229,7 +326,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     paddingHorizontal: Matrics.s(10),
-    marginTop: Matrics.screenHeight * 0.25,
+    marginTop: Matrics.vs(165),
     flex: 1,
   },
   textStyle: {
@@ -247,6 +344,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 170,
     marginRight: Matrics.s(-13),
     marginBottom: Matrics.vs(-6),
+    marginTop: Matrics.vs(50),
   },
   parentButtonContainer: {
     alignItems: 'flex-end',

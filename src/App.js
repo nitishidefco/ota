@@ -12,21 +12,32 @@ import {I18nextProvider} from 'react-i18next';
 import i18n from './i18n/i18n';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {RoomProvider} from './Context/RoomContext';
-
+import {FilterProvider} from './Context/FilterContext';
+import {KeyboardProvider} from 'react-native-keyboard-controller';
+import {ConfirmationModalProvider} from './Context/ConfirmationModalContext';
+import {HeaderOptionProvider} from './Context/HeaderOptionContext';
 const App = () => {
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      <SafeAreaProvider>
-        <Provider store={Store}>
-          <I18nextProvider i18n={i18n}>
-            <RoomProvider>
-              <NavigationStack />
-              <Toast config={toastConfig} autoHide={true} />
-            </RoomProvider>
-          </I18nextProvider>
-        </Provider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <KeyboardProvider>
+      <GestureHandlerRootView style={{flex: 1}}>
+        <SafeAreaProvider>
+          <Provider store={Store}>
+            <I18nextProvider i18n={i18n}>
+              <HeaderOptionProvider>
+                <ConfirmationModalProvider>
+                  <RoomProvider>
+                    <FilterProvider>
+                      <NavigationStack />
+                      <Toast config={toastConfig} autoHide={true} />
+                    </FilterProvider>
+                  </RoomProvider>
+                </ConfirmationModalProvider>
+              </HeaderOptionProvider>
+            </I18nextProvider>
+          </Provider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </KeyboardProvider>
   );
 };
 

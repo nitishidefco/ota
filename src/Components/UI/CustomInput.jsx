@@ -15,51 +15,26 @@ const CustomInput = ({
   onChangeText,
   placeholder,
   type = 'default',
-  error,
+  error, // This is the error passed from the parent
   required = false,
   containerStyle,
   inputStyle,
   labelStyle,
+  showVisibilityIndicator = true,
+  inputContainerStyle,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState(false);
-
-  const validateInput = text => {
-    if (!text && required) {
-      return `${label} is required`;
-    }
-
-    switch (type) {
-      case 'email':
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(text)) {
-          return 'Please enter a valid email';
-        }
-        break;
-
-      case 'password':
-        if (text && text.length < 8) {
-          return 'Password must be at least 8 characters';
-        }
-        break;
-
-      case 'phone':
-        const phoneRegex = /^\+?[\d\s-]{6,12}$/;
-        if (!phoneRegex.test(text)) {
-          return 'Please enter a valid phone number';
-        }
-        break;
-    }
-    return '';
-  };
 
   const handleBlur = () => {
     setIsFocused(false);
     setTouched(true);
   };
 
-  const currentError = touched ? error : '';
+  // Use the error prop directly if provided; otherwise, fall back to internal validation
+  const currentError = error || (touched ? error : '');
+
   return (
     <View style={[styles.container, containerStyle]}>
       <Text style={[styles.label, labelStyle]}>
@@ -71,9 +46,10 @@ const CustomInput = ({
           styles.inputContainer,
           isFocused && styles.inputFocused,
           currentError && styles.inputError,
+          inputContainerStyle,
         ]}>
         <TextInput
-          style={[styles.input, inputStyle]}
+          style={[styles.input, inputStyle, {}]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -96,12 +72,15 @@ const CustomInput = ({
         {type === 'password' && (
           <TouchableOpacity
             style={styles.eyeIcon}
-            onPress={() => setShowPassword(!showPassword)}>
-            {showPassword ? (
-              <EyeOff size={20} color="#666" />
-            ) : (
-              <Eye size={20} color="#666" />
-            )}
+            onPress={() => setShowPassword(!showPassword)}
+            activeOpacity={0.7}>
+            {showVisibilityIndicator ? (
+              showPassword ? (
+                <Eye size={20} color="#666" />
+              ) : (
+                <EyeOff size={20} color="#666" />
+              )
+            ) : null}
           </TouchableOpacity>
         )}
       </View>
@@ -120,6 +99,8 @@ const styles = StyleSheet.create({
     marginBottom: Matrics.vs(6),
     color: COLOR.DIM_TEXT_COLOR,
     fontFamily: typography.fontFamily.Montserrat.Regular,
+    // backgroundColor: 'blue',
+    // height: Matrics.vs(20),
   },
   required: {
     color: 'red',

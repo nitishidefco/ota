@@ -14,7 +14,7 @@ export const getAllHotelsThunk = createAsyncThunk(
       const response = await getHotels({details: details});
       return response.result;
     } catch (error) {
-      return rejectWithValue('Error getting hotesl', error);
+      return rejectWithValue('Error getting hotels', error);
     }
   },
 );

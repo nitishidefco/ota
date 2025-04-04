@@ -31,7 +31,7 @@ const HotelCarousel = React.memo(({images}) => {
       <Carousel
         ref={carouselRef}
         width={Matrics.screenWidth}
-        height={280}
+        height={225}
         data={images}
         renderItem={renderItem}
         loop={true}
@@ -41,7 +41,7 @@ const HotelCarousel = React.memo(({images}) => {
         style={styles.carousel}
       />
       <View style={styles.carouselControlsContainer}>
-        <TouchableOpacity onPress={goToPrevious}>
+        <TouchableOpacity onPress={goToPrevious} activeOpacity={0.7}>
           <Image
             source={Images.ARROW_BACK}
             width={Matrics.s(10)}
@@ -49,7 +49,7 @@ const HotelCarousel = React.memo(({images}) => {
             style={styles.controlButtons}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={goToNext}>
+        <TouchableOpacity onPress={goToNext} activeOpacity={0.7}>
           <Image source={Images.ARROW_NEXT} style={styles.controlButtons} />
         </TouchableOpacity>
       </View>
@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Matrics.s(20),
     position: 'absolute',
     width: Matrics.screenWidth,
+    top: 60,
   },
   controlButtons: {
     width: Matrics.s(30),

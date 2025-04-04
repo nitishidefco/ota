@@ -213,7 +213,8 @@ const TourSearchCard = () => {
                         style={styles.cityItem}
                         onPress={() =>
                           handleFlatListPress(item.cityName, index)
-                        }>
+                        }
+                        activeOpacity={0.7}>
                         <Text style={styles.cityName}>{item.cityName}</Text>
                         <Text style={styles.destinationName}>
                           {item.destinationName}
@@ -231,7 +232,8 @@ const TourSearchCard = () => {
             setDestination('');
             setShowFlatList(false);
           }}
-          style={styles.crossIconContainer}>
+          style={styles.crossIconContainer}
+          activeOpacity={0.7}>
           <Image
             style={[styles.searchBarIcon, styles.closeIcon]}
             source={Images.CLOSE}
@@ -245,13 +247,17 @@ const TourSearchCard = () => {
             source={Images.CALENDAR}
           />
           <View style={styles.startEndDateContainer}>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}>
               <Text style={styles.date}>
                 {dayjs(hotelStayStartDate)?.format('D MMM')}
               </Text>
             </TouchableOpacity>
             <Text>-</Text>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}>
               <Text style={styles.date}>
                 {dayjs(hotelStayEndDate).format('D MMM')}
               </Text>
@@ -262,7 +268,8 @@ const TourSearchCard = () => {
       <TouchableOpacity
         style={styles.searchButtonContainer}
         onPress={handleSearchPress}
-        disabled={loadingHotels}>
+        disabled={loadingHotels}
+        activeOpacity={0.7}>
         {loadingHotels ? (
           <View style={styles.searchBarIcon}>
             <ActivityIndicator size={'large'} color={COLOR.WHITE} />
@@ -313,14 +320,18 @@ const TourSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Room</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleRooms('decre')}>
+              <TouchableOpacity
+                onPress={() => handleRooms('decre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.MINUS}
                   style={styles.guestOptionsControllerImages}
                 />
               </TouchableOpacity>
               <Text style={styles.guestText}>{rooms}</Text>
-              <TouchableOpacity onPress={() => handleRooms('incre')}>
+              <TouchableOpacity
+                onPress={() => handleRooms('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -333,14 +344,18 @@ const TourSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Adults</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleAdults('decre')}>
+              <TouchableOpacity
+                onPress={() => handleAdults('decre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.MINUS}
                   style={styles.guestOptionsControllerImages}
                 />
               </TouchableOpacity>
               <Text style={styles.guestText}>{adults}</Text>
-              <TouchableOpacity onPress={() => handleAdults('incre')}>
+              <TouchableOpacity
+                onPress={() => handleAdults('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -353,7 +368,9 @@ const TourSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Children</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleChildren('decre')}>
+              <TouchableOpacity
+                onPress={() => handleChildren('decre')}
+                activeOpacity={0.7}>
                 {children === 0 ? (
                   <Image
                     source={Images.MINUS_DISABLED}
@@ -371,7 +388,9 @@ const TourSearchCard = () => {
               ) : (
                 <Text style={styles.guestText}>{children}</Text>
               )}
-              <TouchableOpacity onPress={() => handleChildren('incre')}>
+              <TouchableOpacity
+                onPress={() => handleChildren('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -384,7 +403,9 @@ const TourSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Pets</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handlePets('decre')}>
+              <TouchableOpacity
+                onPress={() => handlePets('decre')}
+                activeOpacity={0.7}>
                 {pets === 0 ? (
                   <Image
                     source={Images.MINUS_DISABLED}
@@ -402,7 +423,9 @@ const TourSearchCard = () => {
               ) : (
                 <Text style={styles.guestText}>{pets}</Text>
               )}
-              <TouchableOpacity onPress={() => handlePets('incre')}>
+              <TouchableOpacity
+                onPress={() => handlePets('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}

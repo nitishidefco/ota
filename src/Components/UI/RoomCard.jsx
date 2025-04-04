@@ -3,9 +3,9 @@ import React, {useContext} from 'react';
 import {Matrics, typography, COLOR} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import {RoomContext} from '../../Context/RoomContext';
+import i18n from '../../i18n/i18n';
 
 const RoomCard = ({room}) => {
-
   const {
     selectedRoomId,
     setSelectedRoomId,
@@ -56,15 +56,21 @@ const RoomCard = ({room}) => {
             </View>
             <Text style={styles.vat}>1 Night (incl. VAT)</Text>
           </View>
-          <Text style={styles.infoText}>Only {room.InventoryCount} Left</Text>
+          <Text style={styles.infoText}>
+            {i18n.t('hotelDetails.only')} {room.InventoryCount}{' '}
+            {i18n.t('hotelDetails.left')}
+          </Text>
         </View>
 
         {/* Selection Button */}
         <TouchableOpacity
           style={isSelected ? styles.bookedButton : styles.bookButton}
-          onPress={handleRoomSelection}>
+          onPress={handleRoomSelection}
+          activeOpacity={0.7}>
           <Text style={styles.bookButtonText}>
-            {isSelected ? 'Room Selected' : 'Select Room'}
+            {isSelected
+              ? i18n.t('hotelDetails.roomSelected')
+              : i18n.t('hotelDetails.selectRoom')}
           </Text>
         </TouchableOpacity>
       </View>

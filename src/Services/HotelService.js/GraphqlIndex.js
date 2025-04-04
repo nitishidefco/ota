@@ -3,7 +3,7 @@ import {Store} from '../../Redux/store';
 import {logout} from '../../Redux/Reducers/AuthSlice';
 
 const baseApiClientgql = axios.create({
-  baseURL: 'https://ota-gds.visionvivante.com:5090/graphql',
+  baseURL: 'https://gds.visionvivante.in/graphql',
   headers: {
     'Content-Type': 'application/json',
   },

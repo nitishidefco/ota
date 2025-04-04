@@ -1,19 +1,27 @@
 import {View, Text, StyleSheet} from 'react-native';
 import React from 'react';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
+import {useSelector} from 'react-redux';
 
 const ReviewCard = () => {
+  const additionalDetails = useSelector(
+    state => state?.hotelDetail?.additionalDetails,
+  );
   return (
     <View style={styles.reviewCardContainer}>
       <View>
         <Text style={styles.starTextTemp}>Stars</Text>
       </View>
       <View style={styles.ratingValueContainer}>
-        <Text style={styles.gotRating}>4.5</Text>
+        <Text style={styles.gotRating}>
+          {additionalDetails?.result?.rating}
+        </Text>
         <Text style={styles.totalRating}>/5</Text>
       </View>
       <View>
-        <Text style={styles.contextText}>Bassed on 122 review</Text>
+        <Text style={styles.contextText}>
+          Bassed on {additionalDetails?.result?.total_reviews} review
+        </Text>
       </View>
     </View>
   );

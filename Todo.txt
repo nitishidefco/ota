@@ -1,3 +1,5 @@
 //TODO: 
 Date: Mar 6 2025
 --> Error toast messages are not translated
+
+Change the navigation stack from hotel booking to hotel navigator
