@@ -32,6 +32,7 @@ import HotelAmenities from './HotelAmenities';
 import RoomPolicies from './RoomPolicies';
 import HotelReviews from './HotelReviews';
 import i18n from '../../../i18n/i18n';
+import RoomAmenities from '../../../Components/UI/RoomAmenities';
 const StarRating = ({rating = 0, reviewCount = 0}) => {
   return (
     <View style={styles.ratingContainer}>
@@ -48,9 +49,9 @@ const StarRating = ({rating = 0, reviewCount = 0}) => {
         <Image
           source={Images.FULL_STAR_WHITE}
           style={{
-            width: Matrics.s(17),
+            width: Matrics.s(15),
             resizeMode: 'contain',
-            height: Matrics.vs(17),
+            height: Matrics.vs(15),
           }}
         />
       </View>
@@ -64,13 +65,11 @@ const HotelDetail = ({route, navigation}) => {
     state => state.currency.selectedCurrency,
   );
   const dispatch = useDispatch();
-  const {ratePlanId} = useContext(RoomContext);
   const {provider, hotelId, GiataId} = route.params;
+
   const hotelDetail = useSelector(state => state?.hotelDetail);
   const roomState = useSelector(state => state?.rooms);
-  console.log('Hotel detail', hotelDetail);
 
-  const priceConfirmAllState = useSelector(state => state?.confirmPrice);
   const images = [Images.HOTEL1, Images.HOTEL2, Images.HOTEL3];
   const details = useMemo(
     () =>
@@ -79,8 +78,6 @@ const HotelDetail = ({route, navigation}) => {
   );
 
   useEffect(() => {
-    console.log('Fetching hotel details');
-
     const fetchData = async () => {
       try {
         // Fetch hotel details first
@@ -93,12 +90,9 @@ const HotelDetail = ({route, navigation}) => {
     fetchData();
   }, [details]);
   useEffect(() => {
-    console.log('Geting Additional Details', hotelDetail?.additionalDetails);
-
     if (Object.keys(hotelDetail?.additionalDetails).length > 0) {
       return;
     }
-    console.log('Geting Additional Details', hotelDetail?.additionalDetails);
 
     if (
       hotelDetail?.hotel?.Name &&
@@ -115,7 +109,18 @@ const HotelDetail = ({route, navigation}) => {
     }
   }, [hotelDetail?.hotel, dispatch]);
   const renderEmptyList = () => {
-    return <Text>No rooms right now</Text>;
+    return (
+      <Text
+        style={{
+          fontFamily: typography.fontFamily.Montserrat.SemiBold,
+          fontSize: typography.fontSizes.fs16,
+          color: COLOR.DARK_TEXT_COLOR,
+          flexWrap: 'wrap',
+          width: Matrics.screenWidth * 0.9,
+        }}>
+        No rooms right now. Modify Date to see other options
+      </Text>
+    );
   };
 
   const renderStars = cate => {
@@ -172,10 +177,10 @@ const HotelDetail = ({route, navigation}) => {
             ) : (
               <>
                 <View style={styles.mainCarouselContainer}>
-                  {images?.length > 0 ? (
-                    <HotelCarousel images={images} />
+                  {hotelDetail?.hotel?.images?.length > 0 ? (
+                    <HotelCarousel images={hotelDetail?.hotel?.images} />
                   ) : (
-                    <Text>No images available</Text>
+                    <HotelCarousel images={images} />
                   )}
                 </View>
                 <View style={styles.hotelInfoContainer}>
@@ -204,6 +209,24 @@ const HotelDetail = ({route, navigation}) => {
                       {hotelDetail?.additionalDetails?.result?.address}
                     </Text>
                   </View>
+                  <View
+                    style={{
+                      marginTop: Matrics.vs(10),
+                      paddingHorizontal: Matrics.s(5),
+                    }}>
+                    <Text
+                      style={{
+                        color: COLOR.DARK_TEXT_COLOR,
+                        fontFamily: typography.fontFamily.Montserrat.Medium,
+                        fontSize: typography.fontSizes.fs14,
+                      }}>
+                      {!hotelDetail?.hotel?.content?.section[0].para ? (
+                        <>No Address Detail Available </>
+                      ) : (
+                        hotelDetail?.hotel?.content?.section[0].para
+                      )}
+                    </Text>
+                  </View>
                 </View>
                 <View>
                   <HotelAmenities hotelDetail={hotelDetail?.hotel} />
@@ -216,7 +239,8 @@ const HotelDetail = ({route, navigation}) => {
                   <ModifyCard provider={provider} hotelId={hotelId} />
                 </View>
                 <View style={{paddingHorizontal: Matrics.s(16)}}>
-                  <Text style={styles.title}>Rooms</Text>
+                  <Text style={styles.title}>Rooms & Amenities</Text>
+                  <RoomAmenities hotelDetail={hotelDetail?.hotel} />
                   {roomState?.loadingRooms === false ? (
                     <FlatList
                       data={roomState.rooms}
@@ -238,7 +262,12 @@ const HotelDetail = ({route, navigation}) => {
                   )}
                 </View>
                 {roomState?.rooms?.length > 0 && (
-                  <RoomPolicies roomInfo={roomState?.rooms} />
+                  <RoomPolicies
+                    roomInfo={roomState?.rooms}
+                    provider={provider}
+                    hotelId={hotelId}
+                    GiataId={GiataId}
+                  />
                 )}
                 <HotelReviews hotelDetail={hotelDetail} />
               </>

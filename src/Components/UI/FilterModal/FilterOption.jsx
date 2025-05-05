@@ -1,12 +1,12 @@
-import {Text, Pressable, StyleSheet, Image} from 'react-native';
+import {Text, Pressable, StyleSheet, Image, View} from 'react-native';
 import React, {useContext} from 'react';
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import {Images} from '../../../Config';
 import {FilterContext} from '../../../Context/FilterContext';
+import {amenityIcons, defaultIcon} from '../../../Helpers/amenityIcons';
 
 const FilterOption = ({title, handleStarPress, isAmenity = false, id}) => {
   const {selectedStars, selectedAmenities} = useContext(FilterContext);
-
   const isSelected = isAmenity
     ? selectedAmenities?.includes(id)
     : selectedStars?.includes(title);
@@ -35,12 +35,10 @@ const FilterOption = ({title, handleStarPress, isAmenity = false, id}) => {
         </>
       );
     } else {
+      const iconSource = amenityIcons[title] || defaultIcon;
       return (
         <>
-          <Image
-            style={styles.filterStarImage}
-            source={{uri: title}}
-          />
+          <Image style={styles.filterStarImage} source={iconSource} />
           <Text
             style={[
               styles.filterStarText,

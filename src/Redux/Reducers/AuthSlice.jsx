@@ -119,11 +119,7 @@ export const checkStoredToken = createAsyncThunk(
   'auth/checkStoredToken',
   async (_, {rejectWithValue}) => {
     try {
-      console.log('checking for stored token');
-
       const token = await getToken();
-      console.log(token);
-
       return {token};
     } catch (error) {
       // await removeToken();

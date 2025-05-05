@@ -10,6 +10,8 @@ const initialState = {
 export const confirmPrice = createAsyncThunk(
   'price/confirmPrice',
   async ({details}, {rejectWithValue}) => {
+    console.log('inside confirmPrice');
+
     try {
       const response = await priceConfirm({details: details});
       console.log('Response', response);

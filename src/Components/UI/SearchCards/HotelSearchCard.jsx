@@ -230,7 +230,12 @@ const HotelSearchCard = () => {
   }, [debouncedSearch]);
   /* --------------------------- handle search press --------------------------- */
   const handleSearchPress = async () => {
-    if (cityDetails.length === 0 || destination === '') {
+    console.log('Destination', destination);
+
+    if (
+      destination === ' ' ||
+      (cityDetails.length === 0 && !destination.trim())
+    ) {
       const error = i18n.t('Toast.selectDestination');
       errorToast(error);
       return;
@@ -270,7 +275,7 @@ const HotelSearchCard = () => {
       return;
     }
     const detailsForDestinationSearch = {
-      cityName: cityDetails[selectedCityIndex].cityName,
+      cityName: cityDetails[selectedCityIndex].cityName ?? destination.trim(),
       destinationName: cityDetails[selectedCityIndex].destinationName,
       countryCode: cityDetails[selectedCityIndex].countryCode,
       countryName: cityDetails[selectedCityIndex].countryName,
@@ -588,6 +593,7 @@ const HotelSearchCard = () => {
                 borderBottomColor:
                   pluaralChild > 0 ? COLOR.BORDER_COLOR : 'none',
                 paddingBottom: pluaralChild > 0 ? Matrics.vs(10) : 0,
+                paddingTop: Matrics.vs(8),
               },
             ]}>
             <View>
@@ -867,7 +873,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     left: -15,
     paddingHorizontal: Matrics.s(20),
-    paddingVertical: Matrics.s(10),
+    // paddingVertical: Matrics.s(10),
     width: Matrics.screenWidth * 0.88,
     borderRadius: Matrics.s(10),
     height: '100%',
@@ -880,7 +886,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLOR.BORDER_COLOR,
     paddingVertical: Matrics.vs(6),
-    marginBottom: Matrics.vs(10),
+    // marginBottom: Matrics.vs(10),
   },
   cityName: {
     fontFamily: typography.fontFamily.Montserrat.SemiBold,

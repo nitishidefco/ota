@@ -24,9 +24,9 @@ const StarRating = ({rating = 0, reviewCount = 0}) => {
         <Image
           source={Images.FULL_STAR_WHITE}
           style={{
-            width: Matrics.s(17),
+            width: Matrics.s(15),
             resizeMode: 'contain',
-            height: Matrics.vs(17),
+            height: Matrics.vs(15),
           }}
         />
       </View>
@@ -38,9 +38,17 @@ const StarRating = ({rating = 0, reviewCount = 0}) => {
 
 // Amenity Item Component
 const AmenityItem = ({iconSource, name}) => {
+  const isSvg =
+    typeof iconSource === 'function' ||
+    (typeof iconSource === 'object' && iconSource.$$typeof);
+
   return (
     <View style={styles.amenityItem}>
-      <Image source={iconSource} style={styles.amenityIcon} />
+      {isSvg ? (
+        <iconSource width={20} height={20} style={styles.amenityIcon} />
+      ) : (
+        <Image source={iconSource} style={styles.amenityIcon} />
+      )}
       <Text style={styles.amenityText}>{name}</Text>
     </View>
   );
@@ -48,7 +56,6 @@ const AmenityItem = ({iconSource, name}) => {
 
 // Main Hotel Card Component
 const HotelCard = ({hotel, icons, onBookPress}) => {
-  // console.log('Hotel', hotel);
   const selectedCurrency = useSelector(
     state => state.currency.selectedCurrency,
   );
@@ -70,7 +77,13 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
     const totalStars = 5;
     const stars = [];
 
-    for (let i = 0; i < cate; i++) {
+    // Ensure cate is within valid bounds (0 to 5)
+    const rating = Math.max(0, Math.min(5, cate));
+    const fullStars = Math.floor(rating); // Full purple stars
+    const hasHalfStar = rating % 1 >= 0.5; // If the decimal part is 0.5 or more, show a half star
+
+    // Add full purple stars
+    for (let i = 0; i < fullStars; i++) {
       stars.push(
         <Image
           key={`purple-${i}`}
@@ -79,7 +92,21 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
         />,
       );
     }
-    for (let i = cate; i < totalStars; i++) {
+
+    // Add a half star if applicable
+    if (hasHalfStar && stars.length < totalStars) {
+      stars.push(
+        <Image
+          key="half-star"
+          source={Images.HALF_PURPLE_STAR} // You’ll need a half-star image
+          style={styles.starIcon}
+        />,
+      );
+    }
+
+    // Add grey stars for the remaining
+    const remainingStars = totalStars - stars.length;
+    for (let i = 0; i < remainingStars; i++) {
       stars.push(
         <Image
           key={`grey-${i}`}
@@ -88,6 +115,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
         />,
       );
     }
+
     return stars;
   };
   return (
@@ -103,7 +131,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
       <View style={styles.contentContainer}>
         <View style={styles.container}>
           <Text style={styles.hotelName}>
-            <Text style={styles.nameText}>{name}</Text>
+            <Text style={styles.nameText}>{name}</Text>{' '}
             <View style={{flexDirection: 'row'}}>{renderStars(category)}</View>
           </Text>
         </View>
@@ -144,12 +172,10 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
             <Text style={styles.perNight}>1 Night (incl.VAT)</Text>
           </View>
 
-          <TouchableOpacity
+          <View
             style={{
               width: '50%',
-            }}
-            onPress={onBookPress}
-            activeOpacity={0.7}>
+            }}>
             <LinearGradient
               colors={['#8740AB', '#49225C']}
               start={{x: 0, y: 0}}
@@ -159,7 +185,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
                 {i18n.t('HotelCard.bookNow')}
               </Text>
             </LinearGradient>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -175,9 +201,14 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 200,
+    height: '100%',
+    borderRadius: Matrics.s(7),
   },
   imageContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: Matrics.s(20),
+    overflow: 'hidden',
     padding: 13,
   },
   contentContainer: {
@@ -215,6 +246,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 4,
     fontFamily: typography.fontFamily.Montserrat.Medium,
+    marginBottom: Matrics.vs(3),
   },
   amenitiesContainer: {
     flexDirection: 'row',
@@ -227,8 +259,8 @@ const styles = StyleSheet.create({
   amenityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: COLOR.BORDER_COLOR,
-    borderWidth: 1,
+    // borderColor: COLOR.BORDER_COLOR,
+    // borderWidth: 1,
     borderRadius: Matrics.s(5),
     paddingVertical: Matrics.vs(3),
     paddingRight: Matrics.s(4),

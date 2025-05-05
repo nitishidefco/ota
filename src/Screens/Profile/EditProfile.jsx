@@ -244,12 +244,6 @@ const EditProfile = () => {
     bottomSheetModalRef.current?.present();
   }, []);
 
-  // Handle Sheet Changes
-  // const handleSheetChanges = useCallback(index => {
-  //   console.log('handleSheetChanges', index);
-  // }, []);
-
-  // Handle Image Selection from Library
   const handleProfilePictureFromLibrary = () => {
     bottomSheetModalRef.current?.dismiss();
     launchImageLibrary({mediaType: 'photo'}, response => {

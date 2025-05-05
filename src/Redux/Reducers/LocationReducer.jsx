@@ -9,7 +9,6 @@ export const getDeviceLocation = createAsyncThunk(
         enableHighAccuracy: false,
         timeout: 60000,
       });
-      console.log('location', location);
 
       return location;
     } catch (error) {
@@ -37,7 +36,6 @@ const deviceLocationSlice = createSlice({
       })
       .addCase(getDeviceLocation.fulfilled, (state, action) => {
         state.isLoading = false;
-        console.log('Action payload', action.payload);
         state.deviceLocation = action.payload;
       })
       .addCase(getDeviceLocation.rejected, (state, action) => {

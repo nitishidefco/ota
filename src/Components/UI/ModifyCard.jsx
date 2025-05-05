@@ -269,7 +269,14 @@ const ModifyCard = ({provider, hotelId}) => {
           activeOpacity={0.7}
           style={[styles.datePickerContainer, styles.guestsContainer]}>
           <Image
-            style={[styles.locationPinIcon, styles.searchBarIcon]}
+            style={[
+              styles.locationPinIcon,
+              styles.searchBarIcon,
+              {
+                height: Matrics.vs(20),
+                width: Matrics.s(20),
+              },
+            ]}
             source={Images.PEOPLE}
           />
           <Text style={styles.date}>

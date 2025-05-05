@@ -65,13 +65,7 @@ export const initializeCurrency = () => async dispatch => {
   try {
     // Get the device's country code and map to currency
     const countryCode = getLocales()[0]?.countryCode?.toLowerCase() || 'us';
-    const deviceCurrency = countryToCurrencyMap[countryCode] || 'USD'; // Fallback to USD
-    console.log(
-      'Device country code:',
-      countryCode,
-      'Mapped currency:',
-      deviceCurrency,
-    );
+    const deviceCurrency = countryToCurrencyMap[countryCode] || 'USD';
 
     // Check if a user-selected currency exists in storage
     const savedCurrency = await AsyncStorage.getItem('currency');
@@ -81,8 +75,6 @@ export const initializeCurrency = () => async dispatch => {
       console.log('No saved currency, using device currency:', deviceCurrency);
       dispatch(setCurrency(deviceCurrency));
     } else {
-      // Use the saved currency if it exists
-      console.log('Using saved currency:', savedCurrency);
       dispatch(setCurrency(savedCurrency));
     }
   } catch (error) {

@@ -22,7 +22,7 @@ const Ratings = ({panGestureRef}) => {
       horizontal
       contentContainerStyle={styles.filterSortContainer}
       simultaneousHandlers={panGestureRef}>
-      {[5, 4, 3, 2, 1].map(rating => (
+      {['5', '4', '3', '2', '1'].map(rating => (
         <FilterOption
           key={rating}
           title={rating}
@@ -40,6 +40,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: Matrics.s(10),
     gap: Matrics.s(10),
-    paddingVertical: Matrics.vs(10),
+    paddingVertical: Matrics.vs(15),
   },
 });

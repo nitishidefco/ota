@@ -1,3 +1,4 @@
+import Cafe from '../Assets/Images/cafe-icon.svg';
 export default {
   APP_LOGO: require('../Assets/Images/splashlogo.png'),
   EMAIL: require('../Assets/Images/Email.png'),
@@ -45,9 +46,9 @@ export default {
   FLIGHTS_INACTIVE: require('../Assets/Images/flights-inactive.png'),
   FULL_STAR: require('../Assets/Images/full-star.png'),
   HALF_STAR: require('../Assets/Images/half-star.png'),
-  AC: require('../Assets/Images/ac.png'),
+  AC: require('../Assets/Images/air-conditioning.png'),
   // PARKING: require('../Assets/Images/parking.png'),
-  RECEPTION: require('../Assets/Images/reception.png'),
+  RECEPTION: require('../Assets/Images/24-Hour-Front-Desk.png'),
   GYM: require('../Assets/Images/gym.png'),
   WIFI: require('../Assets/Images/wifi.png'),
   ATM: require('../Assets/Images/atm.png'),
@@ -113,4 +114,19 @@ export default {
   FILTER_INACTIVE: require('../Assets/Images/filter-inactive.png'),
   SORT_ACTIVE: require('../Assets/Images/sort-active.png'),
   SORT_INACTIVE: require('../Assets/Images/sort-inactive.png'),
+  LOBBY: require('../Assets/Images/lounge.png'),
+  FOYER: require('../Assets/Images/Foyer.png'),
+  LIFTS: require('../Assets/Images/Lift.png'),
+  NEWSPAPER_KIOSK: require('../Assets/Images/news-img.png'),
+  SMALL_SUPERMARKET: require('../Assets/Images/supermarket.png'),
+  THEATRE: require('../Assets/Images/tv-room.png'),
+  // CASINO: require('../Assets/Images/ca')
+  // PETS: require('../Assets/Images/')
+  CAFE: require('../Assets/Images/cafe-icon.png'),
+  DEFAULT_ICON: require('../Assets/Images/default-icon.png'),
+  ROOM_IMAGE_PLACEHOLDER: require('../Assets/Images/room-image-placeholder.png'),
+  DOWN: require('../Assets/Images/down.png'),
+  UP: require('../Assets/Images/up.png'),
+  PERSON: require('../Assets/Images/single_person.png'),
+  CALENDAR_PURPLE: require('../Assets/Images/calendar-purple.png'),
 };

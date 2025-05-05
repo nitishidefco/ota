@@ -16,7 +16,6 @@ const HotelReviews = () => {
       <View style={styles.reivewVisuals}>
         <ReviewCard />
         {additionalDetails?.result?.reviews?.map((review, index) => {
-          console.log('review', review);
           return (
             <ReviewByPersonCard
               key={index}

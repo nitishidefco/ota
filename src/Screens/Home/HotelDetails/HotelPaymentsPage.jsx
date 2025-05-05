@@ -1,13 +1,27 @@
 import {View, Text, Image} from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import NormalHeader from '../../../Components/UI/NormalHeader';
 import {useNavigation} from '@react-navigation/native';
 import {Images} from '../../../Config';
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
+import {useSelector} from 'react-redux';
+import {RoomContext} from '../../../Context/RoomContext';
+import dayjs from 'dayjs';
+import PaymentForm from '../../../Components/PaymentForm';
 
 const HotelPaymentsPage = () => {
   const navigation = useNavigation();
+  const hotelDetail = useSelector(state => state?.hotelDetail?.hotel);
+  const {
+    ratePlanId,
+    guests,
+    hotelStayStartDate,
+    hotelStayEndDate,
+    selectedRoom,
+  } = useContext(RoomContext);
+  console.log('Selected Room', selectedRoom);
+
   return (
     <>
       <NormalHeader
@@ -30,58 +44,68 @@ const HotelPaymentsPage = () => {
                 fontFamily: typography.fontFamily.Montserrat.Bold,
                 fontSize: typography.fontSizes.fs18,
               }}>
-              Hotel Name will go here this is hotel
+              {hotelDetail?.Name}
             </Text>
+
             <View
               style={{
                 flexDirection: 'row',
-                gap: 5,
-                marginVertical: Matrics.vs(10),
+                marginBottom: Matrics.vs(10),
+                gap: 10,
               }}>
+              <Image
+                source={Images.LOCATION}
+                style={{
+                  width: Matrics.s(20),
+                  resizeMode: 'contain',
+                  height: Matrics.s(20),
+                }}
+              />
               <Text
                 style={{fontFamily: typography.fontFamily.Montserrat.Regular}}>
-                4.3
+                {hotelDetail?.address
+                  ? hotelDetail?.address
+                  : 'No address available'}
               </Text>
-              <View style={{flexDirection: 'row'}}>
-                <Text>⭐</Text>
-                <Text>⭐</Text>
-                <Text>⭐</Text>
-                <Text>⭐</Text>
-              </View>
-              <Text>{`(146 Reviews)`}</Text>
             </View>
-            <View style={{flexDirection: 'row', marginBottom: Matrics.vs(10)}}>
+            <View
+              style={{
+                flexDirection: 'row',
+                marginBottom: Matrics.vs(10),
+                gap: 10,
+              }}>
               <Image
-                source={Images.LOCATION}
+                source={Images.PERSON}
                 style={{
                   width: Matrics.s(20),
                   resizeMode: 'contain',
                   height: Matrics.s(20),
                 }}
               />
-              <Text>Lorem epsum lorem epsum</Text>
+              <Text
+                style={{fontFamily: typography.fontFamily.Montserrat.Regular}}>
+                {guests.length > 1 ? `${guests} Persons` : `${guests} Person`}{' '}
+              </Text>
             </View>
-            <View style={{flexDirection: 'row', marginBottom: Matrics.vs(10)}}>
+            <View
+              style={{
+                flexDirection: 'row',
+                marginBottom: Matrics.vs(10),
+                gap: 10,
+              }}>
               <Image
-                source={Images.LOCATION}
+                source={Images.CALENDAR_PURPLE}
                 style={{
                   width: Matrics.s(20),
                   resizeMode: 'contain',
                   height: Matrics.s(20),
                 }}
               />
-              <Text>Lorem epsum lorem epsum</Text>
-            </View>
-            <View style={{flexDirection: 'row', marginBottom: Matrics.vs(10)}}>
-              <Image
-                source={Images.LOCATION}
-                style={{
-                  width: Matrics.s(20),
-                  resizeMode: 'contain',
-                  height: Matrics.s(20),
-                }}
-              />
-              <Text>Lorem epsum lorem epsum</Text>
+              <Text
+                style={{fontFamily: typography.fontFamily.Montserrat.Regular}}>
+                {dayjs(hotelStayStartDate).format('DD MMM YYYY')}{' '}
+                {dayjs(hotelStayEndDate).format('DD MMM YYYY')}
+              </Text>
             </View>
           </View>
           <Image
@@ -118,7 +142,7 @@ const HotelPaymentsPage = () => {
                   color: COLOR.DARK_TEXT_COLOR,
                   fontFamily: typography.fontFamily.Montserrat.Regular,
                 }}>
-                Regular Room - Queen Bed
+                {selectedRoom.RoomName}
               </Text>
               <Text
                 style={{
@@ -126,110 +150,23 @@ const HotelPaymentsPage = () => {
                   fontFamily: typography.fontFamily.Montserrat.Regular,
                   fontSize: typography.fontSizes.fs11,
                 }}>
-                1 Room
+                {selectedRoom.RoomOccupancy.RoomNum}
               </Text>
             </View>
             <View style={{flexDirection: 'row', gap: 5}}>
-              <Text
+              {/* <Text
                 style={{
                   fontFamily: typography.fontFamily.Montserrat.Regular,
                   fontSize: typography.fontSizes.fs11,
                 }}>
                 $45
-              </Text>
+              </Text> */}
               <Text
                 style={{
                   fontFamily: typography.fontFamily.Montserrat.Medium,
                   fontSize: typography.fontSizes.fs15,
                 }}>
-                $30
-              </Text>
-            </View>
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              borderStyle: 'dashed',
-              borderBottomWidth: 2,
-              borderColor: COLOR.BORDER_COLOR,
-              marginTop: Matrics.vs(10),
-              paddingBottom: Matrics.vs(10),
-            }}>
-            <View style={{}}>
-              <Text
-                style={{
-                  color: COLOR.DARK_TEXT_COLOR,
-                  fontFamily: typography.fontFamily.Montserrat.Regular,
-                }}>
-                Regular Room - Queen Bed
-              </Text>
-              <Text
-                style={{
-                  color: COLOR.DARK_TEXT_COLOR,
-                  fontFamily: typography.fontFamily.Montserrat.Regular,
-                  fontSize: typography.fontSizes.fs11,
-                }}>
-                1 Room
-              </Text>
-            </View>
-            <View style={{flexDirection: 'row', gap: 5}}>
-              <Text
-                style={{
-                  fontFamily: typography.fontFamily.Montserrat.Regular,
-                  fontSize: typography.fontSizes.fs11,
-                }}>
-                $45
-              </Text>
-              <Text
-                style={{
-                  fontFamily: typography.fontFamily.Montserrat.Medium,
-                  fontSize: typography.fontSizes.fs15,
-                }}>
-                $30
-              </Text>
-            </View>
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              borderBottomWidth: 2,
-              borderColor: COLOR.BORDER_COLOR,
-              marginTop: Matrics.vs(10),
-              paddingBottom: Matrics.vs(10),
-            }}>
-            <View style={{}}>
-              <Text
-                style={{
-                  color: COLOR.DARK_TEXT_COLOR,
-                  fontFamily: typography.fontFamily.Montserrat.Regular,
-                }}>
-                Regular Room - Queen Bed
-              </Text>
-              <Text
-                style={{
-                  color: COLOR.DARK_TEXT_COLOR,
-                  fontFamily: typography.fontFamily.Montserrat.Regular,
-                  fontSize: typography.fontSizes.fs11,
-                }}>
-                1 Room
-              </Text>
-            </View>
-            <View style={{flexDirection: 'row', gap: 5}}>
-              <Text
-                style={{
-                  fontFamily: typography.fontFamily.Montserrat.Regular,
-                  fontSize: typography.fontSizes.fs11,
-                }}>
-                $45
-              </Text>
-              <Text
-                style={{
-                  fontFamily: typography.fontFamily.Montserrat.Medium,
-                  fontSize: typography.fontSizes.fs15,
-                }}>
-                $30
+                ${selectedRoom.totalprice}
               </Text>
             </View>
           </View>
@@ -249,12 +186,12 @@ const HotelPaymentsPage = () => {
                 color: COLOR.PRIMARY,
                 fontSize: typography.fontSizes.fs18,
               }}>
-              $137
+              ${selectedRoom.totalprice}
             </Text>
           </View>
         </View>
         <View>
-          
+          <PaymentForm />
         </View>
       </KeyboardAwareScrollView>
     </>

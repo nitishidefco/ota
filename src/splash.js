@@ -11,7 +11,6 @@ const Splash = () => {
   const globalLanguage = useSelector(
     state => state.selectedLanguage.globalLanguage,
   );
-  console.log('globalLanguage', globalLanguage);
 
   useEffect(() => {
     // Force LTR layout for splash screen

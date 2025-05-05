@@ -7,7 +7,6 @@ const initialState = {
   globalLanguage: null,
 };
 
-
 const languageSlice = createSlice({
   name: 'languageSlice',
   initialState: initialState,
@@ -29,12 +28,9 @@ const updateRTL = language => {
 
 export const initializeLanguage = lang => async dispatch => {
   try {
-    const deviceLang = getLocales()[0]?.languageCode || 'en'; // Fallback to 'en'
-    console.log('Device language:', deviceLang);
+    const deviceLang = getLocales()[0]?.languageCode || 'en';
     const savedLang = await AsyncStorage.getItem('language');
     if (savedLang === null) {
-      // No saved language: use device language
-      console.log('No saved language, using device language:', deviceLang);
       dispatch(setGlobalLanguage(deviceLang));
       i18n.changeLanguage(deviceLang);
       updateRTL(deviceLang);
@@ -47,7 +43,6 @@ export const initializeLanguage = lang => async dispatch => {
     }
   } catch (error) {
     console.error('Error initializing language:', error);
-    // Fallback to device language on error
     const fallbackLang = getLocales()[0]?.languageCode || 'en';
     dispatch(setGlobalLanguage(fallbackLang));
     i18n.changeLanguage(fallbackLang);
@@ -56,8 +51,6 @@ export const initializeLanguage = lang => async dispatch => {
 };
 
 export const setLanguageWithStorage = language => async dispatch => {
-  console.log('Language', language);
-
   try {
     await AsyncStorage.setItem('language', language);
     dispatch(setGlobalLanguage(language));

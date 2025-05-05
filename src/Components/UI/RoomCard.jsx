@@ -12,6 +12,7 @@ const RoomCard = ({room}) => {
     setShowCheckoutToast,
     setRatePlanId,
   } = useContext(RoomContext);
+console.log(room);
 
   const isSelected = selectedRoomId === room.RatePlanID;
 
@@ -29,13 +30,15 @@ const RoomCard = ({room}) => {
 
   return (
     <View style={styles.roomCard}>
-      <Image
-        source={Images.HOTEL1}
-        style={styles.roomImage}
-        resizeMode="cover"
-      />
+      <View style={styles.imageContainer}>
+        <Image
+          source={Images.ROOM_IMAGE_PLACEHOLDER}
+          style={styles.roomImage}
+          resizeMode="cover"
+        />
+      </View>
       <View style={styles.roomDetails}>
-        <Text style={styles.roomType}>{room.RoomName}</Text>
+        <Text style={styles.roomType}>{room.RatePlanName}</Text>
         <View style={styles.amenitiesContainer}>
           {room.facility?.map((facility, index) => (
             <View key={index} style={styles.amenityItem}>
@@ -61,8 +64,9 @@ const RoomCard = ({room}) => {
             {i18n.t('hotelDetails.left')}
           </Text>
         </View>
-
-        {/* Selection Button */}
+      </View>
+      {/* Button fixed at the bottom of the entire card */}
+      <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={isSelected ? styles.bookedButton : styles.bookButton}
           onPress={handleRoomSelection}
@@ -83,21 +87,27 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.WHITE,
     borderRadius: Matrics.s(12),
     overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    boxShadow: '0px 5px 8px rgba(0, 0, 0, 0.25)', // Left as is per request
+    shadowColor: '#000', // Left as is per request
+    shadowOffset: {width: 0, height: 5}, // Left as is per request
+    shadowOpacity: 0.25, // Left as is per request
+    shadowRadius: Matrics.s(8), // Left as is per request
     marginBottom: Matrics.vs(16),
+    marginLeft: Matrics.s(3),
     width: Matrics.screenWidth * 0.8,
+  },
+  imageContainer: {
+    padding: Matrics.s(10),
   },
   roomImage: {
     width: '100%',
     height: Matrics.vs(150),
+    borderRadius: Matrics.s(10),
   },
   roomDetails: {
     paddingHorizontal: Matrics.s(13),
-    paddingVertical: Matrics.vs(10),
+    paddingTop: Matrics.vs(10),
+    paddingBottom: Matrics.vs(60), // Space for the fixed button to avoid overlap
   },
   roomType: {
     fontFamily: typography.fontFamily.Montserrat.SemiBold,
@@ -130,6 +140,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: Matrics.vs(5),
   },
+  priceDetails: {
+    flexDirection: 'column',
+  },
   priceNumber: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -156,19 +169,23 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSizes.fs14,
     color: COLOR.RED,
   },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: Matrics.vs(10), // Padding at the bottom of the card
+    left: Matrics.s(13),
+    right: Matrics.s(13),
+  },
   bookButton: {
     backgroundColor: COLOR.PRIMARY,
     paddingHorizontal: Matrics.s(20),
     paddingVertical: Matrics.vs(10),
     borderRadius: Matrics.s(8),
-    marginTop: Matrics.vs(8),
   },
   bookedButton: {
     backgroundColor: COLOR.DIM_TEXT_COLOR,
     paddingHorizontal: Matrics.s(20),
     paddingVertical: Matrics.vs(10),
     borderRadius: Matrics.s(8),
-    marginTop: Matrics.vs(8),
   },
   bookButtonText: {
     fontFamily: typography.fontFamily.Montserrat.SemiBold,

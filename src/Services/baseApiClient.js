@@ -14,8 +14,6 @@ baseApiClient.interceptors.request.use(
     const state = Store.getState();
     const authToken = state.auth.userToken;
     const contentToken = state.contentToken.universalToken;
-    console.log(authToken, contentToken);
-
     if (authToken) {
       config.headers['x-access-token'] = `${authToken}`;
     }

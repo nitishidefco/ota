@@ -26,7 +26,6 @@ const Login = () => {
     state => state.selectedLanguage.globalLanguage,
   );
   const AuthState = useSelector(state => state.auth);
-  console.log('Global Language', globalLanguage);
 
   const dispatch = useDispatch();
   return (

@@ -196,8 +196,6 @@ const NavigationStack = () => {
     const initializeApp = async () => {
       const splashDelay = new Promise(resolve => setTimeout(resolve, 5000));
       const {payload} = await dispatch(checkUniversalToken());
-      console.log('payload', payload);
-
       await dispatch(checkStoredToken());
       if (!payload.token) {
         console.log('No token found, getting new token');
@@ -227,7 +225,6 @@ const NavigationStack = () => {
     return <Splash />;
   }
 
-  console.log('userToken', userToken);
 
   return (
     <NavigationContainer>

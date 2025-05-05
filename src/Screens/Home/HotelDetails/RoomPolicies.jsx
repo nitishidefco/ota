@@ -21,7 +21,7 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
   const {ratePlanId} = useContext(RoomContext);
   const {hotelStayStartDate, hotelStayEndDate, adults, rooms, pluaralChild} =
     useContext(RoomContext);
-  const priceConfirmAllState = useSelector(state => state?.confirmPrice);
+
   const navigation = useNavigation();
   const handleCheckoutPress = async () => {
     if (!hotelStayStartDate || !hotelStayEndDate) {
@@ -51,13 +51,9 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
       const response = await dispatch(
         confirmPrice({details: detailsForPriceConfirm}),
       ).unwrap();
-      console.log(response);
-
-      console.log(priceConfirmAllState);
-
-      if (priceConfirmAllState.priceConfirmDetails.error) {
-        errorToast(priceConfirmAllState.priceConfirmDetails.error);
-      } else if (priceConfirmAllState.priceConfirmDetails.HotelID) {
+      if (response?.status === false) {
+        errorToast(response?.error);
+      } else if (response?.status === true) {
         navigation.navigate('HotelBooking', {
           provider: provider,
           hotelId: hotelId,
@@ -66,8 +62,6 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
       }
     } catch (error) {
       console.log('Error in price confirm', error);
-
-      navigation.navigate('PriceConfirmFailed');
     }
   };
   return (
@@ -75,7 +69,7 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
       <Text
         style={{
           fontFamily: typography.fontFamily.Montserrat.Bold,
-          fontSize: typography.fontSizes.fs16,
+          fontSize: typography.fontSizes.fs18,
         }}>
         {i18n.t('hotelDetails.roomPolicies')}
       </Text>
@@ -111,11 +105,12 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
               );
             })}
         </View>
-        <View>
+        <View
+          style={{marginVertical: Matrics.vs(10), marginTop: Matrics.vs(15)}}>
           <Text
             style={{
-              fontFamily: typography.fontFamily.Montserrat.SemiBold,
-              fontSize: typography.fontSizes.fs14,
+              fontFamily: typography.fontFamily.Montserrat.Bold,
+              fontSize: typography.fontSizes.fs18,
               marginLeft: Matrics.s(2),
             }}>
             {i18n.t('hotelDetails.cancellation')}
@@ -158,7 +153,7 @@ const styles = StyleSheet.create({
   bullet: {
     width: Matrics.s(6),
     height: Matrics.s(6),
-    borderRadius: Matrics.s(3), // Makes it a circle
+    borderRadius: Matrics.s(3),
     backgroundColor: COLOR.PRIMARY,
     marginRight: Matrics.s(8),
   },
@@ -166,6 +161,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.Medium,
     fontSize: typography.fontSizes.fs12,
     color: COLOR.PRIMARY,
-    flexShrink: 1, // Ensures text wraps if too long
+    flexShrink: 1,
   },
 });

@@ -12,6 +12,8 @@ import HotelBooking from './HotelDetails/HotelBooking';
 import PriceConfirmFailed from './HotelDetails/PriceConfirmFailed';
 import ConfirmingPrice from './HotelDetails/ConfirmingPrice';
 import PaymentsPage from './HotelDetails/HotelPaymentsPage';
+import ReviewUserDetails from './HotelDetails/ReviewUserDetails';
+import HotelPaymentsPage from './HotelDetails/HotelPaymentsPage';
 
 const Stack = createNativeStackNavigator();
 const HotelStack = createNativeStackNavigator();
@@ -27,6 +29,14 @@ const HotelNavigator = () => {
         component={PriceConfirmFailed}
       />
       <HotelStack.Screen name="ConfirmingPrice" component={ConfirmingPrice} />
+      <HotelStack.Screen
+        name="ReviewUserDetails"
+        component={ReviewUserDetails}
+      />
+      <HotelStack.Screen
+        name="HotelPaymentsPage"
+        component={HotelPaymentsPage}
+      />
     </HotelStack.Navigator>
   );
 };

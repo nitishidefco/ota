@@ -16,28 +16,34 @@ import {FilterProvider} from './Context/FilterContext';
 import {KeyboardProvider} from 'react-native-keyboard-controller';
 import {ConfirmationModalProvider} from './Context/ConfirmationModalContext';
 import {HeaderOptionProvider} from './Context/HeaderOptionContext';
+import {StripeProvider} from '@stripe/stripe-react-native';
+import {CardProvider} from './Context/CardDetailContext';
 const App = () => {
   return (
-    <KeyboardProvider>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <SafeAreaProvider>
-          <Provider store={Store}>
-            <I18nextProvider i18n={i18n}>
-              <HeaderOptionProvider>
-                <ConfirmationModalProvider>
-                  <RoomProvider>
-                    <FilterProvider>
-                      <NavigationStack />
-                      <Toast config={toastConfig} autoHide={true} />
-                    </FilterProvider>
-                  </RoomProvider>
-                </ConfirmationModalProvider>
-              </HeaderOptionProvider>
-            </I18nextProvider>
-          </Provider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </KeyboardProvider>
+    <StripeProvider publishableKey="pk_test_51Q26ObEZOuFNrMpGVNLaMcgGcLmftyqoqUB2fnf9ZgOfKGdOH3aJrVxuvrczoeByTHc4cqgJgIw4tYQixDywZib000xSxPCeWf">
+      <KeyboardProvider>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <SafeAreaProvider>
+            <Provider store={Store}>
+              <I18nextProvider i18n={i18n}>
+                <HeaderOptionProvider>
+                  <CardProvider>
+                    <ConfirmationModalProvider>
+                      <RoomProvider>
+                        <FilterProvider>
+                          <NavigationStack />
+                          <Toast config={toastConfig} autoHide={true} />
+                        </FilterProvider>
+                      </RoomProvider>
+                    </ConfirmationModalProvider>
+                  </CardProvider>
+                </HeaderOptionProvider>
+              </I18nextProvider>
+            </Provider>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </KeyboardProvider>
+    </StripeProvider>
   );
 };
 

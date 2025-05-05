@@ -1,4 +1,4 @@
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import React, {useContext, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {getFacilitiesThunk} from '../../../Redux/Reducers/FacilitiesReducer';
@@ -12,6 +12,7 @@ const Amenities = () => {
     dispatch(getFacilitiesThunk());
   }, []);
   const {facilities} = useSelector(state => state.facilities);
+  console.log('Facilities from useSelector', facilities);
 
   const {selectedAmenities, setSelectedAmenities} = useContext(FilterContext);
   const handleStarPress = facility => {
@@ -31,22 +32,25 @@ const Amenities = () => {
         gap: Matrics.s(10),
         paddingHorizontal: Matrics.s(10),
         paddingVertical: Matrics.vs(10),
+        marginTop: Matrics.vs(10),
         //    paddingBottom: Matrics.vs(60),
       }}>
       {/* <Text>Amenities</Text> */}
-      {facilities?.result?.map((index, facility) => (
-        <View key={index}>
-          <FilterOption
-            title={facility}
-            icon={facility}
-            isAmenity={true}
-            handleStarPress={() => {
-              handleStarPress(facility);
-            }}
-            id={facility}
-          />
-        </View>
-      ))}
+      {facilities?.result?.map((facility, index) => {
+        return (
+          <View key={index}>
+            <FilterOption
+              title={facility}
+              icon={facility}
+              isAmenity={true}
+              handleStarPress={() => {
+                handleStarPress(facility);
+              }}
+              id={facility}
+            />
+          </View>
+        );
+      })}
     </ScrollView>
   );
 };

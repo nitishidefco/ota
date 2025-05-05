@@ -50,7 +50,7 @@ const NormalHeader = ({
                 color: COLOR.WHITE,
                 fontSize: typography.fontSizes.fs14,
               }}>
-              Next
+              {rightIconName}
             </Text>
           )}
         </TouchableOpacity>

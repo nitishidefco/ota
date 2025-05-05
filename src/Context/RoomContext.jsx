@@ -9,6 +9,7 @@ export const RoomContext = createContext();
 
 export const RoomProvider = ({children}) => {
   const [selectedRoomId, setSelectedRoomId] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [showCheckoutToast, setShowCheckoutToast] = useState(false);
   const [ratePlanId, setRatePlanId] = useState('');
   const [hotelStayStartDate, setHotelStayStartDate] = useState(null);
@@ -24,7 +25,6 @@ export const RoomProvider = ({children}) => {
   const [selectedCityIndex, setSelectedCityIndex] = useState();
   const [showFlatList, setShowFlatList] = useState(false);
   const roomState = useSelector(state => state?.rooms);
-  console.log('Room state', roomState);
   useEffect(() => {
     if (roomState?.rooms?.length > 0 && !selectedRoomId) {
       console.log('inside');
@@ -34,9 +34,27 @@ export const RoomProvider = ({children}) => {
       setShowCheckoutToast(true);
     }
   }, [roomState?.rooms, selectedRoomId]);
+  useEffect(() => {
+    if (selectedRoomId) {
+      const room = roomState?.rooms?.find(r => r.RatePlanID === selectedRoomId);
+      if (room) {
+        setSelectedRoom(room);
+        console.log('Synced selectedRoom:', room);
+      } else {
+        setSelectedRoom(null);
+        console.log('No room found for selectedRoomId:', selectedRoomId);
+      }
+    } else {
+      setSelectedRoom(null);
+      console.log('Cleared selectedRoom');
+    }
+  }, [selectedRoomId, roomState?.rooms]);
+
   return (
     <RoomContext.Provider
       value={{
+        selectedRoom,
+        setSelectedRoom,
         selectedRoomId,
         setSelectedRoomId,
         showCheckoutToast,

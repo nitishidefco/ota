@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -63,7 +63,8 @@ const Hotels = ({navigation}) => {
   );
   const {showModal, setShowModal, setShowCurrencyModal} =
     useContext(HeaderOptionContext);
-  const {cityDetails} = useSelector(state => state.getCity);
+  const getCity = useSelector(state => state.getCity);
+  const cityDetails = useMemo(() => getCity.cityDetails, [getCity.cityDetails]);
   useEffect(() => {
     dispatch(getUserProfileData({userToken, contentToken}));
   }, []);
@@ -86,7 +87,6 @@ const Hotels = ({navigation}) => {
       setFilteredHotels(hotelDataS.hotels);
     }
   }, [hotelDataS.hotels]);
-
   const icons = {
     fullStar: Images.FULL_STAR,
     halfStar: Images.HALF_STAR,
@@ -100,14 +100,12 @@ const Hotels = ({navigation}) => {
       'Hotel Safe': Images.SAFE,
       'Currency Exchange': Images.CURRENCY_EXCHANGE,
       Lifts: Images.CURRENCY_EXCHANGE,
-      Café: Images.CASH_ICON,
+      Café: Images.CAFE,
       'Newspaper kiosk': Images.KIOSK,
     },
   };
 
   const formatHotelData = hotel => {
-    // console.log(hotel);
-
     return {
       imageSource: Images.HOTEL_CARD_BACKGROUND,
       name: hotel.Name,
@@ -123,28 +121,30 @@ const Hotels = ({navigation}) => {
     };
   };
 
-  const renderHotelCard = ({item}) => (
-    <Pressable
-      onPress={() =>
-        navigation.navigate('HotelDetail', {
-          provider: item.provider,
-          hotelId: item.HotelID,
-          GiataId: item.GiataId,
-        })
-      }>
-      <HotelCard
-        hotel={formatHotelData(item)}
-        icons={icons}
-        onBookPress={() =>
-          navigation.navigate('HotelBooking', {
+  const renderHotelCard = ({item}) => {
+    return (
+      <Pressable
+        onPress={() =>
+          navigation.navigate('HotelDetail', {
             provider: item.provider,
             hotelId: item.HotelID,
-            giataId: item.GiataId,
+            GiataId: item.GiataId,
           })
-        }
-      />
-    </Pressable>
-  );
+        }>
+        <HotelCard
+          hotel={formatHotelData(item)}
+          icons={icons}
+          onBookPress={() =>
+            navigation.navigate('HotelDetail', {
+              provider: item.provider,
+              hotelId: item.HotelID,
+              giataId: item.GiataId,
+            })
+          }
+        />
+      </Pressable>
+    );
+  };
 
   // Custom Tab Component
   const renderTab = (title, activeIcon, inactiveIcon) => (
@@ -201,9 +201,41 @@ const Hotels = ({navigation}) => {
       ChildAgeDetails: [],
     },
     Nationality: 'IN',
-    Currency: selectedCurrency ?? 'USD',
-    star_rating: selectedStars,
+    Currency: selectedCurrency ?? 'INR',
   };
+  if (selectedStars && selectedStars.length > 0) {
+    detailsForDestinationSearch.star_rating = selectedStars;
+  }
+  useEffect(() => {
+    const refetchForCurrencyChange = async () => {
+      // Only proceed if detailsForDestinationSearch exists
+      if (detailsForDestinationSearch.cityName) {
+        console.log('refetching for currency change');
+
+        try {
+          const response = await dispatch(
+            getAllHotelsThunk({
+              details: detailsForDestinationSearch,
+            }),
+          );
+
+          // Optional: Handle the response if needed
+          if (response.error) {
+            console.error('Error fetching hotels:', response.payload);
+            // Optionally show an error toast
+            // errorToast(response.payload);
+          }
+        } catch (error) {
+          console.error('Unexpected error while fetching hotels:', error);
+          // Optionally show an error toast
+          // errorToast('An unexpected error occurred. Please try again.');
+        }
+      }
+    };
+
+    refetchForCurrencyChange();
+  }, [selectedCurrency]);
+
   const handleDonePress = async () => {
     if (cityDetails.length === 0 || destination === '') {
       const error = i18n.t('Toast.selectDestination');
@@ -212,26 +244,49 @@ const Hotels = ({navigation}) => {
     }
 
     setShowFilterModal(false);
-    if (selectedStars.length > 0) {
-      const response = await dispatch(
-        getAllHotelsThunk({details: detailsForDestinationSearch}),
-      );
-      if (response.error) {
-        errorToast(response.payload);
-      }
-    } else if (selectedAmenities.length > 0) {
-      const filtered = hotelDataS.hotels.filter(hotel => {
-        if (!hotel.facilities) {
-          return false;
-        } // Handle null/undefined facilities
-        return selectedAmenities.every(amenity =>
-          hotel.facilities.includes(amenity),
+
+    try {
+      let hotelsToFilter = [];
+
+      if (selectedStars.length > 0) {
+        const response = await dispatch(
+          getAllHotelsThunk({
+            details: detailsForDestinationSearch,
+          }),
         );
-      });
-      setFilteredHotels(filtered);
-    } else {
-      dispatch(getAllHotelsThunk({details: detailsForDestinationSearch}));
-      setFilteredHotels(hotelDataS.hotels);
+        if (response.error) {
+          errorToast(response.payload);
+          return;
+        }
+
+        hotelsToFilter = response.payload?.hotels || hotelDataS.hotels || [];
+      } else {
+        const response = await dispatch(
+          getAllHotelsThunk({details: detailsForDestinationSearch}),
+        );
+        if (response.error) {
+          errorToast(response.payload);
+          return;
+        }
+        hotelsToFilter = response.payload?.hotels || hotelDataS.hotels || [];
+      }
+
+      if (selectedAmenities.length > 0) {
+        const filtered = hotelsToFilter.filter(hotel => {
+          if (!hotel.facilities) {
+            return false;
+          }
+          return selectedAmenities.every(amenity =>
+            hotel.facilities.includes(amenity),
+          );
+        });
+        setFilteredHotels(filtered);
+      } else {
+        setFilteredHotels(hotelsToFilter);
+      }
+    } catch (error) {
+      errorToast('An unexpected error occurred. Please try again.');
+      console.error('Error in handleDonePress:', error);
     }
   };
 
@@ -281,7 +336,6 @@ const Hotels = ({navigation}) => {
           onPress={() => {
             setShowModal(false);
             setShowCurrencyModal(false);
-            console.log('[TouchableWithoutFeedback] Dismissing keyboard');
           }}>
           <View>
             <ImageBackground
@@ -296,7 +350,6 @@ const Hotels = ({navigation}) => {
                 <View style={styles.homeHeaderSecondaryOptions}>
                   <LanguageSelector />
                   <CurrencySelector />
-
                   <View style={styles.secondaryOptions}>
                     <Image
                       style={styles.secondaryOptionsImages}
@@ -330,9 +383,12 @@ const Hotels = ({navigation}) => {
           <View style={styles.filterSortContainer}>
             <TouchableOpacity
               style={styles.filterSortItem}
-              onPress={() => setShowFilterModal(true)}
-              disabled={hotelDataS.hotels.length === 0}>
-              {hotelDataS.hotels.length > 0 ? (
+              onPress={() => {
+                setShowFilterModal(true);
+                console.log('filtermodalPressed');
+              }}
+              disabled={filteredHotels.length === 0}>
+              {filteredHotels.length > 0 ? (
                 <Image
                   source={Images.FILTER_ACTIVE}
                   style={styles.filterImage}
@@ -464,7 +520,7 @@ const Hotels = ({navigation}) => {
                   width: '95%',
                   marginHorizontal: 'auto',
                 }}>
-                <Text style={styles.filterModalOptions}>Rating</Text>
+                <Text style={styles.filterModalOptions}>Hotel Category</Text>
                 <Ratings />
                 {/* <Text>Heelo</Text> */}
               </View>
@@ -474,7 +530,15 @@ const Hotels = ({navigation}) => {
                   marginHorizontal: 'auto',
                   marginBottom: Matrics.vs(370),
                 }}>
-                <Text style={styles.filterModalOptions}>Hotel Amenity</Text>
+                <Text
+                  style={[
+                    styles.filterModalOptions,
+                    {
+                      marginTop: Matrics.vs(10),
+                    },
+                  ]}>
+                  Hotel Amenity
+                </Text>
                 <Amenities />
               </View>
             </View>
