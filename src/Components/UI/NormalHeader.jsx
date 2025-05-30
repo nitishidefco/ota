@@ -18,10 +18,12 @@ const NormalHeader = ({
   showRightButton = true,
   leftIconName = 'CROSS',
   rightIconName = 'CHECK',
+  headerHeight = Matrics.screenHeight * 0.08,
+  rightIconFonSize,
 }) => {
   return (
     <ImageBackground
-      style={styles.headerBackground}
+      style={[styles.headerBackground, {height: headerHeight}]}
       source={Images.PROFILE_BACKGROUND}>
       {/* Left Button */}
       {showLeftButton ? (
@@ -42,13 +44,15 @@ const NormalHeader = ({
       {showRightButton ? (
         <TouchableOpacity onPress={onCheckPress} activeOpacity={0.7}>
           {rightIconName === 'CHECK' ? (
-            <Image source={Images.CHECK} style={styles.headerOptions} />
+            <Image source={Images.CHECK} style={[styles.headerOptions]} />
           ) : (
             <Text
               style={{
                 fontFamily: typography.fontFamily.Montserrat.Medium,
                 color: COLOR.WHITE,
-                fontSize: typography.fontSizes.fs14,
+                fontSize: rightIconFonSize
+                  ? rightIconFonSize
+                  : typography.fontSizes.fs14,
               }}>
               {rightIconName}
             </Text>

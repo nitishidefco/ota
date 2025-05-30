@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  Platform,
 } from 'react-native';
 import React, {
   useCallback,
@@ -29,6 +30,7 @@ import {TextInput} from 'react-native-gesture-handler';
 import GuestForm from '../../../Components/GuestForm';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {errorToast} from '../../../Helpers/ToastMessage';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const GUEST_DETAILS_KEY = 'guestDetails';
 // GuestForm Component for Bottom Sheet
@@ -38,7 +40,7 @@ const HotelBooking = () => {
   const navigation = useNavigation();
   const {guests} = useContext(RoomContext);
   const bottomSheetModalRef = useRef(null);
-  const snapPoints = useCallback(() => ['30%', '80%'], []);
+  const snapPoints = useCallback(() => ['50%', '80%'], []);
   const [guestDetails, setGuestDetails] = useState(
     Array(guests)
       .fill(null)
@@ -146,77 +148,90 @@ const HotelBooking = () => {
   };
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      <BottomSheetModalProvider>
-        <KeyboardAwareScrollView>
-          <NormalHeader
-            title={'Fill Details'}
-            rightIconName="Review"
-            leftIconName="round"
-            onCrossPress={handleBackPress}
-            onCheckPress={handleContinue}
-          />
-          <View style={{padding: Matrics.vs(8)}}>
-            <Text style={styles.sectionTitle}>Persons</Text>
-            <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 10}}>
-              {Array.from({length: guests}).map((_, index) => {
-                const isPrimaryGuest = index === 0;
-                const guestData = guestDetails[index] || {};
-                const isFilled = guestData.firstName && guestData.lastName;
+    <SafeAreaView style={{flex: 1}}>
+      <GestureHandlerRootView
+        style={{
+          flex: 1,
+        }}>
+        <BottomSheetModalProvider>
+          <KeyboardAwareScrollView>
+            <NormalHeader
+              title={'Fill Details'}
+              rightIconName="Next"
+              leftIconName="round"
+              onCrossPress={handleBackPress}
+              onCheckPress={handleContinue}
+            />
+            <View style={{padding: Matrics.vs(8)}}>
+              <Text style={styles.sectionTitle}>Persons</Text>
+              <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 10}}>
+                {Array.from({length: guests}).map((_, index) => {
+                  const isPrimaryGuest = index === 0;
+                  const guestData = guestDetails[index] || {};
+                  const isFilled = guestData.firstName && guestData.lastName;
 
-                return (
-                  <View key={index} style={styles.cardContainer}>
-                    <View style={styles.contentRow}>
-                      <Image
-                        source={Images.FILL_DETAIL_PERSON}
-                        style={styles.icon}
-                      />
-                      <View>
-                        <Text style={styles.title}>
-                          {isPrimaryGuest
-                            ? 'Primary Guest'
-                            : `Guest ${index + 1}`}
-                        </Text>
-                        <Text style={styles.subtitle}>
-                          * Adult - Should be above 18 years
-                        </Text>
-                        {isFilled && (
-                          <Text style={styles.filledText}>Details Added</Text>
-                        )}
+                  return (
+                    <View key={index} style={styles.cardContainer}>
+                      <View style={styles.contentRow}>
+                        <Image
+                          source={Images.FILL_DETAIL_PERSON}
+                          style={styles.icon}
+                        />
+                        <View>
+                          <Text style={styles.title}>
+                            {isPrimaryGuest
+                              ? 'Primary Guest'
+                              : `Guest ${index + 1}`}
+                          </Text>
+                          <Text style={styles.subtitle}>
+                            * Adult - Should be above 18 years
+                          </Text>
+                          {isFilled && (
+                            <Text style={styles.filledText}>Details Added</Text>
+                          )}
+                        </View>
                       </View>
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => openBottomSheet(index)}>
+                        <Text style={styles.buttonText}>
+                          {isFilled ? 'Edit' : '+ Add'}
+                        </Text>
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={() => openBottomSheet(index)}>
-                      <Text style={styles.buttonText}>
-                        {isFilled ? 'Edit' : '+ Add'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
             </View>
-          </View>
-          <BottomSheetModal
-            ref={bottomSheetModalRef}
-            index={1}
-            snapPoints={snapPoints()}
-            backgroundStyle={styles.bottomSheetBackground}
-            handleIndicatorStyle={styles.handleIndicator}>
-            <BottomSheetScrollView>
-              {currentGuestIndex !== null && (
-                <GuestForm
-                  guestIndex={currentGuestIndex}
-                  guestData={guestDetails[currentGuestIndex]}
-                  onSave={handleSaveGuest}
-                  onCancel={handleCancel}
-                />
-              )}
-            </BottomSheetScrollView>
-          </BottomSheetModal>
-        </KeyboardAwareScrollView>
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+
+            <BottomSheetModal
+              ref={bottomSheetModalRef}
+              index={0}
+              snapPoints={snapPoints()}
+              backgroundStyle={styles.bottomSheetBackground}
+              handleIndicatorStyle={styles.handleIndicator}
+              style={{
+                alignSelf: 'center',
+                justifyContent: 'center',
+              }}>
+              <BottomSheetScrollView
+                contentContainerStyle={{
+                  justifyContent: 'center',
+                }}>
+                {currentGuestIndex !== null && (
+                  <GuestForm
+                    guestIndex={currentGuestIndex}
+                    guestData={guestDetails[currentGuestIndex]}
+                    onSave={handleSaveGuest}
+                    onCancel={handleCancel}
+                  />
+                )}
+              </BottomSheetScrollView>
+            </BottomSheetModal>
+          </KeyboardAwareScrollView>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </SafeAreaView>
   );
 };
 
@@ -227,13 +242,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.WHITE,
     borderTopLeftRadius: Matrics.s(25),
     borderTopRightRadius: Matrics.s(25),
-    borderWidth: 1,
-    borderColor: COLOR.PRIMARY,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 5,
+    boxShadow: '0px -2px 10px rgba(0, 0, 0, 0.15)',
   },
   handleIndicator: {
     backgroundColor: COLOR.PRIMARY,
@@ -247,7 +256,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Matrics.s(5),
     paddingHorizontal: Matrics.s(15),
     paddingVertical: Matrics.vs(15),
-    width: Matrics.screenWidth * 0.85, // Adjusted for two cards per row
+    width: Matrics.screenWidth * 0.93, // Adjusted for two cards per row
   },
   contentRow: {
     flexDirection: 'row',

@@ -18,22 +18,28 @@ import {ConfirmationModalProvider} from './Context/ConfirmationModalContext';
 import {HeaderOptionProvider} from './Context/HeaderOptionContext';
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {CardProvider} from './Context/CardDetailContext';
+import CustomStatusBar from './Components/UI/CustomStatusBar';
+import {PolicyInfoProvider} from './Context/PolicyInfoContext';
+
 const App = () => {
   return (
-    <StripeProvider publishableKey="pk_test_51Q26ObEZOuFNrMpGVNLaMcgGcLmftyqoqUB2fnf9ZgOfKGdOH3aJrVxuvrczoeByTHc4cqgJgIw4tYQixDywZib000xSxPCeWf">
+    <StripeProvider publishableKey="pk_test_HaildCNdMAkdT0HruXtJPvig">
       <KeyboardProvider>
         <GestureHandlerRootView style={{flex: 1}}>
           <SafeAreaProvider>
+            <CustomStatusBar />
             <Provider store={Store}>
               <I18nextProvider i18n={i18n}>
                 <HeaderOptionProvider>
                   <CardProvider>
                     <ConfirmationModalProvider>
                       <RoomProvider>
-                        <FilterProvider>
-                          <NavigationStack />
-                          <Toast config={toastConfig} autoHide={true} />
-                        </FilterProvider>
+                        <PolicyInfoProvider>
+                          <FilterProvider>
+                            <NavigationStack />
+                            <Toast config={toastConfig} autoHide={true} />
+                          </FilterProvider>
+                        </PolicyInfoProvider>
                       </RoomProvider>
                     </ConfirmationModalProvider>
                   </CardProvider>

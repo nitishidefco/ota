@@ -487,6 +487,27 @@ const ModifyCard = ({provider, hotelId}) => {
               />
             </View>
           ))}
+          <TouchableOpacity
+            style={{
+              backgroundColor: COLOR.PRIMARY,
+              justifyContent: 'center',
+              paddingHorizontal: Matrics.s(10),
+              paddingVertical: Matrics.vs(10),
+              borderRadius: Matrics.s(5),
+              marginTop: Matrics.vs(10),
+            }}
+            activeOpacity={0.7}
+            onPress={() => setShowGuestsModal(false)}>
+            <Text
+              style={{
+                fontFamily: typography.fontFamily.Montserrat.Medium,
+                fontSize: typography.fontSizes.fs14,
+                color: COLOR.WHITE,
+                textAlign: 'center',
+              }}>
+              Apply
+            </Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>

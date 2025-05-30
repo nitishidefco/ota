@@ -13,6 +13,7 @@ export const getCityDetailsThunk = createAsyncThunk(
       const response = await getCityDetails({
         cityName,
       });
+
       return response.data;
     } catch (err) {
       console.error('Error in  getting city details:', err);

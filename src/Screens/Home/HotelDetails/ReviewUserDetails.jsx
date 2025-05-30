@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,22 @@ import {
   TouchableOpacity,
   Image,
   Animated,
+  Platform,
+  Alert,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import {useStripe} from '@stripe/stripe-react-native';
 import NormalHeader from '../../../Components/UI/NormalHeader'; // Adjust path
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling'; // Adjust path
 import {Images} from '../../../Config'; // Adjust path
 import KeyboardAwareScrollViewBoilerplate from '../../../Components/UI/KeyboardAwareScrollViewBoilerplate';
+import {getSavedCardThunk} from '../../../Redux/Reducers/BookingOverviewReducer/BookingListSlice';
+import {useDispatch, useSelector} from 'react-redux';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const ReviewUserDetails = () => {
   const navigation = useNavigation();
@@ -21,7 +31,11 @@ const ReviewUserDetails = () => {
   const [rotationAnimations, setRotationAnimations] = useState(
     guestDetails.map(() => new Animated.Value(0)),
   ); // Animation for each accordion arrow
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getSavedCardThunk()).unwrap();
+  }, []);
+  const {savedCard} = useSelector(state => state.bookingList);
   const handleBackPress = () => {
     navigation.goBack();
   };
@@ -41,9 +55,21 @@ const ReviewUserDetails = () => {
       useNativeDriver: true,
     }).start();
   };
-  const handleCheckPress = () => {
-    navigation.navigate('HotelPaymentsPage');
+
+  const handleCheckPress = async () => {
+    try {
+      console.log('savedCard', savedCard);
+      if (savedCard.status) {
+        console.log('savedCard.status', savedCard.status);
+        navigation.navigate('HotelPaymentsPage');
+      } else {
+        navigation.navigate('AddCard');
+      }
+    } catch (error) {
+      navigation.navigate('AddCard');
+    }
   };
+
   const renderGuestDetails = (guest, index) => {
     const isExpanded = expandedIndex === index;
     const isPrimaryGuest = index === 0;
@@ -57,6 +83,7 @@ const ReviewUserDetails = () => {
       <View key={index} style={styles.cardContainer}>
         <TouchableOpacity
           style={styles.accordionHeader}
+          activeOpacity={0.9}
           onPress={() => toggleAccordion(index)}>
           <View style={styles.headerContent}>
             <Image source={Images.FILL_DETAIL_PERSON} style={styles.icon} />
@@ -131,18 +158,24 @@ const ReviewUserDetails = () => {
   };
 
   return (
-    <KeyboardAwareScrollViewBoilerplate
-      headerComponent={
-        <NormalHeader
-          title="Review Details"
-          leftIconName="round"
-          onCrossPress={handleBackPress}
-          onCheckPress={handleCheckPress}
-        />
-      }>
-      <Text style={styles.sectionTitle}>Guest Details</Text>
-      {guestDetails.map((guest, index) => renderGuestDetails(guest, index))}
-    </KeyboardAwareScrollViewBoilerplate>
+    <SafeAreaView
+      style={{
+        flex: 1,
+      }}>
+      <KeyboardAwareScrollViewBoilerplate
+        headerComponent={
+          <NormalHeader
+            title="Review Details"
+            leftIconName="round"
+            rightIconName="Next"
+            onCrossPress={handleBackPress}
+            onCheckPress={handleCheckPress}
+          />
+        }>
+        <Text style={styles.sectionTitle}>Guest Details</Text>
+        {guestDetails.map((guest, index) => renderGuestDetails(guest, index))}
+      </KeyboardAwareScrollViewBoilerplate>
+    </SafeAreaView>
   );
 };
 
@@ -188,10 +221,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   arrowIcon: {
-    width: Matrics.s(18),
-    height: Matrics.s(18),
+    width: Matrics.s(20),
+    height: Matrics.s(20),
     resizeMode: 'contain',
     tintColor: COLOR.WHITE,
+    marginRight: Matrics.s(10),
   },
   accordionContent: {
     padding: Matrics.s(15),
@@ -234,7 +268,7 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.Bold,
     fontSize: typography.fontSizes.fs18,
     color: COLOR.BLACK,
-    marginBottom: Matrics.vs(12),
+    marginTop: Matrics.vs(10),
     marginHorizontal: Matrics.s(10),
   },
 });

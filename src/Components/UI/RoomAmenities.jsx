@@ -11,6 +11,7 @@ const RoomAmenities = ({hotelDetail}) => {
   const displayedFacilities = showAllFacilities
     ? facilities
     : facilities.slice(0, maxInitialFacilities);
+  console.log('Room amenitites', displayedFacilities);
 
   const toggleFacilities = () => {
     setShowAllFacilities(!showAllFacilities);
@@ -24,7 +25,6 @@ const RoomAmenities = ({hotelDetail}) => {
           gap: 5,
         }}>
         {displayedFacilities.map((facility, index) => {
-          console.log('Facility', facility);
           return (
             <View key={index}>
               <AmenityCard title={facility} />

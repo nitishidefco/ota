@@ -6,15 +6,15 @@ import {
   Image,
   ImageBackground,
   TouchableOpacity,
+  BackHandler,
 } from 'react-native';
-import React, {useContext, useEffect} from 'react';
+import React, {useCallback, useContext, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {getUserProfileData} from '../../Redux/Reducers/UserProfileSlice';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import {logout} from '../../Redux/Reducers/AuthSlice';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import CustomLoader from '../../Components/Loader/CustomLoader';
 import {ConfirmationModalContext} from '../../Context/ConfirmationModalContext';
@@ -24,21 +24,39 @@ const Profile = () => {
   const userToken = useSelector(state => state.auth.userToken);
   const contentToken = useSelector(state => state.contentToken.universalToken);
   const {isLoading, userProfileData} = useSelector(state => state.userProfile);
+
   const navigation = useNavigation();
-  const maskCardNumber = cardNumber => {
-    const lastFourDigits = cardNumber.slice(-4);
-    return `**** **** **** ${lastFourDigits}`;
-  };
 
   const {showCancelModal, setShowCancelModal} = useContext(
     ConfirmationModalContext,
   );
   const dispatch = useDispatch();
+
   useEffect(() => {
-    dispatch(getUserProfileData({userToken, contentToken}));
-  }, []);
+    const backAction = () => {
+      if (showCancelModal) {
+        setShowCancelModal(false);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [showCancelModal, setShowCancelModal]);
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(getUserProfileData({userToken, contentToken}));
+    }, [contentToken, dispatch, userToken]),
+  );
+  console.log(userProfileData);
   return (
-    <SafeAreaView style={styles.safeAreaView}>
+    <>
       {isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -75,7 +93,7 @@ const Profile = () => {
               {userProfileData?.profile_pic ? (
                 <Image
                   source={{
-                    uri: `https://ota.visionvivante.in/${userProfileData?.profile_pic}`,
+                    uri: `https://otaapi.visionvivante.in/${userProfileData?.profile_pic}`,
                   }}
                   style={styles.userProfilePic}
                 />
@@ -89,26 +107,6 @@ const Profile = () => {
             <View>
               <Text style={styles.userName}>{userProfileData?.name}</Text>
             </View>
-            <View style={styles.mainContainer}>
-              <View style={styles.additionalUserInfoContainer}>
-                <Image source={Images.EMAIL_WHITE} style={styles.smallImages} />
-                <Text style={styles.userDetails}>{userProfileData?.email}</Text>
-              </View>
-              <View style={styles.additionalUserInfoContainer}>
-                <Image source={Images.PHONE_WHITE} style={styles.smallImages} />
-                <Text style={styles.userDetails}>
-                  {userProfileData?.phone_number}
-                </Text>
-              </View>
-              <View style={styles.additionalUserInfoContainer}>
-                <Image source={Images.CARD_WHITE} style={styles.smallImages} />
-                <Text style={styles.userDetails}>
-                  {/* {userProfileData?.my_referral_code}
-                   */}
-                  {maskCardNumber('1234123412341234')}
-                </Text>
-              </View>
-            </View>
           </ImageBackground>
           <View style={styles.menuOptionContainer}>
             <TouchableOpacity
@@ -120,22 +118,43 @@ const Profile = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => navigation.navigate('ChangePassword')}
+              onPress={() =>
+                navigation.navigate('ChangePassword', {userProfileData})
+              }
               activeOpacity={0.7}>
               <Image source={Images.LOCK} style={styles.menuIcon} />
-              <Text style={styles.menuTitle}>Change Password</Text>
+              <Text style={styles.menuTitle}>
+                {userProfileData?.isPasswordSet
+                  ? 'Change Password'
+                  : 'Set Password'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Support')}
+              activeOpacity={0.7}>
+              <Image source={Images.SUPPORT} style={styles.menuIcon} />
+              <Text style={styles.menuTitle}>Support</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => setShowCancelModal(true)}
               activeOpacity={0.7}>
               <Image source={Images.LOGOUT} style={styles.menuIcon} />
-              <Text style={styles.menuTitle}>Logout</Text>
+              <Text
+                style={[
+                  styles.menuTitle,
+                  {
+                    color: COLOR.PRIMARY,
+                  },
+                ]}>
+                Logout
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </>
   );
 };
 
@@ -148,9 +167,10 @@ const styles = StyleSheet.create({
   userProfilePic: {
     width: Matrics.screenWidth * 0.3,
     height: Matrics.vs(100),
+    borderRadius: Matrics.s(100),
   },
   upperContainer: {
-    height: Matrics.screenHeight * 0.5,
+    height: Matrics.screenHeight * 0.4,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -199,9 +219,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderBottomColor: COLOR.BORDER_COLOR,
     borderBottomWidth: 1,
+    paddingLeft: Matrics.s(10),
   },
   menuTitle: {
-    fontFamily: typography.fontFamily.Montserrat.Regular,
+    fontFamily: typography.fontFamily.Montserrat.Medium,
     fontSize: typography.fontSizes.fs18,
   },
 

@@ -10,8 +10,15 @@ import {errorToast} from '../../../Helpers/ToastMessage';
 import {useNavigation} from '@react-navigation/native';
 import i18n from '../../../i18n/i18n';
 
-const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
-  // console.log('Room info', roomInfo);
+const RoomPolicies = ({
+  roomInfo,
+  provider,
+  hotelId,
+  GiataId,
+  showProceedButton = true,
+  containerStyle,
+}) => {
+  console.log('Room info', roomInfo);
   const dispatch = useDispatch();
   const {selectedRoomId} = useContext(RoomContext);
   const selectedRoom = roomInfo?.find(
@@ -45,7 +52,6 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
         },
       ],
     };
-    console.log(detailsForPriceConfirm);
 
     try {
       const response = await dispatch(
@@ -65,7 +71,11 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
     }
   };
   return (
-    <View style={{paddingHorizontal: Matrics.s(15), marginTop: Matrics.vs(15)}}>
+    <View
+      style={[
+        {paddingHorizontal: Matrics.s(15), marginTop: Matrics.vs(15)},
+        containerStyle,
+      ]}>
       <Text
         style={{
           fontFamily: typography.fontFamily.Montserrat.Bold,
@@ -132,7 +142,7 @@ const RoomPolicies = ({roomInfo, provider, hotelId, GiataId}) => {
             </Text>
           </View>
         </View>
-        {selectedRoomId && (
+        {selectedRoomId && showProceedButton && (
           <View>
             <CheckoutToast handlePress={handleCheckoutPress} />
           </View>

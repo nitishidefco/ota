@@ -44,7 +44,6 @@ const HotelSearchCard = () => {
     setHotelStayStartDate,
     hotelStayEndDate,
     setHotelStayEndDate,
-    guests,
     setGuests,
     rooms,
     setRooms,
@@ -63,7 +62,6 @@ const HotelSearchCard = () => {
     showGuestsModal,
     setShowGuestsModal,
     pets,
-    setPets,
   } = useContext(RoomContext);
 
   const {cityDetails, loadingCityDetails} = useSelector(state => state.getCity);
@@ -212,15 +210,17 @@ const HotelSearchCard = () => {
   const debouncedSearch = useCallback(
     debounce(async searchText => {
       if (searchText.length < 2) {
+        setShowFlatList(false);
         return;
       }
       try {
+        setShowFlatList(true);
         await dispatch(getCityDetailsThunk({cityName: searchText}));
       } catch (error) {
         console.error('Error getting hotel details', error);
       }
     }, 500),
-    [getCityDetailsThunk],
+    [dispatch],
   );
 
   useEffect(() => {
@@ -230,11 +230,10 @@ const HotelSearchCard = () => {
   }, [debouncedSearch]);
   /* --------------------------- handle search press --------------------------- */
   const handleSearchPress = async () => {
-    console.log('Destination', destination);
-
     if (
       destination === ' ' ||
-      (cityDetails.length === 0 && !destination.trim())
+      (cityDetails.length === 0 && !destination.trim()) ||
+      destination.length < 3
     ) {
       const error = i18n.t('Toast.selectDestination');
       errorToast(error);
@@ -291,6 +290,7 @@ const HotelSearchCard = () => {
       Currency: selectedCurrency ?? 'USD',
     };
     await dispatch(getFacilitiesThunk());
+    console.log('detailsForDestinationSearch', detailsForDestinationSearch);
 
     const response = await dispatch(
       getAllHotelsThunk({details: detailsForDestinationSearch}),
@@ -304,19 +304,22 @@ const HotelSearchCard = () => {
   /* ------------------------- handle flastlist press ------------------------- */
   const handleFlatListPress = (cityName, index) => {
     console.log('[handleFlatListPress] Pressed city:', cityName);
+    // Dismiss keyboard and update state in a single operation
     Keyboard.dismiss();
     setSelectedCityIndex(index);
     setDestination(cityName);
     setShowFlatList(false);
   };
 
-  const handleFlatListShow = text => {
-    if (text.length === 0) {
-      setShowFlatList(false);
-    } else {
-      setShowFlatList(true);
-    }
-  };
+  // const handleFlatListShow = text => {
+  //   console.log('text', text.length);
+
+  //   if (text.length === 0) {
+  //     setShowFlatList(false);
+  //   } else {
+  //     setShowFlatList(true);
+  //   }
+  // };
   // const defaultStyles = useDefaultStyles();
   return (
     <View style={styles.mainContainer}>
@@ -337,13 +340,10 @@ const HotelSearchCard = () => {
               placeholder={i18n.t('HotelSearchCard.searchMessage')}
               value={destination}
               onChangeText={text => {
-                setDestination(text);
-                debouncedSearch(text);
-                handleFlatListShow(text);
-              }}
-              onFocus={() => {
-                setDestination('');
-                setShowFlatList(false);
+                // Trim leading and trailing spaces
+                const trimmedText = text.trimStart();
+                setDestination(trimmedText);
+                debouncedSearch(trimmedText);
               }}
               style={[styles.searchBarTextInput]}
               keyboardShouldPersistTaps="handled"
@@ -365,7 +365,7 @@ const HotelSearchCard = () => {
                     data={cityDetails}
                     style={styles.flatListStyle}
                     keyExtractor={(item, index) => index.toString()}
-                    keyboardShouldPersistTaps="always"
+                    keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true}
                     showsVerticalScrollIndicator={true}
                     renderItem={({item, index}) => (
@@ -536,7 +536,9 @@ const HotelSearchCard = () => {
         onModalHide={countGuests}>
         <View style={styles.guestModalContainer}>
           <View style={styles.hr} />
-          <Text style={styles.guestModalTitle}>Guests</Text>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+            <Text style={styles.guestModalTitle}>Guests</Text>
+          </View>
           <View style={styles.guestOptions}>
             <View>
               <Text style={styles.guestOptionsTitle}>Room</Text>
@@ -589,11 +591,9 @@ const HotelSearchCard = () => {
             style={[
               styles.guestOptionsLast,
               {
-                borderBottomWidth: pluaralChild > 0 ? 1 : 0,
-                borderBottomColor:
-                  pluaralChild > 0 ? COLOR.BORDER_COLOR : 'none',
-                paddingBottom: pluaralChild > 0 ? Matrics.vs(10) : 0,
-                paddingTop: Matrics.vs(8),
+                borderBottomWidth: 1,
+                borderBottomColor: COLOR.BORDER_COLOR,
+                paddingVertical: Matrics.vs(8),
               },
             ]}>
             <View>
@@ -630,6 +630,7 @@ const HotelSearchCard = () => {
               </TouchableOpacity>
             </View>
           </View>
+
           {Array.from({length: pluaralChild}, (_, index) => (
             <View key={index} style={styles.pickerContainer}>
               <DropDownPicker
@@ -681,6 +682,27 @@ const HotelSearchCard = () => {
               />
             </View>
           ))}
+          <TouchableOpacity
+            style={{
+              backgroundColor: COLOR.PRIMARY,
+              justifyContent: 'center',
+              paddingHorizontal: Matrics.s(10),
+              paddingVertical: Matrics.vs(10),
+              borderRadius: Matrics.s(5),
+              marginTop: Matrics.vs(10),
+            }}
+            activeOpacity={0.7}
+            onPress={() => setShowGuestsModal(false)}>
+            <Text
+              style={{
+                fontFamily: typography.fontFamily.Montserrat.Medium,
+                fontSize: typography.fontSizes.fs14,
+                color: COLOR.WHITE,
+                textAlign: 'center',
+              }}>
+              Apply
+            </Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>

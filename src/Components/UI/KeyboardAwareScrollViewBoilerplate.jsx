@@ -9,9 +9,16 @@ const KeyboardAwareScrollViewBoilerplate = ({
   children,
   headerComponent,
   footerComponent,
+  backgroundColor,
 }) => {
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureHandlerRootView
+      style={[
+        styles.container,
+        {
+          backgroundColor: backgroundColor,
+        },
+      ]}>
       <BottomSheetModalProvider>
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollViewContent}
@@ -40,10 +47,10 @@ const styles = StyleSheet.create({
     paddingBottom: Matrics.vs(20),
   },
   headerContainer: {
-    marginBottom: Matrics.vs(10),
+    // marginBottom: Matrics.vs(10),
   },
   contentContainer: {
-    paddingHorizontal: Matrics.s(8),
+    // paddingHorizontal: Matrics.s(8),
   },
   footerContainer: {
     paddingHorizontal: Matrics.s(8),

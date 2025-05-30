@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, Text, Image, StyleSheet} from 'react-native';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import LinearGradient from 'react-native-linear-gradient';
 import FastImage from 'react-native-fast-image';
@@ -7,7 +7,6 @@ import {Images} from '../../Config';
 import {useSelector} from 'react-redux';
 import i18n from '../../i18n/i18n';
 
-// Star Rating Component with Custom Icons
 const StarRating = ({rating = 0, reviewCount = 0}) => {
   return (
     <View style={styles.ratingContainer}>
@@ -70,6 +69,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
     currency = '$',
     category,
   } = hotel;
+
   const getCurrencySymbol = selectCurrency => {
     return selectCurrency === 'USD' || selectCurrency === 'CAD' ? '$' : '₹';
   };
@@ -79,8 +79,8 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
 
     // Ensure cate is within valid bounds (0 to 5)
     const rating = Math.max(0, Math.min(5, cate));
-    const fullStars = Math.floor(rating); // Full purple stars
-    const hasHalfStar = rating % 1 >= 0.5; // If the decimal part is 0.5 or more, show a half star
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
 
     // Add full purple stars
     for (let i = 0; i < fullStars; i++) {
@@ -98,26 +98,36 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
       stars.push(
         <Image
           key="half-star"
-          source={Images.HALF_PURPLE_STAR} // You’ll need a half-star image
-          style={styles.starIcon}
+          source={Images.HALF_STAR}
+          style={[
+            styles.starIcon,
+            {
+              marginHorizontal: 0,
+              width: 12,
+              height: 12,
+              marginTop: Matrics.s(0.2),
+            },
+          ]}
+          resizeMode="contain"
         />,
       );
     }
 
     // Add grey stars for the remaining
-    const remainingStars = totalStars - stars.length;
-    for (let i = 0; i < remainingStars; i++) {
-      stars.push(
-        <Image
-          key={`grey-${i}`}
-          source={Images.FULL_GREY_STAR}
-          style={styles.starIcon}
-        />,
-      );
-    }
+    // const remainingStars = totalStars - stars.length;
+    // for (let i = 0; i < remainingStars; i++) {
+    //   stars.push(
+    //     <Image
+    //       key={`grey-${i}`}
+    //       source={Images.FULL_GREY_STAR}
+    //       style={styles.starIcon}
+    //     />,
+    //   );
+    // }
 
     return stars;
   };
+
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
@@ -160,7 +170,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
             <View style={styles.priceContainer}>
               <Text style={styles.price}>
                 {getCurrencySymbol(selectedCurrency)}
-                {price}
+                {Number(price).toFixed(2)}
               </Text>
               {originalPrice && (
                 <Text style={styles.originalPrice}>
@@ -169,7 +179,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
                 </Text>
               )}
             </View>
-            <Text style={styles.perNight}>1 Night (incl.VAT)</Text>
+            <Text style={styles.perNight}>Per Night (incl.VAT)</Text>
           </View>
 
           <View
@@ -289,7 +299,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   price: {
-    fontSize: 28,
+    fontSize: 26,
     color: '#FFA500',
     fontFamily: typography.fontFamily.Montserrat.Bold,
   },
@@ -300,7 +310,7 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.Medium,
   },
   perNight: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#999',
     fontFamily: typography.fontFamily.Montserrat.Medium,
   },

@@ -37,7 +37,7 @@ import Amenities from '../../Components/UI/FilterModal/Amenities';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import {errorToast} from '../../Helpers/ToastMessage';
 import {RoomContext} from '../../Context/RoomContext';
-import {getAllHotelsThunk} from '../../Redux/Reducers/HotelReducer/GetHotelSlice';
+import {getAllHotelsThunk, resetHotelState} from '../../Redux/Reducers/HotelReducer/GetHotelSlice';
 import {HeaderOptionContext} from '../../Context/HeaderOptionContext';
 import {TouchableWithoutFeedback} from '@gorhom/bottom-sheet';
 const Hotels = ({navigation}) => {
@@ -104,18 +104,19 @@ const Hotels = ({navigation}) => {
       'Newspaper kiosk': Images.KIOSK,
     },
   };
-
+  const BASE_IMAGE_URL = 'https://giata.visionvivante.in/image?link=';
   const formatHotelData = hotel => {
     return {
-      imageSource: Images.HOTEL_CARD_BACKGROUND,
+      imageSource:
+        hotel?.imageLinks?.length > 0 && hotel.imageLinks[0]
+          ? {uri: `${BASE_IMAGE_URL}${hotel.imageLinks[0]}`}
+          : Images.HOTEL_CARD_BACKGROUND,
       name: hotel.Name,
       rating: hotel?.rating,
       reviewCount: hotel?.total_reviews,
       amenities:
         hotel.facilities === null ? null : hotel?.facilities?.slice(0, 6),
-      price: hotel.price,
-      originalPrice: hotel.totalprice,
-      // TODO: Change according to currency
+      price: hotel.totalprice,
       currency: '$',
       category: hotel.category,
     };
@@ -167,7 +168,7 @@ const Hotels = ({navigation}) => {
       <Text
         style={[
           styles.homeTabsTitle,
-          {color: activeTab === title ? COLOR.PRIMARY : 'white'}, // Active: COLOR.PRIMARY, Inactive: white
+          {color: activeTab === title ? COLOR.PRIMARY : 'white'},
         ]}>
         {i18n.t(`Hotel.${title}`)}
       </Text>
@@ -211,7 +212,7 @@ const Hotels = ({navigation}) => {
       // Only proceed if detailsForDestinationSearch exists
       if (detailsForDestinationSearch.cityName) {
         console.log('refetching for currency change');
-
+        dispatch(resetHotelState());
         try {
           const response = await dispatch(
             getAllHotelsThunk({
@@ -331,7 +332,9 @@ const Hotels = ({navigation}) => {
         />
       )}
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled">
         <TouchableWithoutFeedback
           onPress={() => {
             setShowModal(false);
@@ -453,7 +456,7 @@ const Hotels = ({navigation}) => {
                       alignItems: 'center',
                       minHeight: 200,
                     }}>
-                    <ActivityIndicator size="large" color="#0000ff" />
+                    <ActivityIndicator size="large" color={COLOR.PRIMARY} />
                   </View>
                 ) : (
                   <View style={styles.emptyFlatListContainer}>

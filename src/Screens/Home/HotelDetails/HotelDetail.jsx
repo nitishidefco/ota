@@ -24,15 +24,13 @@ import RoomCard from '../../../Components/UI/RoomCard';
 import ModifyCard from '../../../Components/UI/ModifyCard';
 import HotelCarousel from '../../../Components/UI/HotelCarousel';
 import SimpleLoader from '../../../Components/Loader/SimpleLoader';
-import {confirmPrice} from '../../../Redux/Reducers/HotelReducer/PriceConfirmSlice';
-import {RoomContext} from '../../../Context/RoomContext';
-import {errorToast} from '../../../Helpers/ToastMessage';
-import dayjs from 'dayjs';
 import HotelAmenities from './HotelAmenities';
 import RoomPolicies from './RoomPolicies';
 import HotelReviews from './HotelReviews';
 import i18n from '../../../i18n/i18n';
 import RoomAmenities from '../../../Components/UI/RoomAmenities';
+import SimilarHotels from '../../../Components/HotelComponents/SimilarHotels';
+import {PolicyInfoContext} from '../../../Context/PolicyInfoContext';
 const StarRating = ({rating = 0, reviewCount = 0}) => {
   return (
     <View style={styles.ratingContainer}>
@@ -61,14 +59,21 @@ const StarRating = ({rating = 0, reviewCount = 0}) => {
   );
 };
 const HotelDetail = ({route, navigation}) => {
-  const selectedCurrency = useSelector(
-    state => state.currency.selectedCurrency,
-  );
   const dispatch = useDispatch();
   const {provider, hotelId, GiataId} = route.params;
-
+  const {setProvider, setHotelId, setGiataId} = useContext(PolicyInfoContext);
+  useEffect(() => {
+    setProvider(provider);
+    setHotelId(hotelId);
+    setGiataId(GiataId);
+  }, [provider, hotelId, GiataId]);
   const hotelDetail = useSelector(state => state?.hotelDetail);
+
   const roomState = useSelector(state => state?.rooms);
+  const additionalDetails = useSelector(
+    state => state?.hotelDetail?.additionalDetails,
+  );
+  console.log('additionalDetails', additionalDetails);
 
   const images = [Images.HOTEL1, Images.HOTEL2, Images.HOTEL3];
   const details = useMemo(
@@ -90,21 +95,16 @@ const HotelDetail = ({route, navigation}) => {
     fetchData();
   }, [details]);
   useEffect(() => {
-    if (Object.keys(hotelDetail?.additionalDetails).length > 0) {
-      return;
-    }
-
     if (
       hotelDetail?.hotel?.Name &&
-      hotelDetail?.hotel?.longitude &&
-      hotelDetail?.hotel?.latitude
+      (hotelDetail?.hotel?.longitude || hotelDetail?.hotel?.Longitude) &&
+      (hotelDetail?.hotel?.latitude || hotelDetail?.hotel?.Latitude)
     ) {
       const detailsForAdditionalDetails = {
         Name: hotelDetail.hotel.Name,
-        Longitude: hotelDetail.hotel.longitude,
-        Latitude: hotelDetail.hotel.latitude,
+        Longitude: hotelDetail.hotel.Longitude || hotelDetail.hotel.longitude,
+        Latitude: hotelDetail.hotel.Latitude || hotelDetail.hotel.latitude,
       };
-
       dispatch(getAdditionalDetail({details: detailsForAdditionalDetails}));
     }
   }, [hotelDetail?.hotel, dispatch]);
@@ -195,10 +195,8 @@ const HotelDetail = ({route, navigation}) => {
                     </Text>
                   </View>
                   <StarRating
-                    rating={hotelDetail?.additionalDetails?.result?.rating}
-                    reviewCount={
-                      hotelDetail?.additionalDetails?.result?.total_reviews
-                    }
+                    rating={hotelDetail?.additionalDetails?.rating}
+                    reviewCount={hotelDetail?.additionalDetails?.total_reviews}
                   />
                   <View style={styles.addressContainer}>
                     <Image
@@ -206,7 +204,8 @@ const HotelDetail = ({route, navigation}) => {
                       style={styles.locationPin}
                     />
                     <Text style={styles.hotelAddress}>
-                      {hotelDetail?.additionalDetails?.result?.address}
+                      {hotelDetail?.additionalDetails?.result?.address ||
+                        additionalDetails?.address}
                     </Text>
                   </View>
                   <View
@@ -270,6 +269,7 @@ const HotelDetail = ({route, navigation}) => {
                   />
                 )}
                 <HotelReviews hotelDetail={hotelDetail} />
+                <SimilarHotels />
               </>
             )}
           </View>

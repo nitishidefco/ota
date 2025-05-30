@@ -43,6 +43,22 @@ export const amenityIcons = {
   Pets: Images.PETS,
   Waterslide: Images.WATERSLIDE,
   'Disability-friendly': Images.DISABILITY_FRIENDLY,
+  Bathroom: Images.BATHROOM,
+  Shower: Images.SHOWER,
+  Bathtub: Images.BATHTUB,
+  Hairdryer: Images.HAIRDRESSER,
+  'Direct dial telephone': Images.DIRECT_DIAL,
+  'Satellite/cable TV': Images.CABEL_TV,
+  Radio: Images.RADIO,
+  Kitchenette: Images.KITCHENETTE,
+  Minibar: Images.MINIBAR,
+  'Air conditioning (centrally regulated)': Images.AC,
+  Safe: Images.SAFE,
+  'Balcony/Terrace': Images.BALCONY,
+  TV: Images.TV,
+  'Double Bed': Images.DOUBLE_BED,
+  'Air conditioning (individually regulated)': Images.AC,
+  'Tea/coffee maker': Images.CAFE,
 };
 
 // Default icon if no match is found

@@ -70,50 +70,72 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
 
   // Validation functions
   const validateText = (value, fieldName) => {
-    if (!value.trim()) return i18n.t(`validationMessages.no${fieldName}`);
+    if (!value.trim()) {
+      return i18n.t(`validationMessages.no${fieldName}`);
+    }
     return '';
   };
 
   const validateGender = value => {
-    if (!value) return i18n.t('validationMessages.noGender');
+    if (!value) {
+      return i18n.t('validationMessages.noGender');
+    }
     return '';
   };
 
   const validateAge = value => {
-    if (!value) return i18n.t('validationMessages.noAge');
+    if (!value) {
+      return i18n.t('validationMessages.noAge');
+    }
     const age = parseInt(value, 10);
-    if (isNaN(age) || age < 1) return i18n.t('validationMessages.invalidAge');
-    if (isPrimaryGuest && age <= 18)
+    if (isNaN(age) || age < 1) {
+      return i18n.t('validationMessages.invalidAge');
+    }
+    if (isPrimaryGuest && age <= 18) {
       return i18n.t('validationMessages.ageOver18');
+    }
     return '';
   };
 
   const validateDocumentType = value => {
-    if (!value) return i18n.t('validationMessages.noDocumentType');
+    if (!value) {
+      return i18n.t('validationMessages.noDocumentType');
+    }
     return '';
   };
 
   const validateDocumentNumber = value => {
-    if (!value.trim()) return i18n.t('validationMessages.noDocumentNumber');
-    if (!/^[a-zA-Z0-9-]+$/.test(value))
+    if (!value.trim()) {
+      return i18n.t('validationMessages.noDocumentNumber');
+    }
+    if (!/^[a-zA-Z0-9-]+$/.test(value)) {
       return i18n.t('validationMessages.invalidDocumentNumber');
+    }
     return '';
   };
 
   const validateEmail = value => {
-    if (!value.trim()) return i18n.t('validationMessages.noEmail');
+    if (!value.trim()) {
+      return i18n.t('validationMessages.noEmail');
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value))
+    if (!emailRegex.test(value)) {
       return i18n.t('validationMessages.notValidEmail');
+    }
     return '';
   };
 
   const validatePhone = value => {
-    if (!value.trim()) return i18n.t('validationMessages.noPhone');
-    if (!/^\d+$/.test(value))
+    if (!value.trim()) {
+      return i18n.t('validationMessages.noPhone');
+    }
+    if (!/^\d+$/.test(value)) {
       return i18n.t('validationMessages.validPhoneLength');
+    }
 
-    if (!selectedCountry) return i18n.t('validationMessages.validPhoneLength');
+    if (!selectedCountry) {
+      return i18n.t('validationMessages.validPhoneLength');
+    }
 
     const {phoneLength, min, max} = selectedCountry;
     const length = value.length;
@@ -216,8 +238,8 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
               <Image
                 source={Images.CROSS_BLACK}
                 style={{
-                  height: Matrics.vs(30),
-                  width: Matrics.vs(30),
+                  height: Matrics.vs(25),
+                  width: Matrics.vs(25),
                   resizeMode: 'contain',
                 }}
               />
@@ -231,8 +253,8 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
               <Image
                 source={Images.CHECK_BLACK}
                 style={{
-                  height: Matrics.vs(30),
-                  width: Matrics.vs(30),
+                  height: Matrics.vs(25),
+                  width: Matrics.vs(25),
                   resizeMode: 'contain',
                 }}
               />
@@ -531,7 +553,11 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
           <View style={styles.formGroup}>
             <Text style={styles.label}>Email *</Text>
             <TextInput
-              style={[styles.input, errors.email ? styles.inputError : null]}
+              style={[
+                styles.input,
+                errors.email ? styles.inputError : null,
+                {height: 40, maxHeight: 40},
+              ]}
               placeholder="Enter email"
               placeholderTextColor="#999"
               value={formData.email}
@@ -539,6 +565,7 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
                 handleTextChange('email', value, validateEmail)
               }
               keyboardType="email-address"
+              numberOfLines={1}
             />
             {errors.email ? (
               <Text style={styles.errorText}>{errors.email}</Text>
@@ -558,13 +585,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   formTitle: {
-    fontSize: Matrics.s(22),
+    fontSize: Matrics.s(16),
     fontFamily: typography.fontFamily.Montserrat.Bold,
     color: '#6A1B9A', // Matches the purple in the screenshot
     textAlign: 'center',
   },
   formGroup: {
-    marginBottom: Matrics.vs(20), // Increased spacing between fields
+    marginBottom: Matrics.vs(15), // Increased spacing between fields
   },
   label: {
     fontSize: Matrics.s(14), // Reduced from 16px
@@ -576,7 +603,8 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#fff',
     borderRadius: Matrics.s(10), // Increased from 4px
-    padding: Matrics.s(12), // Increased from 10px
+    padding: Matrics.s(10),
+    paddingVertical: Matrics.vs(8), // Increased from 10px
     fontSize: Matrics.s(16),
     fontFamily: typography.fontFamily.Montserrat.Regular,
     borderWidth: 1,
@@ -585,7 +613,8 @@ const styles = StyleSheet.create({
   dropdown: {
     backgroundColor: '#fff',
     borderRadius: Matrics.s(10),
-    padding: Matrics.s(12),
+    padding: Matrics.s(10),
+    paddingVertical: Matrics.vs(8),
     fontSize: Matrics.s(16),
     fontFamily: typography.fontFamily.Montserrat.Bold,
     borderWidth: 1,
@@ -626,8 +655,10 @@ const styles = StyleSheet.create({
   countryPicker: {
     width: Matrics.screenWidth * 0.2,
     backgroundColor: '#fff',
-    height: Matrics.vs(40),
+    height: Matrics.vs(38),
     borderRadius: Matrics.s(10),
+    padding: Matrics.s(10),
+    paddingVertical: Matrics.vs(8),
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Matrics.s(5),

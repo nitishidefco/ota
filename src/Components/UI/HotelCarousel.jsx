@@ -5,54 +5,62 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Text,
 } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
-import {Matrics} from '../../Config/AppStyling';
+import {Matrics, COLOR} from '../../Config/AppStyling';
 import {Images} from '../../Config';
-import {COLOR} from '../../Config/AppStyling';
+import {useNavigation} from '@react-navigation/native';
 
 const BASE_API_URL = 'https://giata.visionvivante.in/image?link=';
+const FALLBACK_IMAGES = [Images.HOTEL1, Images.HOTEL2, Images.HOTEL3];
 
 const HotelCarousel = React.memo(({images}) => {
+  const navigation = useNavigation();
   const carouselRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [loadedImages, setLoadedImages] = useState(0);
   const [failedImages, setFailedImages] = useState(0);
-
-  const processedImages = images.map(url => {
-    const fullUrl = `${BASE_API_URL}${encodeURIComponent(url)}`;
-    return fullUrl;
+  const [currentImages, setCurrentImages] = useState(() => {
+    console.log('HotelCarousel received images prop:', images);
+    // Filter out null/undefined and ensure we have valid URLs
+    const filteredImages =
+      images?.filter(
+        item =>
+          item !== null &&
+          item !== undefined &&
+          typeof item === 'string' &&
+          item.trim() !== '',
+      ) || [];
+    return filteredImages.length > 0 ? filteredImages : FALLBACK_IMAGES;
   });
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.log('Loading Timeout: Images took too long to load');
-        setLoading(false);
-        setError('Images failed to load due to timeout');
-      }
-    }, 10000);
+  // Process images: Always add BASE_API_URL to all URLs
+  const processedImages = currentImages.map(item =>
+    typeof item === 'string' ? `${BASE_API_URL}${item}` : item,
+  );
 
-    return () => clearTimeout(timeout);
-  }, [loading]);
-
+  const handleImagePress = item => {
+    console.log('Image pressed at index:', activeIndex);
+    navigation.navigate('HotelImageGallery', {
+      images: processedImages,
+      initialIndex: activeIndex,
+    });
+  };
   const renderItem = ({item}) => {
-    console.log('Render Item:', item);
-
     return (
-      <View style={styles.slide}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => handleImagePress(item)}
+        style={styles.slide}>
         <Image
-          source={{uri: item}}
+          source={typeof item === 'string' ? {uri: item} : item}
           style={styles.image}
           resizeMode="cover"
           onLoad={() => {
-            console.log('Image Loaded Successfully:', item);
             setLoadedImages(prev => {
               const newCount = prev + 1;
-              if (newCount + failedImages === images.length) {
+              if (newCount + failedImages === currentImages.length) {
                 setLoading(false);
               }
               return newCount;
@@ -60,25 +68,27 @@ const HotelCarousel = React.memo(({images}) => {
           }}
           onError={error => {
             console.log(
-              'Image Load Error for URL:',
+              'Image Load Error for:',
               item,
               'Error:',
               error.nativeEvent.error,
             );
             setFailedImages(prev => {
               const newCount = prev + 1;
-              if (newCount + loadedImages === images.length) {
+              if (newCount + loadedImages === currentImages.length) {
                 setLoading(false);
-                if (newCount === images.length) {
-                  setError('All images failed to load');
+                if (newCount === currentImages.length) {
+                  console.log(
+                    'All images failed, switching to fallback images',
+                  );
+                  setCurrentImages(FALLBACK_IMAGES);
                 }
               }
               return newCount;
             });
           }}
-          defaultSource={Images.ROOM_IMAGE_PLACEHOLDER}
         />
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -94,21 +104,13 @@ const HotelCarousel = React.memo(({images}) => {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.carouselContainer}>
-        <ActivityIndicator size="large" color={COLOR.PRIMARY} />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.carouselContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={styles.carouselContainer}>
+  //       <ActivityIndicator size="large" color={COLOR.PRIMARY} />
+  //     </View>
+  //   );
+  // }
 
   return (
     <View style={styles.carouselContainer}>
@@ -126,12 +128,7 @@ const HotelCarousel = React.memo(({images}) => {
       />
       <View style={styles.carouselControlsContainer}>
         <TouchableOpacity onPress={goToPrevious} activeOpacity={0.7}>
-          <Image
-            source={Images.ARROW_BACK}
-            width={Matrics.s(10)}
-            height={Matrics.s(10)}
-            style={styles.controlButtons}
-          />
+          <Image source={Images.ARROW_BACK} style={styles.controlButtons} />
         </TouchableOpacity>
         <TouchableOpacity onPress={goToNext} activeOpacity={0.7}>
           <Image source={Images.ARROW_NEXT} style={styles.controlButtons} />
@@ -166,16 +163,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Matrics.s(20),
     position: 'absolute',
     width: Matrics.screenWidth,
-    top: 60,
+    top: 100,
   },
   controlButtons: {
     width: Matrics.s(30),
+    height: Matrics.s(30),
     resizeMode: 'contain',
-  },
-  errorText: {
-    fontSize: Matrics.s(16),
-    color: 'red',
-    textAlign: 'center',
   },
 });
 

@@ -12,6 +12,7 @@ export const bookHotel = async ({details}) => {
     },
     // timeout: API_TIMEOUT,
   };
+  console.log('details', details, authToken, contentToken);
 
   try {
     const response = await baseApiClient.post(

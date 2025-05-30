@@ -7,7 +7,7 @@ import AmenityCard from '../../../Components/UI/AmenityCard';
 const HotelAmenities = ({hotelDetail}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAllFacilities, setShowAllFacilities] = useState(false);
-  const maxLength = 200; // Adjust this value to set the character limit for truncation
+  const maxLength = 200; 
 
   const paragraph = hotelDetail?.content?.section[1].para || '';
   const isLongText = paragraph.length > maxLength;
@@ -21,12 +21,13 @@ const HotelAmenities = ({hotelDetail}) => {
     setIsExpanded(!isExpanded);
   };
 
-  const maxInitialFacilities = 6; // Limit to 6 facilities initially
+  const maxInitialFacilities = 6;
 
   const facilities = hotelDetail?.facilities || [];
   const displayedFacilities = showAllFacilities
     ? facilities
     : facilities.slice(0, maxInitialFacilities);
+console.log(displayedFacilities);
 
   const toggleFacilities = () => {
     setShowAllFacilities(!showAllFacilities);

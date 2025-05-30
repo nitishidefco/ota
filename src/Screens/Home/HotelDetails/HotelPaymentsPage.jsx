@@ -1,4 +1,4 @@
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, Platform} from 'react-native';
 import React, {useContext} from 'react';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import NormalHeader from '../../../Components/UI/NormalHeader';
@@ -8,11 +8,21 @@ import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import {useSelector} from 'react-redux';
 import {RoomContext} from '../../../Context/RoomContext';
 import dayjs from 'dayjs';
+import EditCardComponent from '../../../Components/HotelComponents/EditCardComponent';
 import PaymentForm from '../../../Components/PaymentForm';
-
+import RoomPolicies from './RoomPolicies';
+import {PolicyInfoContext} from '../../../Context/PolicyInfoContext';
 const HotelPaymentsPage = () => {
   const navigation = useNavigation();
   const hotelDetail = useSelector(state => state?.hotelDetail?.hotel);
+  const additionalDetails = useSelector(
+    state => state?.hotelDetail?.additionalDetails,
+  );
+  console.log('hotelDetail', hotelDetail);
+  const roomState = useSelector(state => state?.rooms);
+
+  const BASE_IMAGE_URL = 'https://giata.visionvivante.in/image?link=';
+  const {loadingSavedCard, savedCard} = useSelector(state => state.bookingList);
   const {
     ratePlanId,
     guests,
@@ -20,10 +30,9 @@ const HotelPaymentsPage = () => {
     hotelStayEndDate,
     selectedRoom,
   } = useContext(RoomContext);
-  console.log('Selected Room', selectedRoom);
-
+  const {provider, hotelId, GiataId} = useContext(PolicyInfoContext);
   return (
-    <>
+    <View style={{flex: 1, paddingTop: Platform.OS === 'android' ? '7%' : 0}}>
       <NormalHeader
         title={'Payment'}
         showRightButton={false}
@@ -37,16 +46,16 @@ const HotelPaymentsPage = () => {
             marginTop: Matrics.s(20),
             justifyContent: 'space-between',
           }}>
-          <View>
+          <View style={{width: '60%'}}>
             <Text
               style={{
                 width: Matrics.s(170),
                 fontFamily: typography.fontFamily.Montserrat.Bold,
                 fontSize: typography.fontSizes.fs18,
+                marginBottom: Matrics.vs(10),
               }}>
               {hotelDetail?.Name}
             </Text>
-
             <View
               style={{
                 flexDirection: 'row',
@@ -59,12 +68,15 @@ const HotelPaymentsPage = () => {
                   width: Matrics.s(20),
                   resizeMode: 'contain',
                   height: Matrics.s(20),
+                  marginTop: Matrics.vs(3),
                 }}
               />
               <Text
-                style={{fontFamily: typography.fontFamily.Montserrat.Regular}}>
-                {hotelDetail?.address
-                  ? hotelDetail?.address
+                style={{
+                  fontFamily: typography.fontFamily.Montserrat.Regular,
+                }}>
+                {additionalDetails?.address
+                  ? additionalDetails?.address
                   : 'No address available'}
               </Text>
             </View>
@@ -108,15 +120,21 @@ const HotelPaymentsPage = () => {
               </Text>
             </View>
           </View>
-          <Image
-            source={Images.BANNER}
-            style={{
-              width: Matrics.s(100),
-              height: Matrics.s(70),
-              resizeMode: 'cover',
-              borderRadius: Matrics.s(10),
-            }}
-          />
+          <View>
+            <Image
+              source={
+                hotelDetail?.images?.[0]
+                  ? {uri: `${BASE_IMAGE_URL}${hotelDetail.images[0]}`}
+                  : Images.BANNER
+              }
+              style={{
+                width: Matrics.s(100),
+                height: Matrics.s(70),
+                resizeMode: 'cover',
+                borderRadius: Matrics.s(10),
+              }}
+            />
+          </View>
         </View>
         <View style={{marginTop: Matrics.vs(10)}}>
           <Text
@@ -149,8 +167,9 @@ const HotelPaymentsPage = () => {
                   color: COLOR.DARK_TEXT_COLOR,
                   fontFamily: typography.fontFamily.Montserrat.Regular,
                   fontSize: typography.fontSizes.fs11,
+                  width: '60%',
                 }}>
-                {selectedRoom.RoomOccupancy.RoomNum}
+                {selectedRoom.RoomOccupancy.RoomNum} Room
               </Text>
             </View>
             <View style={{flexDirection: 'row', gap: 5}}>
@@ -166,12 +185,16 @@ const HotelPaymentsPage = () => {
                   fontFamily: typography.fontFamily.Montserrat.Medium,
                   fontSize: typography.fontSizes.fs15,
                 }}>
-                ${selectedRoom.totalprice}
+                ${Number(selectedRoom.totalprice).toFixed(2)}
               </Text>
             </View>
           </View>
-
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginTop: Matrics.vs(5),
+            }}>
             <Text
               style={{
                 fontFamily: typography.fontFamily.Montserrat.SemiBold,
@@ -186,15 +209,27 @@ const HotelPaymentsPage = () => {
                 color: COLOR.PRIMARY,
                 fontSize: typography.fontSizes.fs18,
               }}>
-              ${selectedRoom.totalprice}
+              ${Number(selectedRoom.totalprice).toFixed(2)}
             </Text>
           </View>
         </View>
+
         <View>
+          <EditCardComponent savedCardDetails={savedCard} />
           <PaymentForm />
         </View>
+        <View>
+          <RoomPolicies
+            roomInfo={roomState?.rooms}
+            provider={provider}
+            hotelId={hotelId}
+            GiataId={GiataId}
+            showProceedButton={false}
+            containerStyle={{paddingHorizontal: Matrics.s(0)}}
+          />
+        </View>
       </KeyboardAwareScrollView>
-    </>
+    </View>
   );
 };
 

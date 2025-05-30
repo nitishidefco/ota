@@ -7,8 +7,7 @@ import {getCurrency} from '../../Services/CurrencyService';
 const countryToCurrencyMap = {
   us: 'USD', // United States
   ca: 'CAD', // Canada
-  in: 'INR', // India
-  // Add more mappings as needed, e.g., 'gb': 'GBP', 'eu': 'EUR'
+  in: 'INR',
 };
 
 // Thunk to fetch currencies from API (if needed)
@@ -27,7 +26,7 @@ export const getCurrencyThunk = createAsyncThunk(
 
 const initialState = {
   loadingCurrencies: false,
-  currencies: ['USD', 'CAD', 'INR'], // Hardcoded for now, can be fetched via API
+  currencies: ['USD', 'CAD', 'INR'],
   errorMessage: '',
   selectedCurrency: null, // Null until initialized
 };

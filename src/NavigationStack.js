@@ -25,19 +25,22 @@ import {Images} from './Config';
 import {Image, Pressable, Text, View} from 'react-native';
 import {COLOR, Matrics, typography} from './Config/AppStyling';
 import HomeStack from './Screens/Home';
+import BookingStack from './Screens/Bookings';
 import ProfileStack from './Screens/Profile';
 import {getDeviceLocation} from './Redux/Reducers/LocationReducer';
 import {initializeLanguage} from './Redux/Reducers/LanguageSlice';
 import * as RNLocalize from 'react-native-localize';
 import {getCurrencyThunk} from './Redux/Reducers/CurrencyReducer';
-import {getFacilitiesThunk} from './Redux/Reducers/FacilitiesReducer';
 import i18n from './i18n/i18n';
+import ReferralStack from './Screens/Referrals';
+import ChangePassword from './Screens/Profile/ChangePassword';
 
 // Define Stacks
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator({
   screenOptions: {
     animation: 'shift',
+    tabBarPressColor: 'transparent',
   },
 });
 
@@ -55,8 +58,8 @@ const AuthRoutes = {
 // Protected Screens
 const MainRoutes = {
   Home: HomeStack,
-  Booking,
-  Referrals,
+  Booking: BookingStack,
+  Referrals: ReferralStack,
   Profile: ProfileStack,
 };
 
@@ -81,12 +84,13 @@ const AuthStack = () => (
 const MainTabs = () => (
   <Tab.Navigator
     screenOptions={({route}) => ({
+      tabBarPressColor: 'transparent',
       headerShown: false,
-      tabBarLabel: '', // Hide default label since we're using custom text
+      tabBarLabel: '',
       tabBarStyle: {
         height: Matrics.vs(70),
-        paddingBottom: Matrics.vs(5), // Reduced to give more space for text
-        paddingTop: Matrics.vs(15), // Reduced to balance the layout
+        paddingBottom: Matrics.vs(5),
+        paddingTop: Matrics.vs(15),
         backgroundColor: '#fff',
         elevation: 8,
         shadowOpacity: 0.1,
@@ -95,20 +99,25 @@ const MainTabs = () => (
         shadowOffset: {width: 0, height: -1},
       },
       tabBarItemStyle: {
-        width: Matrics.screenWidth / 4, // Equal width for 4 tabs
+        width: Matrics.screenWidth / 4,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: Matrics.s(5), // Add padding to prevent text overflow
+        paddingHorizontal: Matrics.s(5),
       },
       tabBarIconStyle: {
         alignItems: 'center',
         justifyContent: 'center',
       },
-      tabBarButton: props => <Pressable {...props} />,
+      tabBarButton: props => (
+        <Pressable
+          {...props}
+          android_ripple={{color: 'transparent'}}
+          android_disableSound={true}
+          hitSlop={0}
+        />
+      ),
       tabBarIcon: ({focused}) => {
         let iconSource;
-
-        // Customize icons based on route name
         switch (route.name) {
           case 'Home':
             iconSource = focused ? Images.HOUSE : Images.HOUSE_INACTIVE;
@@ -143,7 +152,7 @@ const MainTabs = () => (
                 height: focused ? 2 : 0, // Ensure the View has height when focused
                 position: 'absolute', // Position at the top
                 top: -16, // Align with the top of the tab item
-                zIndex: 1, // Ensure it’s above other content
+                zIndex: 1, // Ensure it's above other content
               }}
             />
             <Image
@@ -187,8 +196,17 @@ const MainTabs = () => (
 // Main Navigation Stack
 const NavigationStack = () => {
   const dispatch = useDispatch();
-  const {userToken} = useSelector(state => state.auth);
+  const {userToken, authData} = useSelector(state => state.auth);
   const [isSplashVisible, setSplashVisible] = useState(true);
+
+  // Helper function to determine which screen to show initially
+  const renderInitialScreen = () => {
+    if (!userToken) {
+      return <Stack.Screen name="AuthStack" component={AuthStack} />;
+    }
+
+    return <Stack.Screen name="MainTabs" component={MainTabs} />;
+  };
 
   useEffect(() => {
     GoogleSignin.configure();
@@ -219,21 +237,16 @@ const NavigationStack = () => {
     };
 
     initializeApp();
-  }, []);
+  }, [dispatch]);
 
   if (isSplashVisible) {
     return <Splash />;
   }
 
-
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{headerShown: false}}>
-        {!userToken ? (
-          <Stack.Screen name="AuthStack" component={AuthStack} />
-        ) : (
-          <Stack.Screen name="MainTabs" component={MainTabs} />
-        )}
+        {renderInitialScreen()}
       </Stack.Navigator>
     </NavigationContainer>
   );

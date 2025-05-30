@@ -14,6 +14,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 import Config from 'react-native-config';
 import {LoginManager, Profile, AccessToken} from 'react-native-fbsdk-next';
+import {errorToast} from '../../Helpers/ToastMessage';
 
 const initialState = {
   isLoading: false,
@@ -342,6 +343,8 @@ const authSlice = createSlice({
         saveToken(action.payload.token);
       })
       .addCase(googleLogin.rejected, (state, action) => {
+        console.log('action.payload google login rejected', action.payload);
+
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;

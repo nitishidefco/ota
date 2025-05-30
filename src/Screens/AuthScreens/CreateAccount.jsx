@@ -325,9 +325,7 @@ const CreateAccount = () => {
                   style={[
                     styles.countryPicker,
                     {
-                      marginTop: errors.phone
-                        ? Matrics.vs(-5)
-                        : Matrics.vs(14),
+                      marginTop: errors.phone ? Matrics.vs(-5) : Matrics.vs(14),
                       // position: 'absolute',
                       // top: 20
                     },
@@ -488,6 +486,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     //     paddingHorizontal: 16,
+    paddingTop: '7%',
   },
   inputContainer: {
     paddingHorizontal: Matrics.s(10),

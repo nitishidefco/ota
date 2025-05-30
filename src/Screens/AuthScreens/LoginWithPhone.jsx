@@ -322,6 +322,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    paddingTop: '7%',
     //     paddingHorizontal: 16,
   },
   inputContainer: {

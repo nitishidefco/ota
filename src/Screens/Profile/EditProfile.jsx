@@ -2,8 +2,9 @@ import React, {
   useState,
   useCallback,
   useRef,
-  useEffect,
   useContext,
+  useEffect,
+  useMemo,
 } from 'react';
 import {
   View,
@@ -11,9 +12,11 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   TouchableWithoutFeedback,
   Keyboard,
+  TextInput,
+  FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import {
   BottomSheetModal,
@@ -22,11 +25,11 @@ import {
 } from '@gorhom/bottom-sheet';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import NormalHeader from '../../Components/UI/NormalHeader';
-import CustomInput from '../../Components/UI/CustomInput';
 import {useSelector, useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import {updateUserProfile} from '../../Redux/Reducers/UserProfileSlice';
 import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
+import debounce from 'lodash/debounce';
 import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import i18n from '../../i18n/i18n'; // Assuming i18n is available for translations
@@ -35,18 +38,22 @@ import {CountryPicker} from 'react-native-country-codes-picker';
 import {countryPhoneLength} from '../../Utils/countryPhoneLength';
 import {ConfirmationModalContext} from '../../Context/ConfirmationModalContext';
 import ConfirmationModal from '../../Components/UI/ConfirmationModal';
+import {errorToast, success} from '../../Helpers/ToastMessage';
+import {getCityDetailsThunk} from '../../Redux/Reducers/HotelReducer/GetCitySlice';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const EditProfile = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const {userProfileData} = useSelector(state => state.userProfile);
+  const {cityDetails, loadingCityDetails} = useSelector(state => state.getCity);
 
   const initialProfile = {
     email: userProfileData?.email || '',
     phone: userProfileData?.phone_number?.toString() || '',
-    city: userProfileData?.city || 'Delhi',
-    state: userProfileData?.state || 'Delhi',
-    zipCode: userProfileData?.zip_code || '335511',
+    city: userProfileData?.city,
+    state: userProfileData?.state,
+    zipCode: userProfileData?.zip_code,
     profilePic: userProfileData?.profile_pic || '',
     countryCode: userProfileData?.country_code || '',
     countryCodeName: userProfileData?.country_code_name || '',
@@ -56,11 +63,13 @@ const EditProfile = () => {
   const [phone, setPhone] = useState(
     userProfileData?.phone_number?.toString() || '',
   );
-  const [city, setCity] = useState(userProfileData?.city || 'Delhi');
-  const [state, setState] = useState(userProfileData?.state || 'Delhi');
-  const [zipCode, setZipCode] = useState(userProfileData?.zip_code || '335511');
+  const [city, setCity] = useState(userProfileData?.city);
+  const [state, setState] = useState(userProfileData?.state);
+  const [zipCode, setZipCode] = useState(userProfileData?.zip_code);
   const [profilePic, setProfilePic] = useState(userProfileData?.profile_pic);
-  const [countryCode, setCountryCode] = useState(userProfileData?.country_code);
+  const [countryCode, setCountryCode] = useState(
+    userProfileData?.country_code || '+1',
+  );
   const [countryCodeName, setCountryCodeName] = useState('');
   const [show, setShow] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -75,14 +84,13 @@ const EditProfile = () => {
     ConfirmationModalContext,
   );
   const bottomSheetModalRef = useRef(null);
-
+  const [showFlatList, setShowFlatList] = useState(false);
+  const [selectedCityIndex, setSelectedCityIndex] = useState(null);
   const updateHasChanges = (field, newValue) => {
     const initialValue = initialProfile[field];
-    // Only update hasChanges if the new value differs from the initial value
     if (newValue !== initialValue) {
       setHasChanges(true);
     } else {
-      // Recheck all fields to see if any still differ
       const currentProfile = {
         email,
         phone,
@@ -93,7 +101,7 @@ const EditProfile = () => {
         countryCode,
         countryCodeName,
       };
-      currentProfile[field] = newValue; // Update with the new value
+      currentProfile[field] = newValue;
       const noChanges = Object.keys(currentProfile).every(
         key => currentProfile[key] === initialProfile[key],
       );
@@ -101,7 +109,6 @@ const EditProfile = () => {
     }
   };
 
-  // Validation functions inspired by LoginWithEmail
   const validateEmail = value => {
     if (!value.trim()) {
       return i18n.t('validationMessages.noEmail');
@@ -118,7 +125,6 @@ const EditProfile = () => {
       return i18n.t('validationMessages.noPhone');
     }
 
-    // Find the selected country from the list
     const country = countryPhoneLength.find(
       c => c.phone === countryCode.replace('+', ''),
     );
@@ -132,7 +138,6 @@ const EditProfile = () => {
       country.phoneLength ||
       (country.min && country.max ? [country.min, country.max] : null);
 
-    // Handle different phoneLength formats
     if (Array.isArray(phoneLength)) {
       if (!phoneLength.includes(value.length)) {
         return i18n
@@ -162,25 +167,24 @@ const EditProfile = () => {
   const validateCity = value => {
     if (value && value.length < 2) {
       return i18n.t('validationMessages.shortCity');
-    } // Optional field validation
+    }
     return '';
   };
 
   const validateState = value => {
     if (value && value.length < 2) {
       return i18n.t('validationMessages.shortState');
-    } // Optional field validation
+    }
     return '';
   };
 
   const validateZipCode = value => {
     if (value && !/^\d{6}$/.test(value)) {
       return i18n.t('validationMessages.invalidZip');
-    } // 5-digit ZIP
+    }
     return '';
   };
 
-  // Handle input changes with validation
   const handleEmailChange = value => {
     setEmail(value);
     setErrors(prev => ({...prev, email: validateEmail(value)}));
@@ -193,7 +197,72 @@ const EditProfile = () => {
     updateHasChanges('phone', value);
   };
 
+  const debouncedSearchFunction = useMemo(
+    () =>
+      debounce(async searchText => {
+        if (searchText.length < 2) {
+          return;
+        }
+        try {
+          console.log('[debouncedSearch] Searching for city:', searchText);
+          const response = await dispatch(
+            getCityDetailsThunk({cityName: searchText}),
+          );
+          console.log('[debouncedSearch] API Response:', response);
+          console.log('[debouncedSearch] City Details:', response.payload);
+        } catch (error) {
+          console.error('Error getting city details', error);
+        }
+      }, 500),
+    [dispatch],
+  );
+
+  const debouncedSearch = useCallback(
+    searchText => {
+      debouncedSearchFunction(searchText);
+    },
+    [debouncedSearchFunction],
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSearchFunction.cancel();
+    };
+  }, [debouncedSearchFunction]);
+
+  const handleFlatListShow = text => {
+    if (text.length === 0) {
+      setShowFlatList(false);
+    } else {
+      setShowFlatList(true);
+    }
+  };
+
+  const handleCityFlatListPress = (cityName, index) => {
+    console.log('[handleCityFlatListPress] Pressed city:', cityName);
+    console.log('[handleCityFlatListPress] City details:', cityDetails[index]);
+    Keyboard.dismiss();
+    setSelectedCityIndex(index);
+    setCity(cityName);
+
+    // Set country from the selected city details
+    if (cityDetails[index]?.countryName) {
+      setState(cityDetails[index].countryName);
+      setErrors(prev => ({
+        ...prev,
+        state: validateState(cityDetails[index].countryName),
+      }));
+      updateHasChanges('state', cityDetails[index].countryName);
+    }
+
+    setShowFlatList(false);
+    setErrors(prev => ({...prev, city: validateCity(cityName)}));
+    updateHasChanges('city', cityName);
+  };
+
   const handleCityChange = value => {
+    debouncedSearch(value);
+    handleFlatListShow(value);
     setCity(value);
     setErrors(prev => ({...prev, city: validateCity(value)}));
     updateHasChanges('city', value);
@@ -211,7 +280,6 @@ const EditProfile = () => {
     updateHasChanges('zipCode', value);
   };
 
-  // Validate entire form before submission
   const validateForm = () => {
     const emailError = validateEmail(email);
     const phoneError = validatePhone(phone);
@@ -259,6 +327,7 @@ const EditProfile = () => {
   const handleProfilePictureFromCamera = () => {
     bottomSheetModalRef.current?.dismiss();
     launchCamera({mediaType: 'photo', cameraType: 'back'}, response => {
+      console.log('response', response);
       if (!response.didCancel && response.assets) {
         const newPic = response.assets[0].uri;
         setProfilePic(newPic);
@@ -270,7 +339,7 @@ const EditProfile = () => {
   // Handle Profile Update
   const editProfile = () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fix the errors in the form.');
+      errorToast('Validation Error', 'Please fix the errors in the form.');
       return;
     }
 
@@ -283,23 +352,22 @@ const EditProfile = () => {
     formData.append('country_code', countryCode || '');
     formData.append('country_code_name', countryCodeName || '');
 
-    // Handle profile picture (if it’s a URI from image picker)
     if (profilePic && profilePic.startsWith('file://')) {
       formData.append('picture', {
         uri: profilePic,
-        type: 'image/jpeg', // Adjust based on actual image type if needed
-        name: 'profile_picture.jpg', // Arbitrary name
+        type: 'image/jpeg',
+        name: 'profile_picture.jpg',
       });
     } else if (profilePic) {
-      formData.append('picture', profilePic); // If it’s already a URL or null
+      formData.append('picture', profilePic);
     }
     dispatch(updateUserProfile({details: formData}))
       .then(() => {
-        Alert.alert('Success', 'Profile updated successfully.');
+        success('Success', 'Profile updated successfully.');
         navigation.goBack();
       })
       .catch(() => {
-        Alert.alert('Error', 'Failed to update profile. Please try again.');
+        errorToast('Error', 'Failed to update profile. Please try again.');
       });
   };
   const handleCrossPress = () => {
@@ -309,184 +377,301 @@ const EditProfile = () => {
       navigation.goBack();
     }
   };
+  console.log(profilePic);
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      {showCancelModal && (
-        <ConfirmationModal
-          title={'Are you sure you want to discard changes?'}
-          handleYesPressed={() => {
-            navigation.goBack();
-            setShowCancelModal(false);
-          }}
-        />
-      )}
-      <BottomSheetModalProvider>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <KeyboardAwareScrollView style={styles.containerMain}>
-            <NormalHeader
-              title={i18n.t('EditProfile.title')}
-              onCrossPress={handleCrossPress}
-              onCheckPress={editProfile}
-              showLeftButton={true}
-              showRightButton={hasChanges && true}
-              leftIconName="CROSS"
-            />
-            {/* Profile Picture */}
-            <TouchableOpacity
-              style={styles.imageContainer}
-              onPress={handlePresentModalPress}
-              activeOpacity={0.7}>
-              <Image
-                style={styles.image}
-                source={
-                  profilePic ? {uri: profilePic} : Images.USER_PLACEHOLDER
-                }
+    <SafeAreaView style={{flex: 1}}>
+      <GestureHandlerRootView style={{flex: 1}}>
+        {showCancelModal && (
+          <ConfirmationModal
+            title={'Are you sure you want to discard changes?'}
+            handleYesPressed={() => {
+              navigation.goBack();
+              setShowCancelModal(false);
+            }}
+          />
+        )}
+        <BottomSheetModalProvider>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <KeyboardAwareScrollView style={styles.containerMain}>
+              <NormalHeader
+                title={i18n.t('EditProfile.title')}
+                onCrossPress={handleCrossPress}
+                onCheckPress={editProfile}
+                showLeftButton={true}
+                showRightButton={hasChanges && true}
+                leftIconName="CROSS"
               />
-              <View style={styles.editIconContainer}>
-                <Image
-                  source={Images.EDIT_PROFILE_PICTURE}
-                  style={styles.editIcon}
-                />
-              </View>
-            </TouchableOpacity>
 
-            {/* Input Fields */}
-            <View style={styles.inputContainer}>
-              <CustomInput
-                label={i18n.t('EditProfile.email')} // Add to i18n
-                value={email}
-                onChangeText={handleEmailChange}
-                placeholder={i18n.t('EditProfile.emailPlaceholder')} // Add to i18n
-                type="email"
-                error={errors.email}
-                required
-              />
-              <View style={styles.phoneNumberContainer}>
-                <TouchableOpacity
-                  onPress={() => setShow(true)}
-                  style={[
-                    styles.countryPicker,
-                    {
-                      marginTop: errors.phone
-                        ? Matrics.vs(-5)
-                        : Matrics.vs(12.8),
-                    },
-                  ]}
-                  activeOpacity={0.7}>
-                  <Text style={styles.countryPickerTextStyle}>
-                    {countryCode}
-                  </Text>
-                </TouchableOpacity>
-                <View style={{flex: 1}}>
-                  <CustomInput
-                    label={i18n.t('CreateAccount.phone')}
-                    value={phone}
-                    onChangeText={handlePhoneChange}
-                    placeholder={i18n.t('CreateAccount.phonePlaceholder')}
-                    type="phone"
-                    required
-                    error={errors.phone}
-                    labelStyle={{right: Matrics.screenWidth * 0.21}}
-                    containerStyle={styles.phoneNumberField}
-                    // inputStyle={{marginBottom: Matrics.s(3)}}
+              <TouchableOpacity
+                style={styles.imageContainer}
+                onPress={handlePresentModalPress}
+                activeOpacity={0.7}>
+                <Image
+                  style={styles.image}
+                  source={
+                    profilePic
+                      ? {uri: `https://otaapi.visionvivante.in/${profilePic}`}
+                      : Images.USER_PLACEHOLDER
+                  }
+                />
+                <View style={styles.editIconContainer}>
+                  <Image
+                    source={Images.EDIT_PROFILE_PICTURE}
+                    style={styles.editIcon}
                   />
                 </View>
-              </View>
-              <CustomInput
-                label={i18n.t('EditProfile.city')} // Add to i18n
-                value={city}
-                onChangeText={handleCityChange}
-                placeholder={i18n.t('EditProfile.cityPlaceholder')} // Add to i18n
-                error={errors.city}
-              />
-              <CustomInput
-                label={i18n.t('EditProfile.state')} // Add to i18n
-                value={state}
-                onChangeText={handleStateChange}
-                placeholder={i18n.t('EditProfile.statePlaceholder')} // Add to i18n
-                error={errors.state}
-              />
-              <CustomInput
-                label={i18n.t('EditProfile.zipCode')} // Add to i18n
-                value={zipCode}
-                onChangeText={handleZipCodeChange}
-                placeholder={i18n.t('EditProfile.zipCodePlaceholder')} // Add to i18n
-                error={errors.zipCode}
-              />
-              <CountryPicker
-                show={show}
-                pickerButtonOnPress={item => {
-                  setCountryCode(item.dial_code);
-                  setShow(false);
-                }}
-                popularCountries={['en', 'ua', 'pl']}
-                searchMessage={i18n.t('CreateAccount.searchMessage')}
-                onBackdropPress={() => setShow(false)}
-                enableModalAvoiding={true}
-                androidWindowSoftInputMode="pan"
-                style={{
-                  modal: {
-                    height: 350,
-                  },
-                  textInput: {
-                    height: Matrics.vs(40),
-                    borderRadius: Matrics.s(7),
-                    fontFamily: typography.fontFamily.Montserrat.Regular,
-                    paddingLeft: Matrics.s(10),
-                  },
-                  countryName: {
-                    fontFamily: typography.fontFamily.Montserrat.Regular,
-                  },
-                  dialCode: {
-                    fontFamily: typography.fontFamily.Montserrat.Regular,
-                  },
-                  countryButtonStyles: {
-                    height: Matrics.vs(50),
-                  },
-                }}
-              />
-            </View>
-          </KeyboardAwareScrollView>
-        </TouchableWithoutFeedback>
+              </TouchableOpacity>
 
-        {/* Bottom Sheet Modal */}
-        <BottomSheetModal
-          ref={bottomSheetModalRef}
-          index={1}
-          snapPoints={snapPoints()}
-          // onChange={handleSheetChanges}
-          backgroundStyle={styles.bottomSheetBackground}
-          handleIndicatorStyle={styles.handleIndicator}>
-          <BottomSheetView style={styles.bottomSheetContent}>
-            <Text style={styles.bottomSheetTitle}>
-              {i18n.t('EditProfile.updatePicture')}
-            </Text>
-            <TouchableOpacity
-              style={styles.optionButton}
-              onPress={handleProfilePictureFromCamera}>
-              <Text style={styles.optionText}>
-                {i18n.t('EditProfile.takePhoto')}
+              <View style={styles.inputContainer}>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>
+                    {i18n.t('EditProfile.email')} *
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.email ? styles.inputError : null,
+                    ]}
+                    value={email}
+                    onChangeText={handleEmailChange}
+                    placeholder={i18n.t('EditProfile.emailPlaceholder')}
+                    placeholderTextColor="#999"
+                    multiline={true}
+                    scrollEnabled={true}
+                  />
+                  {errors.email ? (
+                    <Text style={styles.errorText}>{errors.email}</Text>
+                  ) : null}
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>
+                    {i18n.t('CreateAccount.phone')} *
+                  </Text>
+                  <View style={styles.phoneNumberContainer}>
+                    <TouchableOpacity
+                      onPress={() => setShow(true)}
+                      style={[
+                        styles.countryPicker,
+                        {
+                          marginTop: errors.phone
+                            ? Matrics.vs(1)
+                            : Matrics.vs(0),
+                        },
+                      ]}
+                      activeOpacity={0.7}>
+                      <Text style={styles.countryPickerTextStyle}>
+                        {countryCode}
+                      </Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        {flex: 1},
+                        errors.phone ? styles.inputError : null,
+                      ]}
+                      value={phone}
+                      onChangeText={handlePhoneChange}
+                      placeholder={i18n.t('CreateAccount.phonePlaceholder')}
+                      placeholderTextColor="#999"
+                      keyboardType="phone-pad"
+                      scrollEnabled={true}
+                    />
+                  </View>
+                  {errors.phone ? (
+                    <Text style={styles.errorText}>{errors.phone}</Text>
+                  ) : null}
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>{i18n.t('EditProfile.city')}</Text>
+                  <View style={styles.cityInputContainer}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        errors.city ? styles.inputError : null,
+                      ]}
+                      value={city}
+                      onChangeText={handleCityChange}
+                      onFocus={() => {
+                        setCity('');
+                        setShowFlatList(false);
+                      }}
+                      placeholder={i18n.t('EditProfile.cityPlaceholder')}
+                      placeholderTextColor="#999"
+                      keyboardShouldPersistTaps="handled"
+                      multiline={true}
+                      scrollEnabled={true}
+                    />
+                    <View style={styles.cityDropdownContainer}>
+                      {loadingCityDetails && showFlatList ? (
+                        <View style={styles.cityFlatListStyle}>
+                          <ActivityIndicator
+                            size="large"
+                            color={COLOR.PRIMARY}
+                            style={styles.loader}
+                          />
+                        </View>
+                      ) : (
+                        showFlatList &&
+                        cityDetails?.length > 0 && (
+                          <FlatList
+                            data={cityDetails}
+                            style={styles.cityFlatListStyle}
+                            keyExtractor={(item, index) => index.toString()}
+                            keyboardShouldPersistTaps="always"
+                            nestedScrollEnabled={true}
+                            showsVerticalScrollIndicator={true}
+                            onScrollBeginDrag={() => {
+                              Keyboard.dismiss();
+                            }}
+                            renderItem={({item, index}) => (
+                              <TouchableOpacity
+                                style={styles.cityItem}
+                                onPress={() =>
+                                  handleCityFlatListPress(item.cityName, index)
+                                }
+                                activeOpacity={0.7}>
+                                <Image
+                                  source={Images.DROPDOWN_LOCATION}
+                                  style={styles.cityLocationIcon}
+                                />
+                                <View style={styles.cityTextContainer}>
+                                  <Text style={styles.cityName}>
+                                    {item.cityName}
+                                  </Text>
+                                  <Text style={styles.destinationName}>
+                                    {item.destinationName}
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+                            )}
+                          />
+                        )
+                      )}
+                    </View>
+                  </View>
+                  {errors.city ? (
+                    <Text style={styles.errorText}>{errors.city}</Text>
+                  ) : null}
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>
+                    {i18n.t('EditProfile.state')}
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.state ? styles.inputError : null,
+                    ]}
+                    value={state}
+                    onChangeText={handleStateChange}
+                    placeholder={i18n.t('EditProfile.statePlaceholder')}
+                    placeholderTextColor="#999"
+                    multiline={true}
+                    scrollEnabled={true}
+                  />
+                  {errors.state ? (
+                    <Text style={styles.errorText}>{errors.state}</Text>
+                  ) : null}
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>
+                    {i18n.t('EditProfile.zipCode')}
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.zipCode ? styles.inputError : null,
+                    ]}
+                    value={zipCode}
+                    onChangeText={handleZipCodeChange}
+                    placeholder={i18n.t('EditProfile.zipCodePlaceholder')}
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                    multiline={true}
+                    scrollEnabled={true}
+                  />
+                  {errors.zipCode ? (
+                    <Text style={styles.errorText}>{errors.zipCode}</Text>
+                  ) : null}
+                </View>
+
+                <CountryPicker
+                  show={show}
+                  pickerButtonOnPress={item => {
+                    setCountryCode(item.dial_code);
+                    setShow(false);
+                  }}
+                  popularCountries={['en', 'ua', 'pl']}
+                  searchMessage={i18n.t('CreateAccount.searchMessage')}
+                  onBackdropPress={() => setShow(false)}
+                  enableModalAvoiding={true}
+                  androidWindowSoftInputMode="pan"
+                  style={{
+                    modal: {
+                      height: 350,
+                    },
+                    textInput: {
+                      height: Matrics.vs(40),
+                      borderRadius: Matrics.s(7),
+                      fontFamily: typography.fontFamily.Montserrat.Regular,
+                      paddingLeft: Matrics.s(10),
+                    },
+                    countryName: {
+                      fontFamily: typography.fontFamily.Montserrat.Regular,
+                    },
+                    dialCode: {
+                      fontFamily: typography.fontFamily.Montserrat.Regular,
+                    },
+                    countryButtonStyles: {
+                      height: Matrics.vs(50),
+                    },
+                  }}
+                />
+              </View>
+            </KeyboardAwareScrollView>
+          </TouchableWithoutFeedback>
+
+          <BottomSheetModal
+            ref={bottomSheetModalRef}
+            index={1}
+            snapPoints={snapPoints()}
+            backgroundStyle={styles.bottomSheetBackground}
+            handleIndicatorStyle={styles.handleIndicator}>
+            <BottomSheetView style={styles.bottomSheetContent}>
+              <Text style={styles.bottomSheetTitle}>
+                {i18n.t('EditProfile.updatePicture')}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.optionButton}
-              onPress={handleProfilePictureFromLibrary}>
-              <Text style={styles.optionText}>
-                {i18n.t('EditProfile.chooseFromLibrary')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => bottomSheetModalRef.current?.dismiss()}>
-              <Text style={styles.cancelText}>
-                {i18n.t('EditProfile.cancel')}
-              </Text>
-            </TouchableOpacity>
-          </BottomSheetView>
-        </BottomSheetModal>
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+              <TouchableOpacity
+                style={styles.optionButton}
+                onPress={handleProfilePictureFromCamera}>
+                <Text style={styles.optionText}>
+                  {i18n.t('EditProfile.takePhoto')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.optionButton}
+                onPress={handleProfilePictureFromLibrary}>
+                <Text style={styles.optionText}>
+                  {i18n.t('EditProfile.chooseFromLibrary')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => bottomSheetModalRef.current?.dismiss()}>
+                <Text style={styles.cancelText}>
+                  {i18n.t('EditProfile.cancel')}
+                </Text>
+              </TouchableOpacity>
+            </BottomSheetView>
+          </BottomSheetModal>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </SafeAreaView>
   );
 };
 
@@ -496,10 +681,6 @@ const styles = StyleSheet.create({
   containerMain: {
     flex: 1,
     backgroundColor: COLOR.WHITE,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    paddingBottom: Matrics.vs(20),
   },
   imageContainer: {
     alignSelf: 'center',
@@ -534,10 +715,67 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   inputContainer: {
-    paddingHorizontal: Matrics.s(10), // Inspired by LoginWithEmail
-    marginTop: Matrics.vs(20), // Adjusted for spacing
+    paddingHorizontal: Matrics.s(10),
+    marginTop: Matrics.vs(20),
     flex: 1,
-    gap: Matrics.vs(10), // Consistent spacing between inputs
+    gap: Matrics.vs(10),
+    paddingBottom: Matrics.vs(50),
+  },
+  formGroup: {
+    // marginBottom: Matrics.vs(15),
+  },
+  label: {
+    fontSize: Matrics.s(14),
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+    color: '#000',
+    marginBottom: Matrics.vs(4),
+    textTransform: 'capitalize',
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: Matrics.s(10),
+    // padding: Matrics.s(10),
+    paddingVertical: Matrics.vs(6),
+    paddingHorizontal: Matrics.s(10),
+    fontSize: Matrics.s(16),
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+    borderWidth: 1,
+    borderColor: COLOR.BORDER_COLOR,
+    height: Matrics.vs(40),
+    minHeight: Matrics.vs(40),
+    maxHeight: Matrics.vs(40),
+  },
+  inputError: {
+    borderWidth: 1,
+    borderColor: '#e74c3c',
+  },
+  errorText: {
+    fontSize: Matrics.s(12),
+    color: '#e74c3c',
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+    marginTop: Matrics.vs(5),
+  },
+  phoneNumberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  countryPicker: {
+    width: Matrics.screenWidth * 0.2,
+    backgroundColor: '#fff',
+    height: Matrics.vs(38),
+    borderRadius: Matrics.s(10),
+    padding: Matrics.s(10),
+    paddingVertical: Matrics.vs(8),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Matrics.s(5),
+    borderWidth: 1,
+    borderColor: COLOR.BORDER_COLOR,
+  },
+  countryPickerTextStyle: {
+    color: '#000',
+    fontSize: Matrics.s(16),
+    fontFamily: typography.fontFamily.Montserrat.Regular,
   },
   bottomSheetBackground: {
     backgroundColor: COLOR.WHITE,
@@ -580,11 +818,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.WHITE,
     borderRadius: Matrics.s(10),
     marginVertical: Matrics.vs(8),
-    // elevation: 2,
-    // shadowColor: '#000',
-    // shadowOffset: {width: 0, height: 0},
-    // shadowOpacity: 0.1,
-    // shadowRadius: Matrics.s(10),
   },
   optionText: {
     fontSize: typography.fontSizes.fs16,
@@ -606,24 +839,58 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.Medium,
     color: COLOR.RED,
   },
-  countryPicker: {
-    width: Matrics.screenWidth * 0.2,
-    backgroundColor: '#F5F5F5',
-    height: Matrics.vs(40),
-    borderRadius: Matrics.s(7),
-    alignItems: 'center',
-    justifyContent: 'center',
-    // marginTop: Matrics.vs(15),
-    marginRight: Matrics.s(5),
+  cityInputContainer: {
+    position: 'relative',
+    width: '100%',
   },
-  countryPickerTextStyle: {
-    color: COLOR.DIM_TEXT_COLOR,
-    fontSize: typography.fontSizes.fs16,
-    fontFamily: typography.fontFamily.Montserrat.Regular,
+  cityDropdownContainer: {
+    position: 'absolute',
+    top: Matrics.vs(43),
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: 'white',
+    borderRadius: Matrics.s(10),
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  phoneNumberContainer: {
+  cityFlatListStyle: {
+    maxHeight: Matrics.vs(200),
+    backgroundColor: 'white',
+    borderRadius: Matrics.s(10),
+    paddingHorizontal: Matrics.s(10),
+  },
+  cityItem: {
     flexDirection: 'row',
-    // backgroundColor: 'red',
     alignItems: 'center',
+    paddingVertical: Matrics.vs(12),
+    borderBottomWidth: 1,
+    borderBottomColor: COLOR.BORDER_COLOR,
+  },
+  cityLocationIcon: {
+    width: Matrics.s(20),
+    height: Matrics.s(20),
+    resizeMode: 'contain',
+    marginRight: Matrics.s(10),
+  },
+  cityTextContainer: {
+    flex: 1,
+  },
+  cityName: {
+    fontSize: Matrics.s(15),
+    fontFamily: typography.fontFamily.Montserrat.SemiBold,
+    color: '#000',
+  },
+  destinationName: {
+    fontSize: Matrics.s(13),
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+    color: '#666',
+    marginTop: Matrics.vs(2),
+  },
+  loader: {
+    marginTop: Matrics.vs(10),
   },
 });

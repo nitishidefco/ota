@@ -44,7 +44,7 @@ export const getUniversalToken = createAsyncThunk(
 
       const response = await getContentToken();
       console.log(response);
-      
+
       return response;
     } catch (error) {
       return rejectWithValue('Error getting universal token');

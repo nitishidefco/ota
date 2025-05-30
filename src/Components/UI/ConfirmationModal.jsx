@@ -42,14 +42,15 @@ const ConfirmationModal = ({title, handleYesPressed}) => {
         </View>
         <View
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-evenly',
-            marginTop: Matrics.vs(20),
+            flexDirection: 'row-reverse',
+            justifyContent: 'center',
+            marginTop: Matrics.vs(15),
+            gap: Matrics.s(15),
           }}>
           <TouchableOpacity
             style={{
-              backgroundColor: COLOR.RED,
-              paddingVertical: Matrics.vs(10),
+              backgroundColor: COLOR.DIM_TEXT_COLOR,
+              paddingVertical: Matrics.vs(6),
               paddingHorizontal: Matrics.s(20),
               borderRadius: Matrics.s(5),
             }}
@@ -57,7 +58,7 @@ const ConfirmationModal = ({title, handleYesPressed}) => {
             onPress={() => setShowCancelModal(!showCancelModal)}>
             <Text
               style={{
-                fontFamily: typography.fontFamily.Montserrat.Medium,
+                fontFamily: typography.fontFamily.Montserrat.SemiBold,
                 fontSize: typography.fontSizes.fs15,
                 color: COLOR.WHITE,
               }}>
@@ -66,8 +67,8 @@ const ConfirmationModal = ({title, handleYesPressed}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={{
-              backgroundColor: COLOR.SUCCESS,
-              paddingVertical: Matrics.vs(10),
+              backgroundColor: COLOR.PRIMARY,
+              paddingVertical: Matrics.vs(6),
               paddingHorizontal: Matrics.s(20),
               borderRadius: Matrics.s(5),
             }}
@@ -75,7 +76,7 @@ const ConfirmationModal = ({title, handleYesPressed}) => {
             onPress={handleYesPressed}>
             <Text
               style={{
-                fontFamily: typography.fontFamily.Montserrat.Medium,
+                fontFamily: typography.fontFamily.Montserrat.SemiBold,
                 fontSize: typography.fontSizes.fs15,
                 color: COLOR.WHITE,
               }}>

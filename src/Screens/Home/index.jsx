@@ -11,9 +11,11 @@ import HotelDetail from './HotelDetails/HotelDetail';
 import HotelBooking from './HotelDetails/HotelBooking';
 import PriceConfirmFailed from './HotelDetails/PriceConfirmFailed';
 import ConfirmingPrice from './HotelDetails/ConfirmingPrice';
-import PaymentsPage from './HotelDetails/HotelPaymentsPage';
 import ReviewUserDetails from './HotelDetails/ReviewUserDetails';
 import HotelPaymentsPage from './HotelDetails/HotelPaymentsPage';
+import HotelImageGallery from './HotelDetails/HotelImageGallery';
+import AddCard from './HotelDetails/AddCard';
+import HotelBookingStatus from './HotelDetails/HotelBookingStatus';
 
 const Stack = createNativeStackNavigator();
 const HotelStack = createNativeStackNavigator();
@@ -36,6 +38,15 @@ const HotelNavigator = () => {
       <HotelStack.Screen
         name="HotelPaymentsPage"
         component={HotelPaymentsPage}
+      />
+      <HotelStack.Screen
+        name="HotelImageGallery"
+        component={HotelImageGallery}
+      />
+      <HotelStack.Screen name="AddCard" component={AddCard} />
+      <HotelStack.Screen
+        name="HotelBookingStatus"
+        component={HotelBookingStatus}
       />
     </HotelStack.Navigator>
   );

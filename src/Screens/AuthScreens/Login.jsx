@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
+    paddingTop: '7%',
   },
   halfCircle: {
     width: Matrics.screenWidth * 2.5,

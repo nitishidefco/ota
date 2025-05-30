@@ -14,6 +14,7 @@ baseApiClient.interceptors.request.use(
     const state = Store.getState();
     const authToken = state.auth.userToken;
     const contentToken = state.contentToken.universalToken;
+
     if (authToken) {
       config.headers['x-access-token'] = `${authToken}`;
     }
@@ -21,6 +22,7 @@ baseApiClient.interceptors.request.use(
     if (contentToken) {
       config.headers['Content-Token'] = contentToken;
     }
+    console.log('config', config);
 
     return config;
   },
@@ -31,7 +33,6 @@ baseApiClient.interceptors.response.use(
   response => response,
   error => {
     if (error.response && error.response.status === 401) {
-      // Token expired or unauthorized
       Store.dispatch(logout());
     }
     return Promise.reject(error);

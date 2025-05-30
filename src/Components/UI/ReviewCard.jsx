@@ -7,20 +7,24 @@ const ReviewCard = () => {
   const additionalDetails = useSelector(
     state => state?.hotelDetail?.additionalDetails,
   );
+
+  // Return null if additionalDetails is empty or undefined
+  if (!additionalDetails?.rating || !additionalDetails?.total_reviews) {
+    return null;
+  }
+
   return (
     <View style={styles.reviewCardContainer}>
       <View>
         <Text style={styles.starTextTemp}>Stars</Text>
       </View>
       <View style={styles.ratingValueContainer}>
-        <Text style={styles.gotRating}>
-          {additionalDetails?.result?.rating}
-        </Text>
+        <Text style={styles.gotRating}>{additionalDetails?.rating}</Text>
         <Text style={styles.totalRating}>/5</Text>
       </View>
       <View>
         <Text style={styles.contextText}>
-          Bassed on {additionalDetails?.result?.total_reviews} review
+          Based on {additionalDetails?.total_reviews} review
         </Text>
       </View>
     </View>

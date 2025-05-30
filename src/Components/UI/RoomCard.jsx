@@ -4,6 +4,7 @@ import {Matrics, typography, COLOR} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import {RoomContext} from '../../Context/RoomContext';
 import i18n from '../../i18n/i18n';
+import {useSelector} from 'react-redux';
 
 const RoomCard = ({room}) => {
   const {
@@ -12,10 +13,11 @@ const RoomCard = ({room}) => {
     setShowCheckoutToast,
     setRatePlanId,
   } = useContext(RoomContext);
-console.log(room);
 
   const isSelected = selectedRoomId === room.RatePlanID;
-
+  const selectedCurrency = useSelector(
+    state => state.currency.selectedCurrency,
+  );
   const handleRoomSelection = () => {
     if (selectedRoomId === room.RatePlanID) {
       setSelectedRoomId(null);
@@ -27,7 +29,9 @@ console.log(room);
       setShowCheckoutToast(true);
     }
   };
-
+  const getCurrencySymbol = selectCurrency => {
+    return selectCurrency === 'USD' || selectCurrency === 'CAD' ? '$' : '₹';
+  };
   return (
     <View style={styles.roomCard}>
       <View style={styles.imageContainer}>
@@ -54,10 +58,12 @@ console.log(room);
         <View style={styles.priceContainer}>
           <View style={styles.priceDetails}>
             <View style={styles.priceNumber}>
-              <Text style={styles.price}>{room.price}</Text>
-              <Text style={styles.oldPrice}>{room.totalprice}</Text>
+              <Text style={styles.price}>
+                {getCurrencySymbol(selectedCurrency)}
+                {Number(room.totalprice).toFixed(2)}
+              </Text>
             </View>
-            <Text style={styles.vat}>1 Night (incl. VAT)</Text>
+            <Text style={styles.vat}>Per Night (incl. VAT)</Text>
           </View>
           <Text style={styles.infoText}>
             {i18n.t('hotelDetails.only')} {room.InventoryCount}{' '}
