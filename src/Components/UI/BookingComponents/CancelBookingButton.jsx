@@ -1,6 +1,7 @@
 import {View, Text, TouchableOpacity, ActivityIndicator} from 'react-native';
 import React from 'react';
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
+import i18n from '../../../i18n/i18n';
 
 const CancelBookingButton = ({cancelBooking, isLoading = false}) => {
   return (
@@ -27,7 +28,7 @@ const CancelBookingButton = ({cancelBooking, isLoading = false}) => {
             fontFamily: typography.fontFamily.Montserrat.Medium,
             fontSize: typography.fontSizes.fs12,
           }}>
-          Cancel
+          {i18n.t('Booking.cancelBookingButton')}
         </Text>
       )}
     </TouchableOpacity>

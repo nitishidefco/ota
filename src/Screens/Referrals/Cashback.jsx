@@ -17,6 +17,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getCashbackListThunk} from '../../Redux/Reducers/ReferralReducer/ReferralListSlice';
 import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
+import i18n from '../../i18n/i18n';
 
 const Cashback = () => {
   const navigation = useNavigation();
@@ -24,7 +25,6 @@ const Cashback = () => {
   const {cashbackList, isLoading, error} = useSelector(
     state => state.referralList,
   );
-  console.log('cashbackList', cashbackList);
 
   // Local state
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -35,11 +35,11 @@ const Cashback = () => {
   const limit = 10;
 
   const filterOptions = [
-    {label: 'All', value: 'All', type: null},
-    {label: 'Hotel', value: 'Hotel', type: 'HOTEL'},
-    {label: 'Cars', value: 'Cars', type: 'CARS'},
-    {label: 'Flights', value: 'Flights', type: 'FLIGHTS'},
-    {label: 'Tours', value: 'Tours', type: 'TOURS'},
+    {label: i18n.t('Cashback.all'), value: 'All', type: null},
+    {label: i18n.t('Cashback.hotel'), value: 'Hotel', type: 'HOTEL'},
+    {label: i18n.t('Cashback.cars'), value: 'Cars', type: 'CARS'},
+    {label: i18n.t('Cashback.flights'), value: 'Flights', type: 'FLIGHTS'},
+    {label: i18n.t('Cashback.tours'), value: 'Tours', type: 'TOURS'},
   ];
 
   const formatDate = dateString => {
@@ -171,15 +171,17 @@ const Cashback = () => {
   const renderTableHeader = () => (
     <View style={styles.tableHeader}>
       <Text style={[styles.headerText, {width: 40}]}>#</Text>
-      <Text style={[styles.headerText, {width: 120}]}>Booking Date</Text>
+      <Text style={[styles.headerText, {width: 120}]}>
+        {i18n.t('Cashback.date')}
+      </Text>
       <Text style={[styles.headerText, {width: 60, textAlign: 'center'}]}>
-        Type
+        {i18n.t('Cashback.type')}
       </Text>
       <Text style={[styles.headerText, {width: 100, textAlign: 'right'}]}>
-        Amount
+        {i18n.t('Cashback.amount')}
       </Text>
       <Text style={[styles.headerText, {width: 100, textAlign: 'right'}]}>
-        Cashback
+        {i18n.t('Cashback.cashback')}
       </Text>
     </View>
   );
@@ -187,7 +189,9 @@ const Cashback = () => {
   const renderFixedHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTitleContainer}>
-        <Text style={styles.headerTitle}>Cashback Listing</Text>
+        <Text style={styles.headerTitle}>
+          {i18n.t('Cashback.tableTitle')}
+        </Text>
         <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowDropdown(true)}>
@@ -271,10 +275,10 @@ const Cashback = () => {
     <SafeAreaView style={{flex: 1}}>
       <ScrollView>
         <NormalHeader
-          title="My Cashback"
+          title={i18n.t('Cashback.cashbackTitle')}
           showLeftButton={false}
           showRightButton={true}
-          rightIconName="My Referrals"
+          rightIconName={i18n.t('Cashback.rightMenu')}
           rightIconFonSize={Matrics.s(10)}
           onCheckPress={() => {
             navigation.navigate('Referral');
@@ -310,7 +314,7 @@ const Cashback = () => {
                   fontFamily: typography.fontFamily.Montserrat.Regular,
                   color: COLOR.PRIMARY,
                 }}>
-                Total Cashback Earned
+                {i18n.t('Cashback.totalCashback')}
               </Text>
               <Text
                 style={{
@@ -354,7 +358,7 @@ const Cashback = () => {
                   fontFamily: typography.fontFamily.Montserrat.Regular,
                   color: COLOR.PRIMARY,
                 }}>
-                Total Earning
+                {i18n.t('Cashback.totalEarning')}
               </Text>
               <Text
                 style={{

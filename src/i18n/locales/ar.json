@@ -102,5 +102,40 @@
   "loading": {
     "loadingHotelDetail": "جارٍ تحميل تفاصيل الفندق",
     "gettingRooms": "جارٍ الحصول على الغرف لك"
+  },
+  "Cashback": {
+    "cashbackTitle": "الكاشباك الخاص بي",
+    "rightMenu": "الإحالات الخاصة بي",
+    "all": "الكل",
+    "hotel": "الفنادق",
+    "cars": "السيارات",
+    "flights": "الرحلات الجوية",
+    "tours": "الجولات",
+    "tableTitle": "قائمة الكاشباك",
+    "cashback": "الكاشباك",
+    "amount": "المبلغ",
+    "date": "تاريخ الحجز",
+    "type": "النوع",
+    "totalCashback": "إجمالي الكاشباك المكتسب",
+    "totalEarning": "إجمالي الإيرادات"
+  },
+  "Booking": {
+    "bookingTitle": "حجوزاتي",
+    "totalBookings": "إجمالي الحجوزات",
+    "cancelledBooking": "الحجوزات الملغية",
+    "completedBooking": "الحجوزات المكتملة",
+    "processingBooking": "الحجوزات المعالجة",
+    "listOfBookings": "قائمة الحجوزات",
+    "download": "تحميل",
+    "downloading": "جارٍ التحميل",
+    "cancel": "إلغاء",
+    "loadingBookings": "جارٍ تحميل الحجوزات...",
+    "cancelBooking": "هل أنت متأكد من أنك تريد إلغاء هذا الحجز؟",
+    "downloadSuccessful": "تم التحميل بنجاح",
+    "invoiceDownloaded": "تم تحميل الفاتورة إلى الجهاز",
+    "cancelBookingButton": "إلغاء الحجز"
+  },
+  "Profile":{
+    
   }
 }

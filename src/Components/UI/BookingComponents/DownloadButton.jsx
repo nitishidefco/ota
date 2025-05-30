@@ -5,6 +5,7 @@ import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {success, errorToast} from '../../../Helpers/ToastMessage';
 import {useSelector} from 'react-redux';
+import i18n from '../../../i18n/i18n';
 
 const DownloadButton = ({invoicePath}) => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -102,8 +103,8 @@ const DownloadButton = ({invoicePath}) => {
         }
 
         success(
-          'Download Successful',
-          'Invoice has been downloaded to your device',
+          i18n.t('Booking.downloadSuccessful'),
+          i18n.t('Booking.invoiceDownloaded'),
         );
       } else {
         const statusCode = response.info().status;
@@ -188,7 +189,9 @@ const DownloadButton = ({invoicePath}) => {
           fontSize: typography.fontSizes.fs12,
           color: COLOR.SUCCESS,
         }}>
-        {isDownloading ? 'Downloading...' : 'Download'}
+        {isDownloading
+          ? i18n.t('Booking.downloading')
+          : i18n.t('Booking.download')}
       </Text>
     </TouchableOpacity>
   );

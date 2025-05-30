@@ -161,5 +161,50 @@
     "selectCheckouDate": "Please select checkout-date",
     "enterAgeOfChildren": "Please enter age of the children",
     "emailNotExist": "Email does not exist"
+  },
+  "Cashback": {
+    "cashbackTitle": "My Cashback",
+    "rightMenu": "My referrals",
+    "all": "All",
+    "hotel": "Hotel",
+    "cars": "Cars",
+    "flights": "Flights",
+    "tours": "Tours",
+    "tableTitle": "Cashback Listing",
+    "cashback": "Cashback",
+    "amount": "Amount",
+    "date": "Booking Date",
+    "type": "Type",
+    "totalCashback": "Total Cashback Earned",
+    "totalEarning": "Total Earning"
+  },
+  "Booking": {
+    "bookingTitle": "My Bookings",
+    "totalBookings": "Total Bookings",
+    "cancelledBooking": "Cancelled Bookings",
+    "completedBooking": "Completed Bookings",
+    "processingBooking": "Processing Bookings",
+    "listOfBookings": "List of Bookings",
+    "download": "Download",
+    "downloading": "Downloading",
+    "cancel": "Cancel",
+    "loadingBookings": "Loading Bookings...",
+    "cancelBooking": "Are you sure you want to cancel this booking?",
+    "downloadSuccessful": "Download Successful",
+    "invoiceDownloaded": "Invoice has been downloaded to your device",
+    "cancelBookingButton": "Cancel Booking"
+  },
+  "Profile": {
+    "profileTitle": "My Profile",
+    "editProfile": "Edit Profile",
+    "updatePicture": "Update Profile Picture",
+    "takePhoto": "Take a Photo",
+    "chooseFromLibrary": "Choose from Library",
+    "cancel": "Cancel",
+    "changePassword": "Change Password",
+    "setPassword": "Set Password",
+    "logout": "Logout",
+    "logoutConfirmation": "Are you sure you want to logout?",
+    "support": "Support"
   }
 }

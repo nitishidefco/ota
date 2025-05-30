@@ -15,6 +15,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {FlatList} from 'react-native-gesture-handler';
 import ConfirmationModal from '../../Components/UI/ConfirmationModal';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import i18n from '../../i18n/i18n';
 
 const Booking = () => {
   const dispatch = useDispatch();
@@ -109,7 +110,7 @@ const Booking = () => {
       <KeyboardAwareScrollViewBoilerplate
         headerComponent={
           <NormalHeader
-            title={'My Bookings'}
+            title={i18n.t('Booking.bookingTitle')}
             showLeftButton={false}
             showRightButton={false}
             headerHeight={Matrics.screenHeight * 0.1}
@@ -137,25 +138,25 @@ const Booking = () => {
               <BookingOverviewCards
                 gradientStart={COLOR.TOTAL_BOOKING_START}
                 gradientEnd={COLOR.TOTAL_BOOKING_END}
-                title="Total Bookings"
+                title={i18n.t('Booking.totalBookings')}
                 value={bookingList?.length}
               />
               <BookingOverviewCards
                 gradientStart={COLOR.PROCESSING_BOOKING_START}
                 gradientEnd={COLOR.PROCESSING_BOOKING_END}
-                title="Processing Bookings"
+                title={i18n.t('Booking.processingBooking')}
                 value="0"
               />
               <BookingOverviewCards
                 gradientStart={COLOR.COMPLETED_BOOKING_START}
                 gradientEnd={COLOR.COMPLETED_BOOKING_END}
-                title="Completed Bookings"
+                title={i18n.t('Booking.completedBooking')}
                 value="0"
               />
               <BookingOverviewCards
                 gradientStart={COLOR.CANCELLED_BOOKING_START}
                 gradientEnd={COLOR.CANCELLED_BOOKING_END}
-                title="Cancelled Bookings"
+                title={i18n.t('Booking.cancelledBooking')}
                 value={bookingList?.canceledBookings}
               />
             </View>
@@ -165,7 +166,7 @@ const Booking = () => {
                   fontFamily: typography.fontFamily.Montserrat.Bold,
                   fontSize: typography.fontSizes.fs16,
                 }}>
-                List of Bookings
+                {i18n.t('Booking.listOfBookings')}
               </Text>
             </View>
             <View
@@ -194,7 +195,9 @@ const Booking = () => {
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={COLOR.PRIMARY} />
-            <Text style={styles.loadingText}>Loading Bookings...</Text>
+            <Text style={styles.loadingText}>
+              {i18n.t('Booking.loadingBookings')}
+            </Text>
           </View>
         </View>
       )}
@@ -209,7 +212,7 @@ const Booking = () => {
       )} */}
       {showCancelModal && (
         <ConfirmationModal
-          title={'Are you sure you want to cancel this booking?'}
+          title={i18n.t('Booking.cancelBooking')}
           handleYesPressed={confirmCancelBooking}
           handleNoPressed={() => {
             setShowCancelModal(false);
