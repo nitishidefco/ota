@@ -120,8 +120,9 @@ const LoginWithEmail = () => {
       console.log('Error', 'login in account', error);
     }
   };
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+
+  const renderContent = () => (
+    <>
       {AuthState?.isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -145,7 +146,9 @@ const LoginWithEmail = () => {
         />
       )}
       <TouchableWithoutFeedback style={{flex: 1}} onPress={Keyboard.dismiss}>
-        <KeyboardAwareScrollView style={styles.keyboardAvoidingView}>
+        <KeyboardAwareScrollView
+          showsVerticalScrollIndicator={false}
+          style={styles.keyboardAvoidingView}>
           <View style={styles.container}>
             <AuthScreenHeaders
               title={i18n.t('LoginWithEmail.loginWithEmail')}
@@ -205,7 +208,12 @@ const LoginWithEmail = () => {
           </View>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

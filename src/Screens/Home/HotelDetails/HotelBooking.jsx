@@ -146,9 +146,8 @@ const HotelBooking = () => {
 
     navigation.navigate('ReviewUserDetails', {guestDetails});
   };
-
-  return (
-    <SafeAreaView style={{flex: 1}}>
+  const renderContent = () => (
+    <>
       <GestureHandlerRootView
         style={{
           flex: 1,
@@ -217,6 +216,7 @@ const HotelBooking = () => {
               <BottomSheetScrollView
                 contentContainerStyle={{
                   justifyContent: 'center',
+                  paddingTop: Platform.OS === 'android' ? 0 : Matrics.vs(10),
                 }}>
                 {currentGuestIndex !== null && (
                   <GuestForm
@@ -231,7 +231,12 @@ const HotelBooking = () => {
           </KeyboardAwareScrollView>
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={{flex: 1}}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

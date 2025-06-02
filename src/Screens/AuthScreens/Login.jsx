@@ -7,6 +7,7 @@ import {
   ScrollView,
   Pressable,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import React, {useEffect} from 'react';
 import {Images} from '../../Config';
@@ -28,8 +29,8 @@ const Login = () => {
   const AuthState = useSelector(state => state.auth);
 
   const dispatch = useDispatch();
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+  const renderContent = () => (
+    <>
       {AuthState?.isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -106,7 +107,12 @@ const Login = () => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={styles.safeAreaView}>{renderContent()}</View>
   );
 };
 
@@ -116,7 +122,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingTop: '7%',
+    paddinTop: '7%',
   },
   halfCircle: {
     width: Matrics.screenWidth * 2.5,

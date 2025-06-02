@@ -68,8 +68,9 @@ const EnterOtp = () => {
       // Add your OTP submission logic here (e.g., API call)
     }
   };
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+
+  const renderContent = () => (
+    <>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{flex: 1}}>
         <KeyboardAwareScrollView style={styles.keyboardAvoidingView}>
           <View style={styles.container}>
@@ -122,7 +123,12 @@ const EnterOtp = () => {
           </View>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

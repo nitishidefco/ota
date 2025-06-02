@@ -156,12 +156,8 @@ const ReviewUserDetails = () => {
       </View>
     );
   };
-
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-      }}>
+  const renderContent = () => (
+    <>
       <KeyboardAwareScrollViewBoilerplate
         headerComponent={
           <NormalHeader
@@ -175,7 +171,17 @@ const ReviewUserDetails = () => {
         <Text style={styles.sectionTitle}>Guest Details</Text>
         {guestDetails.map((guest, index) => renderGuestDetails(guest, index))}
       </KeyboardAwareScrollViewBoilerplate>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView
+      style={{
+        flex: 1,
+      }}>
+      {renderContent()}
     </SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

@@ -49,6 +49,7 @@
 		2297C014E1084C1CA7A40DC1 /* Montserrat-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-BoldItalic.ttf"; path = "../src/Assets/Fonts/Montserrat-BoldItalic.ttf"; sourceTree = "<group>"; };
 		2387BD939063436DAE81B132 /* Montserrat-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-BlackItalic.ttf"; path = "../src/Assets/Fonts/Montserrat-BlackItalic.ttf"; sourceTree = "<group>"; };
 		2E4AB19303484DC685D6ED1A /* Montserrat-ThinItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-ThinItalic.ttf"; path = "../src/Assets/Fonts/Montserrat-ThinItalic.ttf"; sourceTree = "<group>"; };
+		364A1EBA2D9FF0B200673D35 /* ota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ota-Bridging-Header.h"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-ota.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ota.debug.xcconfig"; path = "Target Support Files/Pods-ota/Pods-ota.debug.xcconfig"; sourceTree = "<group>"; };
 		44D765EE3F9E47DD96843DC4 /* Montserrat-ExtraLightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Montserrat-ExtraLightItalic.ttf"; path = "../src/Assets/Fonts/Montserrat-ExtraLightItalic.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-ota.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ota.release.xcconfig"; path = "Target Support Files/Pods-ota/Pods-ota.release.xcconfig"; sourceTree = "<group>"; };
@@ -118,6 +119,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				364A1EBA2D9FF0B200673D35 /* ota-Bridging-Header.h */,
 				13B07FAE1A68108700A75B9A /* ota */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -380,6 +382,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = ota;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/ota-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -408,6 +411,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = ota;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/ota-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

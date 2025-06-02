@@ -30,6 +30,8 @@ const HotelPaymentsPage = () => {
     hotelStayEndDate,
     selectedRoom,
   } = useContext(RoomContext);
+  console.log('Selected Room', selectedRoom);
+
   const {provider, hotelId, GiataId} = useContext(PolicyInfoContext);
   return (
     <View style={{flex: 1, paddingTop: Platform.OS === 'android' ? '7%' : 0}}>
@@ -84,6 +86,7 @@ const HotelPaymentsPage = () => {
               style={{
                 flexDirection: 'row',
                 marginBottom: Matrics.vs(10),
+                alignItems: 'center',
                 gap: 10,
               }}>
               <Image
@@ -104,6 +107,7 @@ const HotelPaymentsPage = () => {
                 flexDirection: 'row',
                 marginBottom: Matrics.vs(10),
                 gap: 10,
+                alignItems: 'center',
               }}>
               <Image
                 source={Images.CALENDAR_PURPLE}
@@ -185,7 +189,7 @@ const HotelPaymentsPage = () => {
                   fontFamily: typography.fontFamily.Montserrat.Medium,
                   fontSize: typography.fontSizes.fs15,
                 }}>
-                ${Number(selectedRoom.totalprice).toFixed(2)}
+                ${Number(selectedRoom.price).toFixed(2)}
               </Text>
             </View>
           </View>
@@ -209,7 +213,7 @@ const HotelPaymentsPage = () => {
                 color: COLOR.PRIMARY,
                 fontSize: typography.fontSizes.fs18,
               }}>
-              ${Number(selectedRoom.totalprice).toFixed(2)}
+              ${Number(selectedRoom.price).toFixed(2)}
             </Text>
           </View>
         </View>

@@ -183,7 +183,7 @@ const DownloadButton = ({invoicePath}) => {
           resizeMode: 'contain',
         }}
       />
-      <Text
+      {/* <Text
         style={{
           fontFamily: typography.fontFamily.Montserrat.Medium,
           fontSize: typography.fontSizes.fs12,
@@ -192,7 +192,7 @@ const DownloadButton = ({invoicePath}) => {
         {isDownloading
           ? i18n.t('Booking.downloading')
           : i18n.t('Booking.download')}
-      </Text>
+      </Text> */}
     </TouchableOpacity>
   );
 };

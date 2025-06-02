@@ -21,8 +21,8 @@ import OtpHandler from '../../Components/UI/OtpHandler';
 import {useNavigation} from '@react-navigation/native';
 const CheckEmail = () => {
   const navigation = useNavigation();
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+  const renderContent = () => (
+    <>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}>
@@ -54,7 +54,12 @@ const CheckEmail = () => {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

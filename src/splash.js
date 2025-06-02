@@ -23,9 +23,8 @@ const Splash = () => {
       I18nManager.forceRTL(false);
     };
   }, []);
-
-  return (
-    <SafeAreaView style={{flex: 1}}>
+  const renderContent = () => (
+    <>
       <View style={styles.container}>
         <View style={styles.topElipseContainer}>
           <Image source={Images.TOP_ELIPSE} />
@@ -42,7 +41,12 @@ const Splash = () => {
           />
         </View>
       </View>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={{flex: 1}}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

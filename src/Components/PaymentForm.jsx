@@ -30,6 +30,10 @@ const PaymentForm = () => {
     useCallback(() => {
       const loadGuestDetails = async () => {
         try {
+          console.log(
+            'Price confirm total price',
+            priceConfirmAllState.priceConfirmDetails,
+          );
           const storedData = await AsyncStorage.getItem(GUEST_DETAILS_KEY);
           let newDetails = Array(guests)
             .fill(null)
@@ -55,6 +59,11 @@ const PaymentForm = () => {
   );
 
   const sendToBackend = useCallback(async () => {
+    console.log(
+      'Price confirm total price',
+      priceConfirmAllState.priceConfirmDetails,
+    );
+
     try {
       const holder = guestDetails[0] || {};
       const payload = {
@@ -94,7 +103,7 @@ const PaymentForm = () => {
         })),
         card_details: {
           payment_method: savedCard.data.id,
-          amount: priceConfirmAllState.priceConfirmDetails.totalprice,
+          amount: priceConfirmAllState.priceConfirmDetails.price,
         },
         RatePlanID: priceConfirmAllState.priceConfirmDetails.RatePlanID,
         provider: 'DIDA',

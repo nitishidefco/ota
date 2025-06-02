@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Platform} from 'react-native';
 import React, {useContext} from 'react';
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import {RoomContext} from '../../../Context/RoomContext';
@@ -130,6 +130,8 @@ const RoomPolicies = ({
               style={{
                 fontFamily: typography.fontFamily.Montserrat.Medium,
                 color: COLOR.DARK_TEXT_COLOR,
+                marginLeft:
+                  Platform.OS === 'android' ? Matrics.s(0) : Matrics.s(5),
               }}>
               {i18n.t('hotelDetails.amount')}
             </Text>

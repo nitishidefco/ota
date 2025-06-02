@@ -181,9 +181,8 @@ const LoginWithPhone = () => {
       console.log('Error', 'login in account', error);
     }
   };
-
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+  const renderContent = () => (
+    <>
       {AuthState?.isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -303,7 +302,12 @@ const LoginWithPhone = () => {
           />
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

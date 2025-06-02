@@ -6,6 +6,7 @@ import {
   Animated,
   StyleSheet,
   Image,
+  Platform,
 } from 'react-native';
 import {RoomContext} from '../../Context/RoomContext';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
@@ -39,6 +40,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: Platform.OS === 'ios' ? 'center' : none,
     marginTop: Matrics.vs(10),
   },
   checkoutText: {

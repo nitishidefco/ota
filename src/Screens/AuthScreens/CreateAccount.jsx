@@ -265,10 +265,8 @@ const CreateAccount = () => {
     }
   };
 
-  /* -------------------------------- Demo Data ------------------------------- */
-
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+  const renderContent = () => (
+    <>
       {AuthState?.isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -465,7 +463,13 @@ const CreateAccount = () => {
           </View>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </>
+  );
+
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={styles.safeAreaView}>{renderContent()}</View>
   );
 };
 
@@ -473,7 +477,6 @@ export default CreateAccount;
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   keyboardAvoidingView: {
     flex: 1,

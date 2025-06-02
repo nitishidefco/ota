@@ -58,6 +58,8 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
   const selectedCurrency = useSelector(
     state => state.currency.selectedCurrency,
   );
+  console.log(hotel);
+
   const {
     imageSource,
     name,
@@ -69,6 +71,7 @@ const HotelCard = ({hotel, icons, onBookPress}) => {
     currency = '$',
     category,
   } = hotel;
+  console.log('RPice', price, 'Original Price', originalPrice);
 
   const getCurrencySymbol = selectCurrency => {
     return selectCurrency === 'USD' || selectCurrency === 'CAD' ? '$' : '₹';

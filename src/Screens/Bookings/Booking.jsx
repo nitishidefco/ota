@@ -1,4 +1,10 @@
-import {View, StyleSheet, Text, ActivityIndicator} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
 import React, {useCallback, useState} from 'react';
 import NormalHeader from '../../Components/UI/NormalHeader';
 import KeyboardAwareScrollViewBoilerplate from '../../Components/UI/KeyboardAwareScrollViewBoilerplate';
@@ -105,8 +111,9 @@ const Booking = () => {
   );
 
   const ItemSeparator = () => <View style={styles.separator} />;
-  return (
-    <SafeAreaView style={styles.container}>
+
+  const renderContent = () => (
+    <>
       <KeyboardAwareScrollViewBoilerplate
         headerComponent={
           <NormalHeader
@@ -221,7 +228,12 @@ const Booking = () => {
           }}
         />
       )}
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.container}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

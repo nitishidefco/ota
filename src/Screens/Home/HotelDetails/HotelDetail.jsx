@@ -147,134 +147,141 @@ const HotelDetail = ({route, navigation}) => {
     }
     return stars;
   };
-  return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <SafeAreaView>
-        <ScrollView
-          contentContainerStyle={styles.scrollViewContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <NormalHeader
-            title={i18n.t('hotelDetails.hotelDetailPageTitle')}
-            onCrossPress={() => navigation.goBack()}
-            showLeftButton={true}
-            showRightButton={false}
-            leftIconName="BACK_ROUND"
-          />
-          <View>
-            {hotelDetail?.loadingHotels ? (
-              <View
-                style={{
-                  height: Matrics.screenHeight * 0.8,
-                  justifyContent: 'center',
-                }}>
-                <SimpleLoader
-                  loadingText={i18n.t('loading.loadingHotelDetail')}
-                />
+
+  const renderContent = () => (
+    <>
+      {' '}
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <NormalHeader
+          title={i18n.t('hotelDetails.hotelDetailPageTitle')}
+          onCrossPress={() => navigation.goBack()}
+          showLeftButton={true}
+          showRightButton={false}
+          leftIconName="BACK_ROUND"
+          
+        />
+        <View>
+          {hotelDetail?.loadingHotels ? (
+            <View
+              style={{
+                height: Matrics.screenHeight * 0.8,
+                justifyContent: 'center',
+              }}>
+              <SimpleLoader
+                loadingText={i18n.t('loading.loadingHotelDetail')}
+              />
+            </View>
+          ) : (
+            <>
+              <View style={styles.mainCarouselContainer}>
+                {hotelDetail?.hotel?.images?.length > 0 ? (
+                  <HotelCarousel images={hotelDetail?.hotel?.images} />
+                ) : (
+                  <HotelCarousel images={images} />
+                )}
               </View>
-            ) : (
-              <>
-                <View style={styles.mainCarouselContainer}>
-                  {hotelDetail?.hotel?.images?.length > 0 ? (
-                    <HotelCarousel images={hotelDetail?.hotel?.images} />
-                  ) : (
-                    <HotelCarousel images={images} />
-                  )}
+              <View style={styles.hotelInfoContainer}>
+                <View style={styles.container}>
+                  <Text style={styles.hotelName}>
+                    <Text style={styles.nameText}>
+                      {hotelDetail?.hotel?.Name}
+                    </Text>
+                    <View style={{flexDirection: 'row'}}>
+                      {renderStars(hotelDetail?.hotel?.category)}
+                    </View>
+                  </Text>
                 </View>
-                <View style={styles.hotelInfoContainer}>
-                  <View style={styles.container}>
-                    <Text style={styles.hotelName}>
-                      <Text style={styles.nameText}>
-                        {hotelDetail?.hotel?.Name}
-                      </Text>
-                      <View style={{flexDirection: 'row'}}>
-                        {renderStars(hotelDetail?.hotel?.category)}
-                      </View>
-                    </Text>
-                  </View>
-                  <StarRating
-                    rating={hotelDetail?.additionalDetails?.rating}
-                    reviewCount={hotelDetail?.additionalDetails?.total_reviews}
-                  />
-                  <View style={styles.addressContainer}>
-                    <Image
-                      source={Images.LOCATION}
-                      style={styles.locationPin}
-                    />
-                    <Text style={styles.hotelAddress}>
-                      {hotelDetail?.additionalDetails?.result?.address ||
-                        additionalDetails?.address}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      marginTop: Matrics.vs(10),
-                      paddingHorizontal: Matrics.s(5),
-                    }}>
-                    <Text
-                      style={{
-                        color: COLOR.DARK_TEXT_COLOR,
-                        fontFamily: typography.fontFamily.Montserrat.Medium,
-                        fontSize: typography.fontSizes.fs14,
-                      }}>
-                      {!hotelDetail?.hotel?.content?.section[0].para ? (
-                        <>No Address Detail Available </>
-                      ) : (
-                        hotelDetail?.hotel?.content?.section[0].para
-                      )}
-                    </Text>
-                  </View>
-                </View>
-                <View>
-                  <HotelAmenities hotelDetail={hotelDetail?.hotel} />
+                <StarRating
+                  rating={hotelDetail?.additionalDetails?.rating}
+                  reviewCount={hotelDetail?.additionalDetails?.total_reviews}
+                />
+                <View style={styles.addressContainer}>
+                  <Image source={Images.LOCATION} style={styles.locationPin} />
+                  <Text style={styles.hotelAddress}>
+                    {hotelDetail?.additionalDetails?.result?.address ||
+                      additionalDetails?.address}
+                  </Text>
                 </View>
                 <View
                   style={{
-                    paddingHorizontal: Matrics.s(16),
-                    marginTop: Matrics.vs(25),
+                    marginTop: Matrics.vs(10),
+                    paddingHorizontal: Matrics.s(5),
                   }}>
-                  <ModifyCard provider={provider} hotelId={hotelId} />
+                  <Text
+                    style={{
+                      color: COLOR.DARK_TEXT_COLOR,
+                      fontFamily: typography.fontFamily.Montserrat.Medium,
+                      fontSize: typography.fontSizes.fs14,
+                    }}>
+                    {!hotelDetail?.hotel?.content?.section[0].para ? (
+                      <>No Address Detail Available </>
+                    ) : (
+                      hotelDetail?.hotel?.content?.section[0].para
+                    )}
+                  </Text>
                 </View>
-                <View style={{paddingHorizontal: Matrics.s(16)}}>
-                  <Text style={styles.title}>Rooms & Amenities</Text>
-                  <RoomAmenities hotelDetail={hotelDetail?.hotel} />
-                  {roomState?.loadingRooms === false ? (
-                    <FlatList
-                      data={roomState.rooms}
-                      keyExtractor={(item, index) => index.toString()}
-                      renderItem={({item}) => <RoomCard room={item} />}
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      ListEmptyComponent={renderEmptyList}
-                      ItemSeparatorComponent={() => (
-                        <View style={{width: 20}} />
-                      )}
-                    />
-                  ) : (
-                    <>
-                      <SimpleLoader
-                        loadingText={i18n.t('loading.gettingRooms')}
-                      />
-                    </>
-                  )}
-                </View>
-                {roomState?.rooms?.length > 0 && (
-                  <RoomPolicies
-                    roomInfo={roomState?.rooms}
-                    provider={provider}
-                    hotelId={hotelId}
-                    GiataId={GiataId}
+              </View>
+              <View>
+                <HotelAmenities hotelDetail={hotelDetail?.hotel} />
+              </View>
+              <View
+                style={{
+                  paddingHorizontal: Matrics.s(16),
+                  marginTop: Matrics.vs(25),
+                }}>
+                <ModifyCard provider={provider} hotelId={hotelId} />
+              </View>
+              <View style={{paddingHorizontal: Matrics.s(16)}}>
+                <Text style={styles.title}>Rooms & Amenities</Text>
+                <RoomAmenities hotelDetail={hotelDetail?.hotel} />
+                {roomState?.loadingRooms === false ? (
+                  <FlatList
+                    data={roomState.rooms}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({item}) => <RoomCard room={item} />}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    ListEmptyComponent={renderEmptyList}
+                    ItemSeparatorComponent={() => <View style={{width: 20}} />}
                   />
+                ) : (
+                  <>
+                    <SimpleLoader
+                      loadingText={i18n.t('loading.gettingRooms')}
+                    />
+                  </>
                 )}
-                <HotelReviews hotelDetail={hotelDetail} />
-                <SimilarHotels />
-              </>
-            )}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+              </View>
+              {roomState?.rooms?.length > 0 && (
+                <RoomPolicies
+                  roomInfo={roomState?.rooms}
+                  provider={provider}
+                  hotelId={hotelId}
+                  GiataId={GiataId}
+                />
+              )}
+              <HotelReviews hotelDetail={hotelDetail} />
+              <SimilarHotels />
+            </>
+          )}
+        </View>
+      </ScrollView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}>
+      <SafeAreaView>{renderContent()}</SafeAreaView>
+    </KeyboardAvoidingView>
+  ) : (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}>
+      <View>{renderContent()}</View>
     </KeyboardAvoidingView>
   );
 };

@@ -1,6 +1,13 @@
 // TopContainer.js
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {useNavigation} from '@react-navigation/native';
@@ -8,7 +15,7 @@ import {ChevronLeft} from 'lucide-react-native';
 import i18n from '../../i18n/i18n';
 
 const AuthScreenHeaders = ({
-  bannerImage = Images.BANNER,
+  bannerImage = Images.BANNER_2,
   logo = Images.APP_LOGO,
   title = '',
   customStyles = {},
@@ -100,7 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.WHITE,
     borderRadius: Matrics.s(5),
     right: Matrics.screenWidth * 0.04,
-    top: Matrics.vs(30),
+    top: Platform.OS === 'android' ? Matrics.vs(30) : Matrics.vs(30),
     borderWidth: 1,
     borderColor: COLOR.BORDER_COLOR,
   },
@@ -140,9 +147,12 @@ const styles = StyleSheet.create({
   },
   bannerImage: {
     width: Matrics.screenWidth * 1.1,
-    height: Matrics.screenHeight * 0.6,
+    height: Matrics.screenHeight * 0.9,
     resizeMode: 'cover',
-    transform: [{translateY: 0}, {translateX: -5}],
+    transform:
+      Platform.OS === 'android'
+        ? [{translateY: 0}, {translateX: -5}]
+        : [{translateY: -200}, {translateX: 0}],
   },
   bannerImageContainer: {
     width: Matrics.screenWidth,

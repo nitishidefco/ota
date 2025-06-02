@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import React from 'react';
 import {Images} from '../../Config';
@@ -23,7 +24,15 @@ const NormalHeader = ({
 }) => {
   return (
     <ImageBackground
-      style={[styles.headerBackground, {height: headerHeight}]}
+      style={[
+        styles.headerBackground,
+        {
+          height:
+            Platform.OS === 'android'
+              ? headerHeight
+              : Matrics.screenHeight * 0.11,
+        },
+      ]}
       source={Images.PROFILE_BACKGROUND}>
       {/* Left Button */}
       {showLeftButton ? (
@@ -73,7 +82,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Matrics.s(15),
-    height: Matrics.screenHeight * 0.08,
+    paddingTop: Platform.OS === 'android' ? 0 : 35,
   },
   headerOptions: {
     width: Matrics.s(30),
@@ -86,6 +95,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.SemiBold,
   },
   placeholder: {
-    width: Matrics.s(30), // To maintain layout spacing when buttons are hidden
+    width: Matrics.s(30),
   },
 });

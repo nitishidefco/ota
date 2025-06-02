@@ -6,6 +6,7 @@ import {
   Keyboard,
   TouchableOpacity,
   Image,
+  Platform,
 } from 'react-native';
 import React, {useState} from 'react';
 import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
@@ -76,8 +77,8 @@ const ForgotPassword = () => {
       navigation.navigate('CheckEmail');
     }
   };
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+  const renderContent = () => (
+    <>
       {AuthState?.isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -134,7 +135,12 @@ const ForgotPassword = () => {
           </View>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

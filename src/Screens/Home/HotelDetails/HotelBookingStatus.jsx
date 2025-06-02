@@ -1,4 +1,11 @@
-import {View, Text, ScrollView, Image, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import React, {useContext} from 'react';
 import {useSelector} from 'react-redux';
 import {useNavigation, CommonActions} from '@react-navigation/native';
@@ -55,7 +62,8 @@ const HotelBookingStatus = () => {
   };
 
   return (
-    <View style={{flex: 1, paddingTop: '7%'}}>
+    <View
+      style={{flex: 1, paddingTop: Platform.OS === 'android' ? '7%' : '0%'}}>
       <ScrollView>
         <NormalHeader
           title="Booking Status"
@@ -173,7 +181,8 @@ const HotelBookingStatus = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{marginTop: Matrics.vs(10), paddingHorizontal: Matrics.s(10)}}>
+        <View
+          style={{marginTop: Matrics.vs(10), paddingHorizontal: Matrics.s(10)}}>
           <Text
             style={{
               width: Matrics.s(170),
@@ -222,7 +231,7 @@ const HotelBookingStatus = () => {
                   fontFamily: typography.fontFamily.Montserrat.Medium,
                   fontSize: typography.fontSizes.fs15,
                 }}>
-                ${Number(selectedRoom.totalprice).toFixed(2)}
+                ${Number(selectedRoom.price).toFixed(2)}
               </Text>
             </View>
           </View>
@@ -246,7 +255,7 @@ const HotelBookingStatus = () => {
                 color: COLOR.PRIMARY,
                 fontSize: typography.fontSizes.fs18,
               }}>
-              ${Number(selectedRoom.totalprice).toFixed(2)}
+              ${Number(selectedRoom.price).toFixed(2)}
             </Text>
           </View>
         </View>
