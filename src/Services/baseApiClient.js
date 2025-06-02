@@ -3,7 +3,7 @@ import {Store} from '../Redux/store';
 import {logout} from '../Redux/Reducers/AuthSlice';
 
 const baseApiClient = axios.create({
-  baseURL: 'https://ota.dev.visionvivante.com:9000',
+  baseURL: 'https://otaapi.visionvivante.in',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,6 +22,7 @@ baseApiClient.interceptors.request.use(
     if (contentToken) {
       config.headers['Content-Token'] = contentToken;
     }
+    console.log('config', config);
 
     return config;
   },
@@ -32,7 +33,6 @@ baseApiClient.interceptors.response.use(
   response => response,
   error => {
     if (error.response && error.response.status === 401) {
-      // Token expired or unauthorized
       Store.dispatch(logout());
     }
     return Promise.reject(error);

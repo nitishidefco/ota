@@ -1,6 +1,13 @@
 // TopContainer.js
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {useNavigation} from '@react-navigation/native';
@@ -8,7 +15,7 @@ import {ChevronLeft} from 'lucide-react-native';
 import i18n from '../../i18n/i18n';
 
 const AuthScreenHeaders = ({
-  bannerImage = Images.BANNER,
+  bannerImage = Images.BANNER_2,
   logo = Images.APP_LOGO,
   title = '',
   customStyles = {},
@@ -22,7 +29,8 @@ const AuthScreenHeaders = ({
       {showCreateAccountButton && ( // Conditionally render the button
         <TouchableOpacity
           style={styles.createAccountButton}
-          onPress={() => navigation.replace('CreateAccount')}>
+          onPress={() => navigation.navigate('CreateAccount')}
+          activeOpacity={0.7}>
           <Text style={{color: COLOR.PRIMARY}}>{i18n.t('MainScreen.CA')}</Text>
           <Image
             style={styles.arrowRightSmall}
@@ -32,8 +40,15 @@ const AuthScreenHeaders = ({
       )}
       {showLoginButton && ( // Conditionally render the button
         <TouchableOpacity
-          style={styles.createAccountButton}
-          onPress={() => navigation.replace('Login')}>
+          style={[
+            styles.createAccountButton,
+            {
+              width: Matrics.screenWidth * 0.25,
+              // paddingHorizontal: Matrics.s(20),
+            },
+          ]}
+          onPress={() => navigation.replace('Login')}
+          activeOpacity={0.7}>
           <Text style={{color: COLOR.PRIMARY}}>Login</Text>
           <Image
             style={styles.arrowRightSmall}
@@ -44,11 +59,12 @@ const AuthScreenHeaders = ({
       {showBackButton && (
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButtonContainer}>
-          <ChevronLeft />
+          style={styles.backButtonContainer}
+          activeOpacity={0.7}>
+          <ChevronLeft size={Matrics.s(35)} color={COLOR.PRIMARY} />
         </TouchableOpacity>
       )}
-      <View>
+      <View style={styles.bannerImageContainer}>
         <Image
           style={[styles.bannerImage, customStyles.bannerImage]}
           source={bannerImage}
@@ -82,16 +98,18 @@ const styles = StyleSheet.create({
   createAccountButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: Matrics.screenWidth * 0.35,
+    width: Matrics.screenWidth * 0.39,
     paddingVertical: Matrics.vs(4),
     gap: Matrics.s(4),
     justifyContent: 'center',
     position: 'absolute',
     zIndex: 2,
     backgroundColor: COLOR.WHITE,
-    borderRadius: Matrics.s(3),
+    borderRadius: Matrics.s(5),
     right: Matrics.screenWidth * 0.04,
-    top: Matrics.vs(12),
+    top: Platform.OS === 'android' ? Matrics.vs(30) : Matrics.vs(30),
+    borderWidth: 1,
+    borderColor: COLOR.BORDER_COLOR,
   },
   arrowRightSmall: {
     width: Matrics.s(17),
@@ -113,10 +131,11 @@ const styles = StyleSheet.create({
   },
   appLogoContainer: {
     width: Matrics.screenWidth,
+    // backgroundColor: 'red',
   },
   appLogo: {
     width: Matrics.screenWidth * 0.4,
-    height: Matrics.screenWidth * 0.4,
+    height: Matrics.screenWidth * 0.35,
     resizeMode: 'contain',
     alignSelf: 'center',
   },
@@ -127,14 +146,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bannerImage: {
+    width: Matrics.screenWidth * 1.1,
+    height: Matrics.screenHeight * 0.9,
+    resizeMode: 'cover',
+    transform:
+      Platform.OS === 'android'
+        ? [{translateY: 0}, {translateX: -5}]
+        : [{translateY: -200}, {translateX: 0}],
+  },
+  bannerImageContainer: {
     width: Matrics.screenWidth,
     height: Matrics.screenHeight * 0.4,
-    resizeMode: 'cover',
+    overflow: 'hidden',
   },
   backButtonContainer: {
+    width: Matrics.s(39),
+    height: Matrics.s(38),
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: Matrics.s(60),
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'absolute',
     zIndex: 10,
-    top: Matrics.vs(13),
+    top: Matrics.vs(26),
     left: Matrics.s(10),
   },
 });

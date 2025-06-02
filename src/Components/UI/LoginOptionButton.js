@@ -3,14 +3,30 @@ import React from 'react';
 import {Images} from '../../Config';
 import colors from '../../Config/AppStyling/colors';
 import {Matrics, typography} from '../../Config/AppStyling';
+import {useSelector} from 'react-redux';
 
-const LoginOptionButton = ({title, handlePress, iconName, isActive}) => {
+const LoginOptionButton = ({
+  title,
+  handlePress,
+  iconName,
+  isActive,
+  paddingHorizontal,
+  width,
+}) => {
+  const globalLanguage = useSelector(
+    state => state.selectedLanguage.globalLanguage,
+  );
   return (
-    <TouchableOpacity onPress={handlePress}>
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
       <View
         style={[
           isActive ? styles.buttonActive : styles.button,
           styles.commanButtonStyle,
+          {
+            paddingHorizontal:
+              globalLanguage === 'ar' ? Matrics.s(0) : Matrics.s(38),
+            width: width || Matrics.s(150),
+          },
         ]}>
         <Image
           style={[
@@ -39,7 +55,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Matrics.vs(10), // Vertical scaling
-    paddingHorizontal: Matrics.s(38), // Horizontal scaling
     gap: Matrics.s(8), // Scales spacing between elements
   },
   buttonActive: {

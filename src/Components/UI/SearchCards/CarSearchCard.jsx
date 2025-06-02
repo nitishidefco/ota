@@ -27,6 +27,7 @@ import {getCityDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetCityS
 import {useDispatch, useSelector} from 'react-redux';
 import {getAllHotelsThunk} from '../../../Redux/Reducers/HotelReducer/GetHotelSlice';
 import {errorToast} from '../../../Helpers/ToastMessage';
+import i18n from '../../../i18n/i18n';
 const CarSearchCard = () => {
   const dispatch = useDispatch();
   /* --------------------------------- States --------------------------------- */
@@ -105,20 +106,23 @@ const CarSearchCard = () => {
   /* --------------------------- handle search press --------------------------- */
   const handleSearchPress = async () => {
     if (cityDetails.length === 0 || destination === '') {
-      errorToast('Please select destination');
+      const error = i18n.t('toastMessages.selectDestination');
+      errorToast(error);
       return;
     }
 
     if (dayjs(hotelStayStartDate).isSameOrBefore(dayjs(), 'day')) {
       console.log('Inside hotel stay start date');
-      errorToast('Check-in date must be a future date');
+      const error = i18n.t('toastMessages.checkInFuture');
+      errorToast(error);
       return;
     }
     const stayDuration = dayjs
       .duration(dayjs(hotelStayEndDate).diff(dayjs(hotelStayStartDate)))
       .asDays();
     if (stayDuration > 20) {
-      errorToast('Stay duration cannot be more than 20 days');
+      const error = i18n.t('toastMessages.stayDuration');
+      errorToast(error);
       return;
     }
     const detailsForDestinationSearch = {
@@ -163,7 +167,7 @@ const CarSearchCard = () => {
   return (
     <View style={styles.mainContainer}>
       <View>
-        <Text style={styles.cardTitle}>Hotels</Text>
+        <Text style={styles.cardTitle}>Car</Text>
       </View>
       <View style={styles.searchBarContainer}>
         <View style={styles.searchBarLeftContainer}>
@@ -213,7 +217,8 @@ const CarSearchCard = () => {
                         style={styles.cityItem}
                         onPress={() =>
                           handleFlatListPress(item.cityName, index)
-                        }>
+                        }
+                        activeOpacity={0.7}>
                         <Text style={styles.cityName}>{item.cityName}</Text>
                         <Text style={styles.destinationName}>
                           {item.destinationName}
@@ -231,7 +236,8 @@ const CarSearchCard = () => {
             setDestination('');
             setShowFlatList(false);
           }}
-          style={styles.crossIconContainer}>
+          style={styles.crossIconContainer}
+          activeOpacity={0.7}>
           <Image
             style={[styles.searchBarIcon, styles.closeIcon]}
             source={Images.CLOSE}
@@ -245,33 +251,29 @@ const CarSearchCard = () => {
             source={Images.CALENDAR}
           />
           <View style={styles.startEndDateContainer}>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}>
               <Text style={styles.date}>
                 {dayjs(hotelStayStartDate)?.format('D MMM')}
               </Text>
             </TouchableOpacity>
             <Text>-</Text>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}>
               <Text style={styles.date}>
                 {dayjs(hotelStayEndDate).format('D MMM')}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-        <View style={styles.datePickerContainer}>
-          <Image
-            style={[styles.locationPinIcon, styles.searchBarIcon]}
-            source={Images.PEOPLE}
-          />
-          <TouchableOpacity onPress={() => setShowGuestsModal(true)}>
-            <Text style={styles.date}>{`${guests} Guests`}</Text>
-          </TouchableOpacity>
-        </View>
       </View>
       <TouchableOpacity
         style={styles.searchButtonContainer}
         onPress={handleSearchPress}
-        disabled={loadingHotels}>
+        disabled={loadingHotels}
+        activeOpacity={0.7}>
         {loadingHotels ? (
           <View style={styles.searchBarIcon}>
             <ActivityIndicator size={'large'} color={COLOR.WHITE} />
@@ -322,14 +324,18 @@ const CarSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Room</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleRooms('decre')}>
+              <TouchableOpacity
+                onPress={() => handleRooms('decre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.MINUS}
                   style={styles.guestOptionsControllerImages}
                 />
               </TouchableOpacity>
               <Text style={styles.guestText}>{rooms}</Text>
-              <TouchableOpacity onPress={() => handleRooms('incre')}>
+              <TouchableOpacity
+                onPress={() => handleRooms('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -342,14 +348,18 @@ const CarSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Adults</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleAdults('decre')}>
+              <TouchableOpacity
+                onPress={() => handleAdults('decre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.MINUS}
                   style={styles.guestOptionsControllerImages}
                 />
               </TouchableOpacity>
               <Text style={styles.guestText}>{adults}</Text>
-              <TouchableOpacity onPress={() => handleAdults('incre')}>
+              <TouchableOpacity
+                onPress={() => handleAdults('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -362,7 +372,9 @@ const CarSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Children</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handleChildren('decre')}>
+              <TouchableOpacity
+                onPress={() => handleChildren('decre')}
+                activeOpacity={0.7}>
                 {children === 0 ? (
                   <Image
                     source={Images.MINUS_DISABLED}
@@ -380,7 +392,9 @@ const CarSearchCard = () => {
               ) : (
                 <Text style={styles.guestText}>{children}</Text>
               )}
-              <TouchableOpacity onPress={() => handleChildren('incre')}>
+              <TouchableOpacity
+                onPress={() => handleChildren('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -393,7 +407,9 @@ const CarSearchCard = () => {
               <Text style={styles.guestOptionsTitle}>Pets</Text>
             </View>
             <View style={styles.guestOptionsTitleController}>
-              <TouchableOpacity onPress={() => handlePets('decre')}>
+              <TouchableOpacity
+                onPress={() => handlePets('decre')}
+                activeOpacity={0.7}>
                 {pets === 0 ? (
                   <Image
                     source={Images.MINUS_DISABLED}
@@ -411,7 +427,9 @@ const CarSearchCard = () => {
               ) : (
                 <Text style={styles.guestText}>{pets}</Text>
               )}
-              <TouchableOpacity onPress={() => handlePets('incre')}>
+              <TouchableOpacity
+                onPress={() => handlePets('incre')}
+                activeOpacity={0.7}>
                 <Image
                   source={Images.PLUS}
                   style={styles.guestOptionsControllerImages}
@@ -508,7 +526,8 @@ const styles = StyleSheet.create({
   startEndDateContainer: {
     flexDirection: 'row',
     flex: 1,
-    marginLeft: Matrics.screenWidth < 412 ? Matrics.s(5) : Matrics.s(10),
+    gap: 5,
+    marginLeft: Matrics.screenWidth < 412 ? Matrics.s(10) : Matrics.s(10),
   },
   date: {
     fontFamily: typography.fontFamily.Montserrat.Medium,

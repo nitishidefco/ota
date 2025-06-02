@@ -1,9 +1,12 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import {getHotelDetails} from '../../../Services/HotelService.js/GetHotelDetails';
+import {getAdditionalDetails} from '../../../Services/HotelService.js/GetAdditionalDetailsService';
 
 const initialState = {
-  hotel: '',
-  loadingHotelDetails: null,
+  hotel: null,
+  loadingHotels: null,
+  additionalDetails: {},
+  loadingAdditionalDetails: null,
 };
 
 export const getHotelDetailsThunk = createAsyncThunk(
@@ -16,7 +19,21 @@ export const getHotelDetailsThunk = createAsyncThunk(
 
       return response.result;
     } catch (error) {
-      return rejectWithValue('Error getting hotesl', error);
+      return rejectWithValue('Error getting hotels', error);
+    }
+  },
+);
+
+export const getAdditionalDetail = createAsyncThunk(
+  'hotels/additionalDetails',
+  async ({details}, {rejectWithValue}) => {
+    try {
+      const response = await getAdditionalDetails({details: details});
+      console.log('Additional details response', response);
+
+      return response.result;
+    } catch (error) {
+      return rejectWithValue('Error getting additional details', error);
     }
   },
 );
@@ -29,7 +46,7 @@ const hotelDetailSlice = createSlice({
     builder
       .addCase(getHotelDetailsThunk.pending, state => {
         state.loadingHotels = true;
-        state.hotel = [];
+        state.hotel = null;
       })
       .addCase(getHotelDetailsThunk.fulfilled, (state, action) => {
         state.loadingHotels = false;
@@ -38,6 +55,19 @@ const hotelDetailSlice = createSlice({
       .addCase(getHotelDetailsThunk.rejected, (state, action) => {
         state.loadingHotels = false;
         console.log('Rejected hotel request', action.payload);
+      })
+      .addCase(getAdditionalDetail.pending, state => {
+        state.loadingAdditionalDetails = true;
+      })
+      .addCase(getAdditionalDetail.fulfilled, (state, action) => {
+        state.loadingAdditionalDetails = false;
+        console.log('Additional details fulfilled', action.payload);
+
+        state.additionalDetails = action.payload;
+      })
+      .addCase(getAdditionalDetail.rejected, (state, action) => {
+        state.loadingAdditionalDetails = false;
+        console.log('Rejected additional details request', action.payload);
       });
   },
 });

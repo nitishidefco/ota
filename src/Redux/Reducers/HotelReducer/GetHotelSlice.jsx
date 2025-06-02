@@ -1,5 +1,6 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import {getHotels} from '../../../Services/HotelService.js/GetHotelService';
+import reactotron from 'reactotron-react-native';
 
 const initialState = {
   hotels: [],
@@ -9,12 +10,14 @@ const initialState = {
 export const getAllHotelsThunk = createAsyncThunk(
   'hotels/getAllHotels',
   async ({details}, {rejectWithValue}) => {
+    reactotron.log('details', details);
     try {
-      console.log('details', details);
-      const response = await getHotels({details: details});
+      const response = await getHotels({
+        details: details,
+      });
       return response.result;
     } catch (error) {
-      return rejectWithValue('Error getting hotesl', error);
+      return rejectWithValue('Error getting hotels', error);
     }
   },
 );
@@ -22,7 +25,11 @@ export const getAllHotelsThunk = createAsyncThunk(
 const hotelSlice = createSlice({
   name: 'hotelSlice',
   initialState,
-  reducers: {},
+  reducers: {
+    resetHotelState: state => {
+      state.hotels = [];
+    },
+  },
   extraReducers: builder => {
     builder
       .addCase(getAllHotelsThunk.pending, state => {
@@ -39,5 +46,5 @@ const hotelSlice = createSlice({
       });
   },
 });
-
+export const {resetHotelState} = hotelSlice.actions;
 export default hotelSlice.reducer;

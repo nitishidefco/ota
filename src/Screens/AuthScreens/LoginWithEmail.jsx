@@ -1,15 +1,11 @@
 import {
-  ScrollView,
   View,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
   TouchableOpacity,
   Text,
   Image,
-  Pressable,
 } from 'react-native';
 
 import React, {useState} from 'react';
@@ -20,23 +16,23 @@ import {Images} from '../../Config';
 import {useNavigation} from '@react-navigation/native';
 import {loginUserWithEmail} from '../../Redux/Reducers/AuthSlice';
 import {useDispatch, useSelector} from 'react-redux';
-import Toast from 'react-native-toast-message';
 import CustomLoader from '../../Components/Loader/CustomLoader';
 import {checkUniversalToken} from '../../Redux/Reducers/ContentTokenSlice';
 import {errorToast} from '../../Helpers/ToastMessage';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import i18n from '../../i18n/i18n';
-import {useTranslation} from 'react-i18next';
-
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 const LoginWithEmail = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const AuthState = useSelector(state => state.auth);
   const token = useSelector(state => state.contentToken.universalToken);
-  const {t} = useTranslation();
   const dispatch = useDispatch();
-
+  const globalLanguage = useSelector(
+    state => state.selectedLanguage.globalLanguage,
+  );
   const [errors, setErrors] = useState({
     email: '',
     password: '',
@@ -62,13 +58,6 @@ const LoginWithEmail = () => {
       const error = i18n.t('validationMessages.shortPassword');
       return error;
     }
-    // if (
-    //   !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
-    //     value,
-    //   )
-    // ) {
-    //   return 'Password must contain uppercase, lowercase, number and special character';
-    // }
     return '';
   };
   const handleEmailChange = value => {
@@ -101,7 +90,7 @@ const LoginWithEmail = () => {
     }
 
     try {
-      const userDetailsForCreateAccount = {
+      const userDetailsForLogin = {
         username: email,
         password,
         login_with_otp: false,
@@ -110,98 +99,121 @@ const LoginWithEmail = () => {
       let currentToken = token;
       if (!currentToken) {
         const tokenResult = await dispatch(checkUniversalToken());
+
         if (checkUniversalToken.fulfilled.match(tokenResult)) {
           currentToken = tokenResult.payload.token;
         } else {
-          // Handle case where token retrieval failed
           console.log('Unable to get authentication token');
           return;
         }
       }
       const response = await dispatch(
         loginUserWithEmail({
-          details: userDetailsForCreateAccount,
-          contentToken: currentToken,
+          details: userDetailsForLogin,
+          // contentToken: currentToken,
         }),
       );
-      if (response?.payload?.status === true) {
-        // navigation.replace('Login');
-      } else if (response?.payload?.status === false) {
-        errorToast(response?.payload?.errors);
-      } else if (response?.error?.message === 'Rejected') {
-        errorToast(response?.payload);
+      if (response?.error?.message === 'Rejected') {
+        errorToast(response?.payload?.message || response?.payload?.errors);
       }
-      console.log('response in login with email account', response);
     } catch (error) {
       console.log('Error', 'login in account', error);
     }
   };
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+
+  const renderContent = () => (
+    <>
+      {AuthState?.isLoading && (
+        <Animated.View
+          entering={FadeIn.duration(25)}
+          exiting={FadeOut.duration(25)}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            height: Matrics.screenHeight,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+          }}
+        />
+      )}
       {AuthState?.isLoading && (
         <CustomLoader
           message={i18n.t('validationMessages.checkingCreditionals')}
           isVisible={AuthState?.isLoading}
         />
       )}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-            <View style={styles.container}>
-              <AuthScreenHeaders
-                title={i18n.t('LoginWithEmail.loginWithEmail')}
-                showBackButton={true}
+      <TouchableWithoutFeedback style={{flex: 1}} onPress={Keyboard.dismiss}>
+        <KeyboardAwareScrollView
+          showsVerticalScrollIndicator={false}
+          style={styles.keyboardAvoidingView}>
+          <View style={styles.container}>
+            <AuthScreenHeaders
+              title={i18n.t('LoginWithEmail.loginWithEmail')}
+              showBackButton={true}
+            />
+            <View style={styles.inputContainer}>
+              <CustomInput
+                label={i18n.t('LoginWithEmail.email')}
+                value={email}
+                onChangeText={handleEmailChange}
+                placeholder={i18n.t('LoginWithEmail.emailPlaceholder')}
+                type="email"
+                error={errors.email}
+                required
               />
-              <View style={styles.inputContainer}>
-                <CustomInput
-                  label={i18n.t('LoginWithEmail.email')}
-                  value={email}
-                  onChangeText={handleEmailChange}
-                  placeholder={i18n.t('LoginWithEmail.emailPlaceholder')}
-                  type="email"
-                  error={errors.email}
-                  required
-                />
-                <CustomInput
-                  label={i18n.t('LoginWithEmail.password')}
-                  value={password}
-                  onChangeText={handlePasswordChange}
-                  placeholder={i18n.t('LoginWithEmail.passwordPlaceholder')}
-                  type="password"
-                  error={errors.password}
-                  required
-                />
-                <Pressable
-                  onPress={() => navigation.navigate('ForgotPassword')}>
-                  <Text style={styles.textStyle}>
-                    {i18n.t('LoginWithEmail.forgotPassword')}
-                  </Text>
-                </Pressable>
-              </View>
-              <View style={styles.parentButtonContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.buttonContainer,
-                    AuthState.isLoading && {opacity: 0.5},
-                  ]}
-                  onPress={onLoginUserPress}
-                  disabled={AuthState?.isLoading}>
-                  <Image
-                    style={styles.bottomElipseButtonStlye}
-                    source={Images.BOTTOM_ELIPSE_BUTTON}
-                  />
-                </TouchableOpacity>
-              </View>
+              <CustomInput
+                label={i18n.t('LoginWithEmail.password')}
+                value={password}
+                onChangeText={handlePasswordChange}
+                placeholder={i18n.t('LoginWithEmail.passwordPlaceholder')}
+                type="password"
+                error={errors.password}
+                required
+              />
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ForgotPassword')}
+                activeOpacity={0.7}>
+                <Text style={styles.textStyle}>
+                  {i18n.t('LoginWithEmail.forgotPassword')}
+                </Text>
+              </TouchableOpacity>
             </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <View
+              style={[
+                styles.parentButtonContainer,
+                {
+                  alignItems:
+                    globalLanguage === 'ar' ? 'flex-start' : 'flex-end',
+                  marginLeft: globalLanguage === 'ar' ? -15 : 0,
+                  marginTop: globalLanguage === 'ar' ? 10 : 0,
+                },
+              ]}>
+              <TouchableOpacity
+                style={[
+                  styles.buttonContainer,
+                  AuthState.isLoading && {opacity: 0.5},
+                ]}
+                onPress={onLoginUserPress}
+                disabled={AuthState?.isLoading}
+                activeOpacity={0.7}>
+                <Image
+                  style={styles.bottomElipseButtonStlye}
+                  source={Images.BOTTOM_ELIPSE_BUTTON}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAwareScrollView>
+      </TouchableWithoutFeedback>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 
@@ -226,6 +238,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Matrics.s(10),
     marginTop: Matrics.screenHeight * 0.25,
     flex: 1,
+    gap: Matrics.vs(10),
   },
   textStyle: {
     fontFamily: typography.fontFamily.Montserrat.Regular,
@@ -240,7 +253,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     borderTopLeftRadius: 170,
-    marginRight: Matrics.s(-13),
+    marginRight: Matrics.s(-17),
   },
   parentButtonContainer: {
     alignItems: 'flex-end',

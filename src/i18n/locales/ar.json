@@ -43,17 +43,33 @@
     "login": "تسجيل الدخول",
     "searchMessage": "ابحث عن دولة"
   },
+  "Tabs": {
+    "Profile": "حساب تعريفي",
+    "Booking": "الحجز",
+    "Home": "بيت",
+    "Referrals": "الإحالات"
+  },
   "Hotel": {
     "hi": "مرحبًا",
     "bestService": "نقدم أفضل خدمة بأقل سعر",
-    "hotel": "فنادق",
-    "tour": "جولات",
-    "flight": "رحلات جوية",
-    "car": "سيارات",
+    "Hotels": "فنادق",
+    "Tours": "جولات",
+    "Flights": "رحلات جوية",
+    "Car": "سيارات",
     "home": "الرئيسية",
     "myBookings": "حجوزاتي",
     "referal": "الإحالات",
-    "profile": "الملف الشخصي"
+    "profile": "الملف الشخصي",
+    "filter": "فلتر",
+    "mmDDyyyy": "شهر-يوم-سنة",
+    "adult": "الكبار",
+    "children": "أطفال",
+    "room": "غرفة",
+    "and": "و"
+  },
+  "HotelCard": {
+    "bookNow": "احجز الآن",
+    "noAmenityAvailable": "لا توجد وسائل راحة متاحة"
   },
   "validationMessages": {
     "noEmail": "البريد الإلكتروني مطلوب",
@@ -63,7 +79,7 @@
     "checkingCreditionals": "جارٍ التحقق من بيانات الاعتماد",
     "noPhone": "رقم الهاتف مطلوب",
     "notValidPhone": "رقم الهاتف غير صالح",
-    "validPhoneLength": "يجب أن يتكون رقم الهاتف من 10 أرقام",
+    "validPhoneLength": "يجب أن يتكون رقم الهاتف من{length} أرقام",
     "noName": "الاسم مطلوب",
     "shortName": "يجب أن يتكون الاسم من حرفين على الأقل",
     "invalidName": "يمكن أن يحتوي الاسم على حروف ومسافات فقط",
@@ -73,6 +89,53 @@
   "Toast": {
     "accountCreatedSuccess": "تم إنشاء الحساب بنجاح",
     "checkEmail": "يرجى التحقق من بريدك الإلكتروني لرؤية تفاصيل التفعيل",
-    "otpSentSuccess": "تم إرسال رمز التحقق (OTP) بنجاح"
+    "otpSentSuccess": "تم إرسال رمز التحقق (OTP) بنجاح",
+    "selectDestination": "يرجى اختيار الوجهة",
+    "checkInDateMustBeFuture": "يجب أن يكون تاريخ الوصول في المستقبل",
+    "stayDurationCannotBeMoreThan20Days": "لا يمكن أن تتجاوز مدة الإقامة 20 يومًا"
+  },
+  "HotelSearchCard": {
+    "searchMessage": "ابحث عن وجهة",
+    "guests": "الضيوف",
+    "search": "ابحث"
+  },
+  "loading": {
+    "loadingHotelDetail": "جارٍ تحميل تفاصيل الفندق",
+    "gettingRooms": "جارٍ الحصول على الغرف لك"
+  },
+  "Cashback": {
+    "cashbackTitle": "الكاشباك الخاص بي",
+    "rightMenu": "الإحالات الخاصة بي",
+    "all": "الكل",
+    "hotel": "الفنادق",
+    "cars": "السيارات",
+    "flights": "الرحلات الجوية",
+    "tours": "الجولات",
+    "tableTitle": "قائمة الكاشباك",
+    "cashback": "الكاشباك",
+    "amount": "المبلغ",
+    "date": "تاريخ الحجز",
+    "type": "النوع",
+    "totalCashback": "إجمالي الكاشباك المكتسب",
+    "totalEarning": "إجمالي الإيرادات"
+  },
+  "Booking": {
+    "bookingTitle": "حجوزاتي",
+    "totalBookings": "إجمالي الحجوزات",
+    "cancelledBooking": "الحجوزات الملغية",
+    "completedBooking": "الحجوزات المكتملة",
+    "processingBooking": "الحجوزات المعالجة",
+    "listOfBookings": "قائمة الحجوزات",
+    "download": "تحميل",
+    "downloading": "جارٍ التحميل",
+    "cancel": "إلغاء",
+    "loadingBookings": "جارٍ تحميل الحجوزات...",
+    "cancelBooking": "هل أنت متأكد من أنك تريد إلغاء هذا الحجز؟",
+    "downloadSuccessful": "تم التحميل بنجاح",
+    "invoiceDownloaded": "تم تحميل الفاتورة إلى الجهاز",
+    "cancelBookingButton": "إلغاء الحجز"
+  },
+  "Profile":{
+    
   }
 }

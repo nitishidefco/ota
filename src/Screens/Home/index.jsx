@@ -9,6 +9,13 @@ import {initializeLanguage} from '../../Redux/Reducers/LanguageSlice';
 import {useDispatch, useSelector} from 'react-redux';
 import HotelDetail from './HotelDetails/HotelDetail';
 import HotelBooking from './HotelDetails/HotelBooking';
+import PriceConfirmFailed from './HotelDetails/PriceConfirmFailed';
+import ConfirmingPrice from './HotelDetails/ConfirmingPrice';
+import ReviewUserDetails from './HotelDetails/ReviewUserDetails';
+import HotelPaymentsPage from './HotelDetails/HotelPaymentsPage';
+import HotelImageGallery from './HotelDetails/HotelImageGallery';
+import AddCard from './HotelDetails/AddCard';
+import HotelBookingStatus from './HotelDetails/HotelBookingStatus';
 
 const Stack = createNativeStackNavigator();
 const HotelStack = createNativeStackNavigator();
@@ -19,6 +26,28 @@ const HotelNavigator = () => {
       <HotelStack.Screen name="HotelList" component={Hotels} />
       <HotelStack.Screen name="HotelDetail" component={HotelDetail} />
       <HotelStack.Screen name="HotelBooking" component={HotelBooking} />
+      <HotelStack.Screen
+        name="PriceConfirmFailed"
+        component={PriceConfirmFailed}
+      />
+      <HotelStack.Screen name="ConfirmingPrice" component={ConfirmingPrice} />
+      <HotelStack.Screen
+        name="ReviewUserDetails"
+        component={ReviewUserDetails}
+      />
+      <HotelStack.Screen
+        name="HotelPaymentsPage"
+        component={HotelPaymentsPage}
+      />
+      <HotelStack.Screen
+        name="HotelImageGallery"
+        component={HotelImageGallery}
+      />
+      <HotelStack.Screen name="AddCard" component={AddCard} />
+      <HotelStack.Screen
+        name="HotelBookingStatus"
+        component={HotelBookingStatus}
+      />
     </HotelStack.Navigator>
   );
 };

@@ -1,15 +1,30 @@
 // Splash.js
-import React from 'react';
-import {View, StyleSheet, Image, SafeAreaView} from 'react-native';
+import React, {useEffect} from 'react';
+import {View, StyleSheet, Image, SafeAreaView, I18nManager} from 'react-native';
 import Images from './Config/Images';
 import colors from './Config/AppStyling/colors';
 import {Matrics} from './Config/AppStyling';
 import FastImage from 'react-native-fast-image';
+import {useSelector} from 'react-redux';
 
 const Splash = () => {
- 
-  return (
-    <SafeAreaView style={{flex: 1}}>
+  const globalLanguage = useSelector(
+    state => state.selectedLanguage.globalLanguage,
+  );
+
+  useEffect(() => {
+    // Force LTR layout for splash screen
+    I18nManager.allowRTL(false);
+    I18nManager.forceRTL(false);
+
+    return () => {
+      // Reset RTL settings when component unmounts
+      I18nManager.allowRTL(true);
+      I18nManager.forceRTL(false);
+    };
+  }, []);
+  const renderContent = () => (
+    <>
       <View style={styles.container}>
         <View style={styles.topElipseContainer}>
           <Image source={Images.TOP_ELIPSE} />
@@ -26,7 +41,12 @@ const Splash = () => {
           />
         </View>
       </View>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={{flex: 1}}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

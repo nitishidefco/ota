@@ -18,10 +18,11 @@ import CustomInput from '../../Components/UI/CustomInput';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 import OtpHandler from '../../Components/UI/OtpHandler';
+import {useNavigation} from '@react-navigation/native';
 const CheckEmail = () => {
-  const [email, setEmail] = useState('');
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+  const navigation = useNavigation();
+  const renderContent = () => (
+    <>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}>
@@ -42,7 +43,10 @@ const CheckEmail = () => {
                   further instructions. Please check your mail to rest your
                   password.
                 </Text>
-                <TouchableOpacity style={styles.buttonStyle}>
+                <TouchableOpacity
+                  style={styles.buttonStyle}
+                  onPress={() => navigation.replace('LoginWithEmail')}
+                  activeOpacity={0.7}>
                   <Text style={styles.buttonTextStyle}>Back to login</Text>
                 </TouchableOpacity>
               </View>
@@ -50,7 +54,12 @@ const CheckEmail = () => {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 
@@ -61,7 +70,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     paddingHorizontal: Matrics.s(10),
-    marginTop: Matrics.screenHeight * 0.2,
+    marginTop: Matrics.vs(165),
     flex: 1,
   },
   detailText: {

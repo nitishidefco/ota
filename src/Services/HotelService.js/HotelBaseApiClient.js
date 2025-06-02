@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const hotelBaseApiClient = axios.create({
-  baseURL: 'https://ota-gds.visionvivante.com:5090',
+  baseURL: 'https://gds.visionvivante.in',
   headers: {
     'Content-Type': 'application/json',
   },

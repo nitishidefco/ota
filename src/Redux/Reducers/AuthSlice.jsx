@@ -1,10 +1,21 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {
   createAccount,
+  forgotPassword,
+  forgotPasswordSer,
   loginWithEmail,
   loginWithPhone,
+  socialLogin,
 } from '../../Services/AuthServices';
 import * as Keychain from 'react-native-keychain';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import Config from 'react-native-config';
+import {LoginManager, Profile, AccessToken} from 'react-native-fbsdk-next';
+import {errorToast} from '../../Helpers/ToastMessage';
+
 const initialState = {
   isLoading: false,
   isSuccess: false,
@@ -13,6 +24,9 @@ const initialState = {
   userToken: '',
   errorMessage: '',
 };
+
+console.log('Islogin', initialState.isLoading);
+
 const saveToken = async token => {
   try {
     // Store the token securely
@@ -41,6 +55,7 @@ const removeToken = async () => {
     await Keychain.resetGenericPassword({
       service: 'auth_service',
     });
+    console.log('token removed successfully');
   } catch (error) {
     console.error('Error removing token:', error);
   }
@@ -105,15 +120,120 @@ export const checkStoredToken = createAsyncThunk(
   'auth/checkStoredToken',
   async (_, {rejectWithValue}) => {
     try {
-      console.log('checking for stored token');
-
       const token = await getToken();
-      console.log(token);
-
       return {token};
     } catch (error) {
       // await removeToken();
       return rejectWithValue('Token validation failed');
+    }
+  },
+);
+
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (_, {rejectWithValue}) => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const googleResponse = await GoogleSignin.signIn();
+      console.log('Google response', googleResponse);
+      if (googleResponse.type === 'cancelled') {
+        return rejectWithValue('Google sign in cancelled by user');
+      }
+      const googleId = googleResponse?.data?.user?.id;
+      const googleName = googleResponse?.data?.user?.name;
+      const googleEmail = googleResponse?.data?.user?.email;
+      const details = {
+        google_id: googleId,
+        name: googleName,
+        email: googleEmail,
+      };
+      console.log('Details', details);
+      const response = await socialLogin({details: details});
+      console.log('Google sign in response', response);
+      return response?.data?.data;
+    } catch (error) {
+      console.log('Google sign in error', error);
+    }
+  },
+);
+
+export const forgotPasswordThunk = createAsyncThunk(
+  'auth/forgotPassword',
+  async ({details}, {rejectWithValue}) => {
+    try {
+      const response = await forgotPasswordSer({
+        details: details,
+      });
+      console.log('response', response);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+
+      return rejectWithValue(
+        error.response ? error.response.data : error.message,
+      );
+    }
+  },
+);
+
+export const facebookLogin = createAsyncThunk(
+  'auth/facebookLogin',
+  async (_, {rejectWithValue}) => {
+    try {
+      console.log('Inside login with facebook');
+
+      // Attempt login with permissions
+      const result = await LoginManager.logInWithPermissions([
+        'public_profile',
+      ]);
+
+      // Check if login was cancelled
+      if (result.isCancelled) {
+        console.log('Login cancelled');
+        return rejectWithValue('Login was cancelled by the user');
+      }
+
+      console.log(
+        'Login success with permissions: ',
+        result.grantedPermissions,
+      );
+
+      // Get the access token
+      const accessTokenData = await AccessToken.getCurrentAccessToken();
+      if (!accessTokenData) {
+        console.log('No access token received');
+        return rejectWithValue('Failed to retrieve access token');
+      }
+
+      // Get the current user profile
+      const currentProfile = await Profile.getCurrentProfile();
+      if (!currentProfile) {
+        console.log('No profile data available');
+        return rejectWithValue('Failed to retrieve profile data');
+      }
+
+      // Log profile details
+      console.log(
+        'The current logged user is: ' +
+          currentProfile.name +
+          '. Their profile ID is: ' +
+          currentProfile.userID,
+      );
+      const details = {
+        facebook_id: currentProfile.userID,
+        name: currentProfile.name,
+        email: '',
+      };
+      console.log(details);
+
+      const response = await socialLogin({details: details});
+      console.log('response from backend', response);
+
+      // Return the profile data and access token to Redux
+      return response?.data?.data;
+    } catch (error) {
+      console.log('Error while facebook login: ', error);
+      return rejectWithValue(error.message || 'Facebook login failed');
     }
   },
 );
@@ -208,6 +328,59 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;
+      })
+      .addCase(googleLogin.pending, state => {
+        state.isLoading = true;
+        state.isFailure = false;
+        state.isSuccess = false;
+        state.errorMessage = '';
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.authData = action.payload;
+        state.userToken = action.payload.token;
+        saveToken(action.payload.token);
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        console.log('action.payload google login rejected', action.payload);
+
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload;
+      })
+      .addCase(facebookLogin.pending, state => {
+        state.isLoading = true;
+        state.isFailure = false;
+        state.isSuccess = false;
+        state.errorMessage = '';
+      })
+      .addCase(facebookLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.authData = action.payload;
+        state.userToken = action.payload.token;
+        saveToken(action.payload.token);
+      })
+      .addCase(facebookLogin.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload;
+      })
+      .addCase(forgotPasswordThunk.pending, state => {
+        state.isLoading = true;
+        state.isSuccess = false;
+      })
+      .addCase(forgotPasswordThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action?.payload?.data?.message === 'SUCCESS') {
+          state.isSuccess = true;
+        }
+      })
+      .addCase(forgotPasswordThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload.message;
       });
   },
 });
