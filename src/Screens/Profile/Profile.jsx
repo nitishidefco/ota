@@ -55,6 +55,7 @@ const Profile = () => {
     }, [contentToken, dispatch, userToken]),
   );
   console.log(userProfileData);
+
   return (
     <>
       {isLoading && (
@@ -159,15 +160,17 @@ const Profile = () => {
 };
 
 export default Profile;
+const imageSize = Matrics.screenWidth * 0.3;
 
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
   },
+
   userProfilePic: {
-    width: Matrics.screenWidth * 0.3,
-    height: Matrics.vs(100),
-    borderRadius: Matrics.s(100),
+    width: imageSize,
+    height: imageSize,
+    borderRadius: imageSize / 2,
   },
   upperContainer: {
     height: Matrics.screenHeight * 0.4,

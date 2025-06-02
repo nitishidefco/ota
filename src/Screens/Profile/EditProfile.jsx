@@ -17,6 +17,7 @@ import {
   TextInput,
   FlatList,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {
   BottomSheetModal,
@@ -377,10 +378,8 @@ const EditProfile = () => {
       navigation.goBack();
     }
   };
-  console.log(profilePic);
-
-  return (
-    <SafeAreaView style={{flex: 1}}>
+  const renderContent = () => (
+    <>
       <GestureHandlerRootView style={{flex: 1}}>
         {showCancelModal && (
           <ConfirmationModal
@@ -437,7 +436,7 @@ const EditProfile = () => {
                     onChangeText={handleEmailChange}
                     placeholder={i18n.t('EditProfile.emailPlaceholder')}
                     placeholderTextColor="#999"
-                    multiline={true}
+                    multiline={Platform.OS === 'android' ? true : false}
                     scrollEnabled={true}
                   />
                   {errors.email ? (
@@ -501,7 +500,7 @@ const EditProfile = () => {
                       placeholder={i18n.t('EditProfile.cityPlaceholder')}
                       placeholderTextColor="#999"
                       keyboardShouldPersistTaps="handled"
-                      multiline={true}
+                      multiline={Platform.OS === 'android' ? true : false}
                       scrollEnabled={true}
                     />
                     <View style={styles.cityDropdownContainer}>
@@ -570,7 +569,7 @@ const EditProfile = () => {
                     onChangeText={handleStateChange}
                     placeholder={i18n.t('EditProfile.statePlaceholder')}
                     placeholderTextColor="#999"
-                    multiline={true}
+                    multiline={Platform.OS === 'android' ? true : false}
                     scrollEnabled={true}
                   />
                   {errors.state ? (
@@ -592,7 +591,7 @@ const EditProfile = () => {
                     placeholder={i18n.t('EditProfile.zipCodePlaceholder')}
                     placeholderTextColor="#999"
                     keyboardType="numeric"
-                    multiline={true}
+                    multiline={Platform.OS === 'android' ? true : false}
                     scrollEnabled={true}
                   />
                   {errors.zipCode ? (
@@ -671,12 +670,19 @@ const EditProfile = () => {
           </BottomSheetModal>
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
-    </SafeAreaView>
+    </>
+  );
+
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={{flex: 1}}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 
 export default EditProfile;
-
+const imageSize = Matrics.screenWidth * 0.3;
+const editIconSize = Matrics.s(40);
 const styles = StyleSheet.create({
   containerMain: {
     flex: 1,
@@ -688,21 +694,20 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: {
-    width: Matrics.s(130),
-    height: Matrics.vs(130),
-    borderRadius: Matrics.s(65),
-    resizeMode: 'cover',
+    width: imageSize,
+    height: imageSize,
+    borderRadius: imageSize / 2,
   },
   editIconContainer: {
     position: 'absolute',
     bottom: 0,
     right: 0,
     backgroundColor: COLOR.WHITE,
-    width: Matrics.s(40),
-    height: Matrics.vs(40),
+    width: editIconSize,
+    height: editIconSize,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Matrics.s(40),
+    borderRadius: editIconSize / 2,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},

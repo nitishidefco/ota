@@ -142,8 +142,10 @@ const ChangePassword = ({route}) => {
       console.log('Error in change password screen', error);
     }
   };
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
+
+  const renderContent = () => (
+    <>
+      {' '}
       {isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -271,7 +273,12 @@ const ChangePassword = ({route}) => {
           </View>
         </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </>
+  );
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

@@ -8,6 +8,7 @@ import {
   Modal,
   ActivityIndicator,
   Share,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -363,10 +364,8 @@ const Referrals = () => {
     }
   };
 
-  console.log('referralList*******', referralList);
-
-  return (
-    <SafeAreaView style={{flex: 1}}>
+  const renderContent = () => (
+    <>
       <ScrollView>
         <NormalHeader
           title="My Referrals"
@@ -513,7 +512,13 @@ const Referrals = () => {
         </View>
         {renderDropdown()}
       </ScrollView>
-    </SafeAreaView>
+    </>
+  );
+
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={{flex: 1}}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 

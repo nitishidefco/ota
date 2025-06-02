@@ -189,9 +189,7 @@ const Cashback = () => {
   const renderFixedHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTitleContainer}>
-        <Text style={styles.headerTitle}>
-          {i18n.t('Cashback.tableTitle')}
-        </Text>
+        <Text style={styles.headerTitle}>{i18n.t('Cashback.tableTitle')}</Text>
         <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowDropdown(true)}>
@@ -271,8 +269,8 @@ const Cashback = () => {
     </View>
   );
 
-  return (
-    <SafeAreaView style={{flex: 1}}>
+  const renderContent = () => (
+    <>
       <ScrollView>
         <NormalHeader
           title={i18n.t('Cashback.cashbackTitle')}
@@ -413,7 +411,13 @@ const Cashback = () => {
         </View>
       </ScrollView>
       {renderDropdown()}
-    </SafeAreaView>
+    </>
+  );
+
+  return Platform.OS === 'android' ? (
+    <SafeAreaView style={{flex: 1}}>{renderContent()}</SafeAreaView>
+  ) : (
+    <View style={{flex: 1}}>{renderContent()}</View>
   );
 };
 
