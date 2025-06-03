@@ -60,6 +60,9 @@ const StarRating = ({rating = 0, reviewCount = 0}) => {
 };
 const HotelDetail = ({route, navigation}) => {
   const dispatch = useDispatch();
+
+
+  
   const {provider, hotelId, GiataId} = route.params;
   const {setProvider, setHotelId, setGiataId} = useContext(PolicyInfoContext);
   useEffect(() => {
