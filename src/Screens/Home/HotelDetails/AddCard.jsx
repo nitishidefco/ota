@@ -11,7 +11,7 @@ import {
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import {useDispatch} from 'react-redux';
 import {saveCardThunk} from '../../../Redux/Reducers/BookingOverviewReducer/BookingListSlice';
-import {errorToast} from '../../../Helpers/ToastMessage';
+import {errorToast, success} from '../../../Helpers/ToastMessage';
 
 const AddCard = () => {
   const navigation = useNavigation();
@@ -64,16 +64,37 @@ const AddCard = () => {
         cardToken: token.id,
       };
       console.log('details', details);
-      const response = await dispatch(saveCardThunk({details})).unwrap();
-      console.log('response', response);
 
-      if (response) {
-        navigation.navigate('HotelPaymentsPage');
+      console.log('About to dispatch saveCardThunk...');
+      const result = await dispatch(saveCardThunk({details}));
+      console.log('dispatch result:', result);
+      console.log('result.payload:', result.payload);
+      console.log('result.meta:', result.meta);
+
+      // Check if the action was fulfilled
+      if (saveCardThunk.fulfilled.match(result)) {
+        const response = result.payload;
+        console.log('response after unwrap:', response);
+        console.log('response type:', typeof response);
+        console.log('response status:', response?.status);
+
+        if (response && response.status) {
+          success('Card saved successfully!');
+          navigation.navigate('HotelPaymentsPage');
+        } else {
+          console.log('Response or status is falsy:', {
+            response,
+            status: response?.status,
+          });
+          errorToast('Failed to save card. Please try again.');
+        }
       } else {
-        errorToast('Error', 'Failed to save card. Please try again.');
+        console.log('Action was rejected:', result.error);
+        errorToast('Failed to save card. Please try again.');
       }
     } catch (error) {
-      errorToast('Error', 'Failed to save card. Please try again.');
+      console.error('Error saving card:', error);
+      errorToast('Failed to save card. Please try again.');
     } finally {
       setIsLoading(false);
     }

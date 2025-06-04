@@ -8,6 +8,7 @@ import BookingPriceDisplay from './BookingPriceDisplay';
 import DownloadButton from './DownloadButton';
 import CancelBookingButton from './CancelBookingButton';
 import BookingTypeIcon from './BookingTypeIcon';
+import dayjs from 'dayjs';
 
 const BookingControllerCard = ({
   name,
@@ -17,6 +18,7 @@ const BookingControllerCard = ({
   invoicePath,
   bookingId,
   gds,
+  checkInDate,
   onCancelBooking,
   cancelBookingLoading,
   currentCancellingBookingId,
@@ -34,7 +36,8 @@ const BookingControllerCard = ({
   const isBookingCancelled =
     status?.toString() === '3' || status?.toString() === '4';
 
-
+  // Check if check-in date has passed
+  const isCheckInDatePassed = dayjs(checkInDate).isBefore(dayjs(), 'day');
 
   return (
     <TouchableOpacity
@@ -82,7 +85,7 @@ const BookingControllerCard = ({
             marginTop: 10,
           }}>
           <DownloadButton invoicePath={invoicePath} />
-          {!isBookingCancelled && (
+          {!isBookingCancelled && !isCheckInDatePassed && (
             <CancelBookingButton
               cancelBooking={handleCancelBooking}
               bookingId={bookingId}

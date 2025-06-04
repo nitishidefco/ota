@@ -201,7 +201,10 @@ const Support = ({}) => {
         <Image source={Images.SUPPORT_AVATAR} style={styles.avatar} />
         <View style={{paddingHorizontal: Matrics.s(16)}}>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Name</Text>
+            <Text style={styles.label}>
+              Name {''}
+              <Text style={styles.requiredAsterisk}>*</Text>
+            </Text>
             <TextInput
               style={[styles.input, errors.name ? styles.inputError : null]}
               placeholder="Enter your name"
@@ -216,7 +219,10 @@ const Support = ({}) => {
             ) : null}
           </View>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>
+              Email {''}
+              <Text style={styles.requiredAsterisk}>*</Text>
+            </Text>
             <TextInput
               style={[styles.input, errors.email ? styles.inputError : null]}
               placeholder="Enter your email"
@@ -233,7 +239,10 @@ const Support = ({}) => {
             ) : null}
           </View>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Document/Image Upload</Text>
+            <Text style={styles.label}>
+              Document/Image Upload {''}
+              <Text style={styles.requiredAsterisk}>*</Text>
+            </Text>
             <View
               style={{
                 flexDirection: 'row',
@@ -292,7 +301,10 @@ const Support = ({}) => {
             ) : null}
           </View>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Message</Text>
+            <Text style={styles.label}>
+              Message {''}
+              <Text style={styles.requiredAsterisk}>*</Text>
+            </Text>
             <TextInput
               style={[
                 styles.input,
@@ -373,5 +385,9 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     marginBottom: Matrics.vs(15), // Increased spacing between fields
+  },
+  requiredAsterisk: {
+    color: '#e74c3c',
+    marginLeft: Matrics.s(5),
   },
 });

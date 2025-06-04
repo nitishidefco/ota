@@ -91,7 +91,7 @@ const LoginWithEmail = () => {
 
     try {
       const userDetailsForLogin = {
-        username: email,
+        email: email,
         password,
         login_with_otp: false,
         type: 'user',
@@ -110,11 +110,10 @@ const LoginWithEmail = () => {
       const response = await dispatch(
         loginUserWithEmail({
           details: userDetailsForLogin,
-          // contentToken: currentToken,
         }),
       );
       if (response?.error?.message === 'Rejected') {
-        errorToast(response?.payload?.message || response?.payload?.errors);
+        errorToast(response?.payload?.message || response?.payload?.error);
       }
     } catch (error) {
       console.log('Error', 'login in account', error);

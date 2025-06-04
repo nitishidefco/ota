@@ -28,7 +28,11 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import NormalHeader from '../../Components/UI/NormalHeader';
 import {useSelector, useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
-import {updateUserProfile} from '../../Redux/Reducers/UserProfileSlice';
+import {
+  updateUserProfile,
+  getUserProfileData,
+} from '../../Redux/Reducers/UserProfileSlice';
+import {unwrapResult} from '@reduxjs/toolkit';
 import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 import debounce from 'lodash/debounce';
 import {Images} from '../../Config';
@@ -42,11 +46,13 @@ import ConfirmationModal from '../../Components/UI/ConfirmationModal';
 import {errorToast, success} from '../../Helpers/ToastMessage';
 import {getCityDetailsThunk} from '../../Redux/Reducers/HotelReducer/GetCitySlice';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import CustomLoader from '../../Components/Loader/CustomLoader';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 const EditProfile = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const {userProfileData} = useSelector(state => state.userProfile);
+  const {userProfileData, isLoading} = useSelector(state => state.userProfile);
   const {cityDetails, loadingCityDetails} = useSelector(state => state.getCity);
 
   const initialProfile = {
@@ -58,6 +64,7 @@ const EditProfile = () => {
     profilePic: userProfileData?.profile_pic || '',
     countryCode: userProfileData?.country_code || '',
     countryCodeName: userProfileData?.country_code_name || '',
+    address: userProfileData?.address || '',
   };
   // Individual state for each field
   const [email, setEmail] = useState(userProfileData?.email || '');
@@ -74,12 +81,14 @@ const EditProfile = () => {
   const [countryCodeName, setCountryCodeName] = useState('');
   const [show, setShow] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [address, setAddress] = useState(userProfileData?.address || '');
   const [errors, setErrors] = useState({
     email: '',
     phone: '',
     city: '',
     state: '',
     zipCode: '',
+    address: '',
   });
   const {showCancelModal, setShowCancelModal} = useContext(
     ConfirmationModalContext,
@@ -101,6 +110,7 @@ const EditProfile = () => {
         profilePic,
         countryCode,
         countryCodeName,
+        address,
       };
       currentProfile[field] = newValue;
       const noChanges = Object.keys(currentProfile).every(
@@ -182,6 +192,16 @@ const EditProfile = () => {
   const validateZipCode = value => {
     if (value && !/^\d{6}$/.test(value)) {
       return i18n.t('validationMessages.invalidZip');
+    }
+    return '';
+  };
+
+  const validateAddress = value => {
+    if (!value.trim()) {
+      return i18n.t('validationMessages.noAddress');
+    }
+    if (value.length < 10) {
+      return i18n.t('validationMessages.shortAddress');
     }
     return '';
   };
@@ -281,12 +301,19 @@ const EditProfile = () => {
     updateHasChanges('zipCode', value);
   };
 
+  const handleAddressChange = value => {
+    setAddress(value);
+    setErrors(prev => ({...prev, address: validateAddress(value)}));
+    updateHasChanges('address', value);
+  };
+
   const validateForm = () => {
     const emailError = validateEmail(email);
     const phoneError = validatePhone(phone);
     const cityError = validateCity(city);
     const stateError = validateState(state);
     const zipCodeError = validateZipCode(zipCode);
+    const addressError = validateAddress(address);
 
     setErrors({
       email: emailError,
@@ -294,6 +321,7 @@ const EditProfile = () => {
       city: cityError,
       state: stateError,
       zipCode: zipCodeError,
+      address: addressError,
     });
 
     return !(
@@ -301,7 +329,8 @@ const EditProfile = () => {
       phoneError ||
       cityError ||
       stateError ||
-      zipCodeError
+      zipCodeError ||
+      addressError
     );
   };
 
@@ -338,8 +367,9 @@ const EditProfile = () => {
   };
 
   // Handle Profile Update
-  const editProfile = () => {
+  const editProfile = async () => {
     if (!validateForm()) {
+      console.log('[editProfile] Validation Error:', errors);
       errorToast('Validation Error', 'Please fix the errors in the form.');
       return;
     }
@@ -352,6 +382,7 @@ const EditProfile = () => {
     formData.append('zip_code', zipCode || '');
     formData.append('country_code', countryCode || '');
     formData.append('country_code_name', countryCodeName || '');
+    formData.append('address', address || '');
 
     if (profilePic && profilePic.startsWith('file://')) {
       formData.append('picture', {
@@ -362,14 +393,22 @@ const EditProfile = () => {
     } else if (profilePic) {
       formData.append('picture', profilePic);
     }
-    dispatch(updateUserProfile({details: formData}))
-      .then(() => {
-        success('Success', 'Profile updated successfully.');
-        navigation.goBack();
-      })
-      .catch(() => {
-        errorToast('Error', 'Failed to update profile. Please try again.');
-      });
+
+    try {
+      const response = await dispatch(updateUserProfile({details: formData}));
+      const result = unwrapResult(response);
+
+      // Refresh user profile data
+      await dispatch(getUserProfileData());
+
+      success('Success', 'Profile updated successfully.');
+      navigation.goBack();
+    } catch (error) {
+      console.log('Update profile error:', error);
+      const errorMessage =
+        error?.message || 'Failed to update profile. Please try again.';
+      errorToast('Error', errorMessage);
+    }
   };
   const handleCrossPress = () => {
     if (hasChanges) {
@@ -380,6 +419,23 @@ const EditProfile = () => {
   };
   const renderContent = () => (
     <>
+      {isLoading && (
+        <Animated.View
+          entering={FadeIn.duration(25)}
+          exiting={FadeOut.duration(25)}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            height: Matrics.screenHeight,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+          }}
+        />
+      )}
+      {isLoading && <CustomLoader isVisible={isLoading} />}
       <GestureHandlerRootView style={{flex: 1}}>
         {showCancelModal && (
           <ConfirmationModal
@@ -398,7 +454,7 @@ const EditProfile = () => {
                 onCrossPress={handleCrossPress}
                 onCheckPress={editProfile}
                 showLeftButton={true}
-                showRightButton={hasChanges && true}
+                showRightButton={true}
                 leftIconName="CROSS"
               />
 
@@ -425,19 +481,20 @@ const EditProfile = () => {
               <View style={styles.inputContainer}>
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>
-                    {i18n.t('EditProfile.email')} *
+                    {i18n.t('EditProfile.email')}{' '}
+                    <Text style={styles.requiredAsterisk}>*</Text>
                   </Text>
                   <TextInput
                     style={[
                       styles.input,
                       errors.email ? styles.inputError : null,
+                      styles.emailInput,
                     ]}
                     value={email}
                     onChangeText={handleEmailChange}
                     placeholder={i18n.t('EditProfile.emailPlaceholder')}
                     placeholderTextColor="#999"
-                    multiline={Platform.OS === 'android' ? true : false}
-                    scrollEnabled={true}
+                    multiline={false}
                   />
                   {errors.email ? (
                     <Text style={styles.errorText}>{errors.email}</Text>
@@ -446,7 +503,8 @@ const EditProfile = () => {
 
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>
-                    {i18n.t('CreateAccount.phone')} *
+                    {i18n.t('CreateAccount.phone')}{' '}
+                    <Text style={styles.requiredAsterisk}>*</Text>
                   </Text>
                   <View style={styles.phoneNumberContainer}>
                     <TouchableOpacity
@@ -484,7 +542,32 @@ const EditProfile = () => {
                 </View>
 
                 <View style={styles.formGroup}>
-                  <Text style={styles.label}>{i18n.t('EditProfile.city')}</Text>
+                  <Text style={styles.label}>
+                    {i18n.t('EditProfile.address')}{' '}
+                    <Text style={styles.requiredAsterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      styles.addressInput,
+                      errors.address ? styles.inputError : null,
+                    ]}
+                    value={address}
+                    onChangeText={handleAddressChange}
+                    placeholder={i18n.t('EditProfile.addressPlaceholder')}
+                    placeholderTextColor="#999"
+                    multiline={false}
+                  />
+                  {errors.address ? (
+                    <Text style={styles.errorText}>{errors.address}</Text>
+                  ) : null}
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>
+                    {i18n.t('EditProfile.city')}{' '}
+                    <Text style={styles.requiredAsterisk}>*</Text>
+                  </Text>
                   <View style={styles.cityInputContainer}>
                     <TextInput
                       style={[
@@ -558,7 +641,8 @@ const EditProfile = () => {
 
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>
-                    {i18n.t('EditProfile.state')}
+                    {i18n.t('EditProfile.state')}{' '}
+                    <Text style={styles.requiredAsterisk}>*</Text>
                   </Text>
                   <TextInput
                     style={[
@@ -579,7 +663,8 @@ const EditProfile = () => {
 
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>
-                    {i18n.t('EditProfile.zipCode')}
+                    {i18n.t('EditProfile.zipCode')}{' '}
+                    <Text style={styles.requiredAsterisk}>*</Text>
                   </Text>
                   <TextInput
                     style={[
@@ -897,5 +982,19 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: Matrics.vs(10),
+  },
+  requiredAsterisk: {
+    color: COLOR.RED,
+    fontSize: typography.fontSizes.fs16,
+  },
+  emailInput: {
+    height: Matrics.vs(40),
+    minHeight: Matrics.vs(40),
+    maxHeight: Matrics.vs(40),
+  },
+  addressInput: {
+    height: Matrics.vs(40),
+    minHeight: Matrics.vs(40),
+    maxHeight: Matrics.vs(40),
   },
 });

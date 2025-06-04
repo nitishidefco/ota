@@ -18,12 +18,15 @@ import debounce from 'lodash/debounce';
 import DropDownPicker from 'react-native-dropdown-picker';
 /* --------------------------- External libraries --------------------------- */
 import DateTimePicker, {useDefaultStyles} from 'react-native-ui-datepicker';
+import {CalendarList, DateData} from 'react-native-calendars';
+import CalendarPicker from 'react-native-calendar-picker';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(isSameOrBefore);
 dayjs.extend(duration);
 import Modal from 'react-native-modal';
+import CalendarModal from '../CalendarModal';
 
 /* ------------------------------- Middlewares ------------------------------ */
 import {getCityDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetCitySlice';
@@ -321,6 +324,7 @@ const HotelSearchCard = () => {
   //   }
   // };
   // const defaultStyles = useDefaultStyles();
+  const minDate = dayjs();
   return (
     <View style={styles.mainContainer}>
       <View>
@@ -397,18 +401,20 @@ const HotelSearchCard = () => {
             </View>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={() => {
-            setDestination('');
-            setShowFlatList(false);
-          }}
-          style={styles.crossIconContainer}
-          activeOpacity={0.7}>
-          <Image
-            style={[styles.searchBarIcon, styles.closeIcon]}
-            source={Images.CLOSE}
-          />
-        </TouchableOpacity>
+        {destination.length > 0 && (
+          <TouchableOpacity
+            onPress={() => {
+              setDestination('');
+              setShowFlatList(false);
+            }}
+            style={styles.crossIconContainer}
+            activeOpacity={0.7}>
+            <Image
+              style={[styles.searchBarIcon, styles.closeIcon]}
+              source={Images.CLOSE}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       <TouchableOpacity
         onPress={() => setShowDatePicker(true)}
@@ -504,27 +510,41 @@ const HotelSearchCard = () => {
         )}
       </TouchableOpacity>
       {/* Date picker model */}
-      <Modal
+      <CalendarModal
         isVisible={showDatePicker}
-        onBackdropPress={() => setShowDatePicker(false)}
-        style={styles.datePickerModal}>
-        <View>
-          <DateTimePicker
-            showOutsideDays={false}
-            navigationPosition="right"
-            mode="range"
-            startDate={hotelStayStartDate}
-            endDate={hotelStayEndDate}
-            onChange={({startDate, endDate}) => {
-              setHotelStayStartDate(startDate);
-              setHotelStayEndDate(endDate);
-            }}
-            minDate={dayjs()}
-            styles={datePickerStyles}
-            containerHeight={250}
-          />
-        </View>
-      </Modal>
+        hotelStayStartDate={hotelStayStartDate}
+        hotelStayEndDate={hotelStayEndDate}
+        onClose={() => setShowDatePicker(false)}>
+        <CalendarPicker
+          allowRangeSelection={true}
+          minDate={minDate}
+          todayBackgroundColor={COLOR.PRIMARY}
+          selectedDayColor={COLOR.PRIMARY}
+          selectedDayTextColor={COLOR.WHITE}
+          scrollable={true}
+          monthTitleStyle={{
+            fontFamily: typography.fontFamily.Montserrat.Bold,
+            fontSize: typography.fontSizes.fs14,
+          }}
+          yearTitleStyle={{
+            fontFamily: typography.fontFamily.Montserrat.Bold,
+            fontSize: typography.fontSizes.fs14,
+          }}
+          textStyle={{
+            fontFamily: typography.fontFamily.Montserrat.Medium,
+          }}
+          selectedStartDate={hotelStayStartDate}
+          selectedEndDate={hotelStayEndDate}
+          onDateChange={(date, type) => {
+            if (type === 'START_DATE') {
+              setHotelStayStartDate(date);
+            } else if (type === 'END_DATE') {
+              setHotelStayEndDate(date);
+            }
+          }}
+         
+        />
+      </CalendarModal>
       {/* Guests modal */}
       <Modal
         isVisible={showGuestsModal}
@@ -718,7 +738,7 @@ const styles = StyleSheet.create({
     marginVertical: Matrics.vs(10),
   },
   datePickerModal: {
-    marginBottom: Matrics.vs(120),
+    // marginBottom: Matrics.vs(120),
   },
   mainContainer: {
     backgroundColor: COLOR.WHITE,

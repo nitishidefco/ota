@@ -38,7 +38,7 @@ export const cancelBookingThunk = createAsyncThunk(
   async ({bookingNo, gds}, {rejectWithValue}) => {
     try {
       const response = await cancelBooking({bookingNo, gds});
-      return response;
+      return response.data;
     } catch (error) {
       return rejectWithValue('Error cancelling booking', error);
     }
@@ -54,7 +54,7 @@ export const getSavedCardThunk = createAsyncThunk(
       if (!response) {
         return rejectWithValue('No card data available');
       }
-      return response;
+      return response.data;
     } catch (error) {
       console.log('getCardDetails error:', error);
       return rejectWithValue(
@@ -71,7 +71,10 @@ export const saveCardThunk = createAsyncThunk(
     try {
       const response = await AddCardDetails({details});
       console.log('response in save card thunk', response);
+      console.log('typeof response:', typeof response);
+      console.log('response.data:', response?.data);
 
+      // Return the response directly since AddCardDetails already returns response.data
       return response;
     } catch (error) {
       console.log('error in save card thunk', error);

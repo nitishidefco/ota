@@ -1,6 +1,5 @@
 import {
   SafeAreaView,
-  ScrollView,
   View,
   Platform,
   StyleSheet,
@@ -45,27 +44,20 @@ const LoginWithPhone = () => {
   const dispatch = useDispatch();
   const token = useSelector(state => state.contentToken.universalToken);
 
-  // useEffect(() => {
-  //   dispatch(getUniversalToken());
-  // }, []);
   useEffect(() => {
-    // Listener for when the keyboard appears
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       () => {
-        setKeyboardVisible(true); // Keyboard is visible
+        setKeyboardVisible(true);
       },
     );
 
-    // Listener for when the keyboard hides
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
       () => {
-        setKeyboardVisible(false); // Keyboard is hidden
+        setKeyboardVisible(false);
       },
     );
-
-    // Cleanup listeners on unmount
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
@@ -79,7 +71,6 @@ const LoginWithPhone = () => {
       c => c.phone === countryCode.replace('+', ''),
     );
     setCountryCodeName(country.code);
-    console.log('country', country);
 
     if (!country) return i18n.t('validationMessages.validPhoneLength');
 
@@ -119,11 +110,7 @@ const LoginWithPhone = () => {
   const [countryCode, setCountryCode] = useState('+91');
 
   const validateForm = () => {
-    console.log('validate form');
-
     const phoneError = validatePhone(phone);
-    console.log(phoneError);
-
     setErrors({
       phone: phoneError,
     });
@@ -136,11 +123,8 @@ const LoginWithPhone = () => {
   };
   const onLoginButtonPress = async () => {
     if (!validateForm()) {
-      console.log('Validation failed');
-
       return;
     }
-    console.log('Login button pressed');
     try {
       const loginDetails = {
         phoneNo: phone,
@@ -153,8 +137,6 @@ const LoginWithPhone = () => {
         if (checkUniversalToken.fulfilled.match(tokenResult)) {
           currentToken = tokenResult.payload.token;
         } else {
-          // Handle case where token retrieval failed
-          console.log('Unable to get authentication token');
           return;
         }
       }
@@ -162,23 +144,23 @@ const LoginWithPhone = () => {
       const response = await dispatch(
         loginUserWithPhone({details: loginDetails, contentToken: currentToken}),
       );
-      console.log('Phone response', response);
 
       if (response?.payload?.status === 200) {
-        navigation.navigate('EnterOtp');
+        navigation.navigate('EnterOtp', {
+          phone: phone,
+          countryCode: countryCode,
+        });
         Toast.show({
           type: 'success',
           text1: i18n.t('Toast.otpSentSuccess'),
         });
-      } else if (response?.payload?.status === false) {
-        errorToast(response?.payload?.error);
-        console.log('or this');
+      } else if (response?.payload?.status === 'error') {
+        errorToast(response?.payload?.message);
       } else if (response?.error) {
         errorToast('Phone No. does not exist');
       }
-      console.log('response in login with phone account', response);
     } catch (error) {
-      console.log('Error', 'login in account', error);
+      console.log('Error', error);
     }
   };
   const renderContent = () => (
@@ -189,7 +171,7 @@ const LoginWithPhone = () => {
           exiting={FadeOut.duration(25)}
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            height: Matrics.screenHeight,
+            height: Matrics.screenHeight * 1.2,
             position: 'absolute',
             top: 0,
             left: 0,

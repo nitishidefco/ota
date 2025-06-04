@@ -59,13 +59,13 @@ const AuthRoutes = {
 const MainRoutes = {
   Home: HomeStack,
   Booking: BookingStack,
-  Referrals: ReferralStack,
+  Cashback: ReferralStack,
   Profile: ProfileStack,
 };
 
 const tabLabels = {
   Home: i18n.t('Tabs.Home'),
-  Referrals: i18n.t('Tabs.Referrals'),
+  Cashback: i18n.t('Tabs.Cashback'),
   Profile: i18n.t('Tabs.Profile'),
   Booking: i18n.t('Tabs.Booking'),
 };
@@ -132,7 +132,7 @@ const MainTabs = () => (
               ? Images.BOOKING_ACTIVE
               : Images.BOOKING_INACTIVE;
             break;
-          case 'Referrals':
+          case 'Cashback':
             iconSource = focused
               ? Images.REFERRAL_ACTIVE
               : Images.REFERRAL_INACTIVE;

@@ -4,6 +4,7 @@ import {
   Text,
   ActivityIndicator,
   Platform,
+  Image,
 } from 'react-native';
 import React, {useCallback, useState} from 'react';
 import NormalHeader from '../../Components/UI/NormalHeader';
@@ -22,6 +23,8 @@ import {FlatList} from 'react-native-gesture-handler';
 import ConfirmationModal from '../../Components/UI/ConfirmationModal';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import i18n from '../../i18n/i18n';
+import {success} from '../../Helpers/ToastMessage';
+import {Images} from '../../Config';
 
 const Booking = () => {
   const dispatch = useDispatch();
@@ -35,7 +38,7 @@ const Booking = () => {
     cancelBookingLoading,
     currentCancellingBookingId,
   } = useSelector(state => state.bookingList);
-
+  console.log('bookingList', bookingList);
   const handleCancelBooking = useCallback((bookingId, gds) => {
     console.log('Cancel booking for ID:', bookingId, gds);
     setSelectedBookingId(bookingId);
@@ -47,7 +50,11 @@ const Booking = () => {
     if (selectedBookingId && selectedGds) {
       dispatch(
         cancelBookingThunk({bookingNo: selectedBookingId, gds: selectedGds}),
-      );
+      ).then(result => {
+        if (!result.error) {
+          success(i18n.t('Booking.bookingCancelledSuccessfully'));
+        }
+      });
     }
     setShowCancelModal(false);
     setSelectedBookingId(null);
@@ -56,9 +63,6 @@ const Booking = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      if (cancelBookingLoading) {
-        return;
-      }
       dispatch(
         getBookingListThunk({
           page: 1,
@@ -72,7 +76,7 @@ const Booking = () => {
       return () => {
         dispatch(resetBookingList());
       };
-    }, [dispatch, cancelBookingLoading]),
+    }, [dispatch]),
   );
   const renderItem = useCallback(
     ({item}) => (
@@ -86,6 +90,7 @@ const Booking = () => {
         invoicePath={item?.invoicePath}
         bookingId={item?.BookingID}
         gds={item?.provider}
+        checkInDate={item?.CheckInDate}
         onCancelBooking={handleCancelBooking}
         cancelBookingLoading={cancelBookingLoading}
         currentCancellingBookingId={currentCancellingBookingId}
@@ -182,17 +187,33 @@ const Booking = () => {
                 marginTop: Matrics.vs(10),
                 paddingHorizontal: Matrics.s(5),
               }}>
-              <FlatList
-                data={bookingList?.data}
-                renderItem={renderItem}
-                showsVerticalScrollIndicator={false}
-                keyExtractor={keyExtractor}
-                ItemSeparatorComponent={ItemSeparator}
-                contentContainerStyle={styles.contentContainer}
-                initialNumToRender={10}
-                maxToRenderPerBatch={10}
-                windowSize={21}
-              />
+              {bookingList?.data && bookingList.data.length > 0 ? (
+                <FlatList
+                  data={bookingList?.data}
+                  renderItem={renderItem}
+                  showsVerticalScrollIndicator={false}
+                  keyExtractor={keyExtractor}
+                  ItemSeparatorComponent={ItemSeparator}
+                  contentContainerStyle={styles.contentContainer}
+                  initialNumToRender={10}
+                  maxToRenderPerBatch={10}
+                  windowSize={21}
+                />
+              ) : (
+                <View style={styles.emptyStateContainer}>
+                  <Image
+                    source={Images.NO_RESULT_FOUND}
+                    style={styles.emptyStateImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.emptyStateTitle}>
+                    {i18n.t('Booking.noBookingsTitle')}
+                  </Text>
+                  <Text style={styles.emptyStateMessage}>
+                    {i18n.t('Booking.noBookingsMessage')}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -288,6 +309,35 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.Montserrat.Medium,
     fontSize: typography.fontSizes.fs16,
     color: COLOR.PRIMARY,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Matrics.vs(40),
+    paddingHorizontal: Matrics.s(20),
+    minHeight: Matrics.vs(200),
+  },
+  emptyStateImage: {
+    width: Matrics.vs(120),
+    height: Matrics.vs(120),
+    opacity: 0.7,
+  },
+  emptyStateTitle: {
+    fontFamily: typography.fontFamily.Montserrat.Bold,
+    fontSize: typography.fontSizes.fs18,
+    color: COLOR.PRIMARY,
+    marginTop: Matrics.vs(20),
+    marginBottom: Matrics.vs(10),
+    textAlign: 'center',
+  },
+  emptyStateMessage: {
+    fontFamily: typography.fontFamily.Montserrat.Medium,
+    fontSize: typography.fontSizes.fs14,
+    color: COLOR.DIM_TEXT_COLOR,
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: Matrics.s(10),
   },
 });
 

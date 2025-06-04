@@ -5,6 +5,7 @@ import {
   forgotPasswordSer,
   loginWithEmail,
   loginWithPhone,
+  sendOtptobackend,
   socialLogin,
 } from '../../Services/AuthServices';
 import * as Keychain from 'react-native-keychain';
@@ -90,7 +91,7 @@ export const loginUserWithEmail = createAsyncThunk(
 
       return response.data;
     } catch (err) {
-      console.error('Error in login with email:', err);
+      console.error('Error in login with email:', err.response);
       return rejectWithValue(err.response ? err.response.data : err.message);
     }
   },
@@ -238,6 +239,20 @@ export const facebookLogin = createAsyncThunk(
   },
 );
 
+export const sendOtpToBackendThunk = createAsyncThunk(
+  'auth/sendOtpToBackend',
+  async ({details, contentToken}, {rejectWithValue}) => {
+    console.log('details', details);
+    console.log('contentToken', contentToken);
+
+    try {
+      const response = await sendOtptobackend({details, contentToken});
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Send OTP to backend failed');
+    }
+  },
+);
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -289,6 +304,8 @@ const authSlice = createSlice({
         saveToken(action.payload.data.token);
       })
       .addCase(loginUserWithEmail.rejected, (state, action) => {
+        console.log('Reject login with email', action.payload);
+
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;
@@ -344,7 +361,6 @@ const authSlice = createSlice({
       })
       .addCase(googleLogin.rejected, (state, action) => {
         console.log('action.payload google login rejected', action.payload);
-
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;
@@ -381,6 +397,22 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload.message;
+      })
+      .addCase(sendOtpToBackendThunk.pending, state => {
+        state.isLoading = true;
+        state.isSuccess = false;
+      })
+      .addCase(sendOtpToBackendThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.authData = action.payload.data;
+        state.userToken = action.payload.data.token;
+        saveToken(action.payload.data.token);
+      })
+      .addCase(sendOtpToBackendThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.errorMessage = action.payload;
       });
   },
 });

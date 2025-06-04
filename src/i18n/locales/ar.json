@@ -47,7 +47,7 @@
     "Profile": "حساب تعريفي",
     "Booking": "الحجز",
     "Home": "بيت",
-    "Referrals": "الإحالات"
+    "Cashback": "الكاشباك"
   },
   "Hotel": {
     "hi": "مرحبًا",
@@ -133,9 +133,30 @@
     "cancelBooking": "هل أنت متأكد من أنك تريد إلغاء هذا الحجز؟",
     "downloadSuccessful": "تم التحميل بنجاح",
     "invoiceDownloaded": "تم تحميل الفاتورة إلى الجهاز",
-    "cancelBookingButton": "إلغاء الحجز"
+    "cancelBookingButton": "إلغاء الحجز",
+    "bookingCancelledSuccessfully": "تم إلغاء الحجز بنجاح",
+    "noBookingsTitle": "لم يتم العثور على حجوزات",
+    "noBookingsMessage": "لم تقم بأي حجوزات بعد. ابدأ في الاستكشاف واحجز مغامرتك القادمة!",
+    "startBooking": "ابدأ الحجز"
   },
-  "Profile":{
-    
+  "Profile": {},
+  "EditProfile": {
+    "title": "تعديل الملف الشخصي",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "phone": "رقم الهاتف",
+    "phonePlaceholder": "أدخل رقم هاتفك",
+    "address": "العنوان",
+    "addressPlaceholder": "أدخل عنوانك",
+    "city": "المدينة",
+    "cityPlaceholder": "أدخل مدينتك",
+    "state": "الولاية",
+    "statePlaceholder": "أدخل ولايتك",
+    "zipCode": "الرمز البريدي",
+    "zipCodePlaceholder": "أدخل الرمز البريدي الخاص بك",
+    "updatePicture": "تحديث صورة الملف الشخصي",
+    "takePhoto": "التقاط صورة",
+    "chooseFromLibrary": "اختر من المكتبة",
+    "cancel": "إلغاء"
   }
 }
