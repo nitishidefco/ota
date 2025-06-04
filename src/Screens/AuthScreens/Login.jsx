@@ -17,9 +17,10 @@ import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import {useNavigation} from '@react-navigation/native';
 import i18n from '../../i18n/i18n';
 import {useDispatch, useSelector} from 'react-redux';
-import {facebookLogin, googleLogin} from '../../Redux/Reducers/AuthSlice';
+import {facebookLogin, googleLogin, appleLogin} from '../../Redux/Reducers/AuthSlice';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import CustomLoader from '../../Components/Loader/CustomLoader';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
 
 const Login = () => {
   const navigation = useNavigation();
@@ -29,6 +30,23 @@ const Login = () => {
   const AuthState = useSelector(state => state.auth);
 
   const dispatch = useDispatch();
+
+  const handleAppleLogin = async () => {
+    try {
+      // Check if Apple Sign In is available
+      const isAppleAuthSupported = await appleAuth.isSupported;
+      
+      if (!isAppleAuthSupported) {
+        console.log('Apple Sign In is not supported on this device');
+        return;
+      }
+
+      dispatch(appleLogin());
+    } catch (error) {
+      console.log('Error initiating Apple login:', error);
+    }
+  };
+
   const renderContent = () => (
     <>
       {AuthState?.isLoading && (
@@ -67,7 +85,6 @@ const Login = () => {
               iconName={'EMAIL'}
               handlePress={() => navigation.navigate('LoginWithEmail')}
               width={globalLanguage === 'ar' ? Matrics.s(160) : Matrics.s(150)}
-              // paddingHorizontal={globalLanguage === 'ar' ? 0 : 50}
             />
             <LoginOptionButton
               title={i18n.t('MainScreen.phone')}
@@ -100,9 +117,11 @@ const Login = () => {
                 activeOpacity={0.7}>
                 <Image style={styles.socialIcons} source={Images.FACEBOOK} />
               </TouchableOpacity>
-              <View>
+              <TouchableOpacity
+                onPress={handleAppleLogin}
+                activeOpacity={0.7}>
                 <Image style={styles.socialIcons} source={Images.APPLE} />
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
