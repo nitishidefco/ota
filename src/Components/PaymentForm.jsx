@@ -102,8 +102,8 @@ const PaymentForm = () => {
           ],
         })),
         card_details: {
-          payment_method: savedCard.data.id,
-          amount: priceConfirmAllState.priceConfirmDetails.price,
+          payment_method: savedCard?.id,
+          amount: priceConfirmAllState.priceConfirmDetails.totalprice,
         },
         RatePlanID: priceConfirmAllState.priceConfirmDetails.RatePlanID,
         provider: 'DIDA',

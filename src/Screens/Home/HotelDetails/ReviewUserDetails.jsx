@@ -59,8 +59,7 @@ const ReviewUserDetails = () => {
   const handleCheckPress = async () => {
     try {
       console.log('savedCard', savedCard);
-      if (savedCard.status) {
-        console.log('savedCard.status', savedCard.status);
+      if (savedCard) {
         navigation.navigate('HotelPaymentsPage');
       } else {
         navigation.navigate('AddCard');

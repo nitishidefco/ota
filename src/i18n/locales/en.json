@@ -47,7 +47,7 @@
     "Profile": "Profile",
     "Booking": "Booking",
     "Home": "Home",
-    "Referrals": "Referrals"
+    "Cashback": "Cashback"
   },
   "Hotel": {
     "hi": "Hi",
@@ -102,7 +102,9 @@
     "noAddress": "Address is required",
     "noCity": "City is required",
     "noCountry": "Country is required",
-    "noPostalCode": "Postal code is required"
+    "noPostalCode": "Postal code is required",
+    "noMessage": "Message is required",
+    "shortAddress": "Address must be at least 10 characters"
   },
   "Toast": {
     "accountCreatedSuccess": "Account Created Successfully",
@@ -123,6 +125,8 @@
     "emailPlaceholder": "Enter your email",
     "phone": "Phone Number",
     "phonePlaceholder": "Enter your phone number",
+    "address": "Address",
+    "addressPlaceholder": "Enter your address",
     "city": "City",
     "cityPlaceholder": "Enter your city",
     "state": "State",
@@ -192,7 +196,11 @@
     "cancelBooking": "Are you sure you want to cancel this booking?",
     "downloadSuccessful": "Download Successful",
     "invoiceDownloaded": "Invoice has been downloaded to your device",
-    "cancelBookingButton": "Cancel Booking"
+    "cancelBookingButton": "Cancel Booking",
+    "bookingCancelledSuccessfully": "Booking cancelled successfully",
+    "noBookingsTitle": "No Bookings Found",
+    "noBookingsMessage": "You haven't made any bookings yet. Start exploring and book your next adventure!",
+    "startBooking": "Start Booking"
   },
   "Profile": {
     "profileTitle": "My Profile",

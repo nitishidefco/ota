@@ -229,12 +229,15 @@ const Hotels = ({navigation}) => {
 
           // Optional: Handle the response if needed
           if (response.error) {
-            console.error('Error fetching hotels:', response.payload);
+            console.log(
+              '[refetchForCurrencyChange] Error fetching hotels:',
+              response.payload,
+            );
             // Optionally show an error toast
             // errorToast(response.payload);
           }
         } catch (error) {
-          console.error('Unexpected error while fetching hotels:', error);
+          console.log('[refetchForCurrencyChange] Unexpected error:', error);
           // Optionally show an error toast
           // errorToast('An unexpected error occurred. Please try again.');
         }
@@ -246,6 +249,7 @@ const Hotels = ({navigation}) => {
 
   const handleDonePress = async () => {
     if (cityDetails.length === 0 || destination === '') {
+      console.log('[handleDonePress] Error: No destination selected');
       const error = i18n.t('Toast.selectDestination');
       errorToast(error);
       return;
@@ -263,6 +267,10 @@ const Hotels = ({navigation}) => {
           }),
         );
         if (response.error) {
+          console.log(
+            '[handleDonePress] Error with stars filter:',
+            response.payload,
+          );
           errorToast(response.payload);
           return;
         }
@@ -273,6 +281,10 @@ const Hotels = ({navigation}) => {
           getAllHotelsThunk({details: detailsForDestinationSearch}),
         );
         if (response.error) {
+          console.log(
+            '[handleDonePress] Error fetching hotels:',
+            response.payload,
+          );
           errorToast(response.payload);
           return;
         }
@@ -293,6 +305,7 @@ const Hotels = ({navigation}) => {
         setFilteredHotels(hotelsToFilter);
       }
     } catch (error) {
+      console.log('[handleDonePress] Unexpected error:', error);
       errorToast('An unexpected error occurred. Please try again.');
       console.error('Error in handleDonePress:', error);
     }

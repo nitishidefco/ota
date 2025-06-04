@@ -6,6 +6,7 @@ import {
   Keyboard,
   TextInput,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -145,7 +146,6 @@ const ChangePassword = ({route}) => {
 
   const renderContent = () => (
     <>
-      {' '}
       {isLoading && (
         <Animated.View
           entering={FadeIn.duration(25)}
@@ -176,7 +176,9 @@ const ChangePassword = ({route}) => {
           <View style={styles.inputContainer}>
             {isPasswordSet && (
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Old Password *</Text>
+                <Text style={styles.label}>
+                  Old Password <Text style={{color: 'red'}}>*</Text>
+                </Text>
                 <View
                   style={[
                     styles.passwordInputContainer,
@@ -208,7 +210,9 @@ const ChangePassword = ({route}) => {
             )}
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>New Password *</Text>
+              <Text style={styles.label}>
+                New Password <Text style={{color: 'red'}}>*</Text>
+              </Text>
               <View
                 style={[
                   styles.passwordInputContainer,
@@ -239,7 +243,9 @@ const ChangePassword = ({route}) => {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Confirm Password *</Text>
+              <Text style={styles.label}>
+                Confirm Password <Text style={{color: 'red'}}>*</Text>
+              </Text>
               <View
                 style={[
                   styles.passwordInputContainer,
@@ -297,7 +303,7 @@ const styles = StyleSheet.create({
     paddingBottom: Matrics.vs(50),
   },
   formGroup: {
-    marginBottom: Matrics.vs(15),
+    marginBottom: Matrics.vs(5),
   },
   label: {
     fontSize: Matrics.s(14),

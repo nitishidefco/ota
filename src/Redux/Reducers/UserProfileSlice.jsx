@@ -93,6 +93,27 @@ const userProfileSlice = createSlice({
         state.isSuccess = false;
         state.isFailure = true;
         state.errorMessage = action.payload.message;
+      })
+      .addCase(updateUserProfile.pending, state => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.isFailure = false;
+        state.errorMessage = '';
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isFailure = false;
+        if (action.payload.data) {
+          state.userProfileData = action.payload.data;
+        }
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isFailure = true;
+        state.errorMessage =
+          action.payload?.message || 'Failed to update profile';
       });
   },
 });

@@ -19,6 +19,14 @@ export const loginWithPhone = ({details, contentToken}) => {
     },
   });
 };
+export const sendOtptobackend = ({details, contentToken}) => {
+  console.log('details', details);
+  return baseApiClient.post('/auth/login', details, {
+    headers: {
+      'content-token': contentToken,
+    },
+  });
+};
 
 export const socialLogin = ({details}) => {
   return baseApiClient.post('/auth/social-login', details);

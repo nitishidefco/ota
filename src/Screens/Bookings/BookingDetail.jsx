@@ -1,4 +1,4 @@
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, ActivityIndicator} from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import NormalHeader from '../../Components/UI/NormalHeader';
@@ -16,6 +16,7 @@ import BookingStatusTag from '../../Components/UI/BookingComponents/BookingStatu
 import DownloadButton from '../../Components/UI/BookingComponents/DownloadButton';
 import CancelBookingButton from '../../Components/UI/BookingComponents/CancelBookingButton';
 import ConfirmationModal from '../../Components/UI/ConfirmationModal';
+import CustomLoader from '../../Components/Loader/CustomLoader';
 
 const BookingDetail = ({route}) => {
   const navigation = useNavigation();
@@ -58,6 +59,60 @@ const BookingDetail = ({route}) => {
   const confirmCancelBooking = useCallback(() => {
     dispatch(cancelBookingThunk({bookingNo: booking_Id, gds: provider}));
   }, [booking_Id, provider, dispatch]);
+
+  // Show loading state when fetching booking details
+  if (loadingBookingDetails) {
+    return (
+      <SafeAreaView style={{flex: 1}}>
+        <NormalHeader
+          title={'Booking Details'}
+          showRightButton={false}
+          leftIconName="BACK_ROUND"
+          onCrossPress={() => navigation.goBack()}
+        />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <ActivityIndicator size="large" color={COLOR.PRIMARY} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state if no booking details are available
+  if (!bookingDetails && !loadingBookingDetails) {
+    return (
+      <SafeAreaView style={{flex: 1}}>
+        <NormalHeader
+          title={'Booking Details'}
+          showRightButton={false}
+          leftIconName="BACK_ROUND"
+          onCrossPress={() => navigation.goBack()}
+        />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: Matrics.s(20),
+          }}>
+          <Text
+            style={{
+              fontFamily: typography.fontFamily.Montserrat.Medium,
+              fontSize: typography.fontSizes.fs16,
+              color: COLOR.DIM_TEXT_COLOR,
+              textAlign: 'center',
+            }}>
+            Unable to load booking details. Please try again.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <KeyboardAwareScrollView>
       <SafeAreaView>
@@ -232,7 +287,7 @@ const BookingDetail = ({route}) => {
                     fontSize: typography.fontSizes.fs14,
                     color: COLOR.DIM_TEXT_COLOR,
                   }}>
-                  {(personDetails?.Email).toLocaleLowerCase()}
+                  {personDetails?.Email?.toLocaleLowerCase()}
                 </Text>
                 <Text
                   style={{
@@ -320,7 +375,7 @@ const BookingDetail = ({route}) => {
                     fontFamily: typography.fontFamily.Montserrat.Medium,
                     fontSize: typography.fontSizes.fs15,
                   }}>
-                  ${bookingDetails?.totalAmount}
+                  ${Number(bookingDetails?.totalAmount).toFixed(2)}
                 </Text>
               </View>
             </View>
@@ -344,7 +399,7 @@ const BookingDetail = ({route}) => {
                   color: COLOR.PRIMARY,
                   fontSize: typography.fontSizes.fs18,
                 }}>
-                ${bookingDetails?.totalAmount}
+                ${Number(bookingDetails?.totalAmount).toFixed(2)}
               </Text>
             </View>
           </View>

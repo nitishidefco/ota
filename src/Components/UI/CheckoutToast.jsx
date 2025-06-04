@@ -1,14 +1,5 @@
-import React, {useContext, useEffect, useRef} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Animated,
-  StyleSheet,
-  Image,
-  Platform,
-} from 'react-native';
-import {RoomContext} from '../../Context/RoomContext';
+import React from 'react';
+import {Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
 
@@ -40,7 +31,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: Platform.OS === 'ios' ? 'center' : none,
+    alignItems: 'center',
     marginTop: Matrics.vs(10),
   },
   checkoutText: {

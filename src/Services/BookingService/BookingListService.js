@@ -9,20 +9,15 @@ export const getBookingList = ({page, limit, isAdmin}) => {
 
 export const cancelBooking = async ({bookingNo, gds}) => {
   try {
-    // Create URLSearchParams for proper query parameter handling
-    const params = new URLSearchParams({
+    const requestBody = {
       booking_no: bookingNo,
       Gds: gds,
-    });
+    };
 
-    const url = `/booking/cancel-booking?${params.toString()}`;
-    const completeURL = `${baseApiClient.defaults.baseURL}${url}`;
-
-    console.log('Cancel booking endpoint:', url);
-    console.log('Cancel booking complete URL:', completeURL);
-    console.log('Cancel booking params:', {booking_no: bookingNo, Gds: gds});
-
-    const response = await baseApiClient.get(url);
+    const response = await baseApiClient.get(
+      '/booking/cancel-booking',
+      requestBody,
+    );
     console.log('response in cancel booking', response);
     return response;
   } catch (error) {
