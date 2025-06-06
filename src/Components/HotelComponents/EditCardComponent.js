@@ -37,7 +37,7 @@ const EditCardComponent = ({savedCardDetails}) => {
               fontFamily: typography.fontFamily.Montserrat.Bold,
               fontSize: typography.fontSizes.fs16,
             }}>
-            **** **** **** {savedCardDetails?.data?.last4}
+            **** **** **** {savedCardDetails?.last4}
           </Text>
         </View>
         <Image source={Images.EDIT} style={{width: 25, height: 25}} />

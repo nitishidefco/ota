@@ -43,7 +43,6 @@ const HotelNavigator = () => {
         name="HotelImageGallery"
         component={HotelImageGallery}
       />
-      <HotelStack.Screen name="AddCard" component={AddCard} />
       <HotelStack.Screen
         name="HotelBookingStatus"
         component={HotelBookingStatus}

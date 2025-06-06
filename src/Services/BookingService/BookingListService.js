@@ -7,14 +7,14 @@ export const getBookingList = ({page, limit, isAdmin}) => {
   return baseApiClient.get(url);
 };
 
-export const cancelBooking = async ({bookingNo, gds}) => {
+export const cancelBooking = async ({bookingNo, provider}) => {
   try {
     const requestBody = {
-      booking_no: bookingNo,
-      Gds: gds,
+      bookingNo: bookingNo,
+      provider: provider,
     };
-
-    const response = await baseApiClient.get(
+    console.log('requestBody in cancel booking', requestBody);
+    const response = await baseApiClient.post(
       '/booking/cancel-booking',
       requestBody,
     );

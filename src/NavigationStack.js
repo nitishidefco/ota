@@ -209,9 +209,10 @@ const NavigationStack = () => {
   };
 
   useEffect(() => {
-    GoogleSignin.configure(
-     { iosClientId: '41423272295-vm0l15ab248c7nd2isc2o5u83jg6241p.apps.googleusercontent.com'}
-    );
+    GoogleSignin.configure({
+      iosClientId:
+        '41423272295-vm0l15ab248c7nd2isc2o5u83jg6241p.apps.googleusercontent.com',
+    });
 
     const initializeApp = async () => {
       const splashDelay = new Promise(resolve => setTimeout(resolve, 5000));

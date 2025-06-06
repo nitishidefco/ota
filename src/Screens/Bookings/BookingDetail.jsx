@@ -200,13 +200,28 @@ const BookingDetail = ({route}) => {
                     height: Matrics.s(20),
                   }}
                 />
-                <Text
-                  style={{
-                    fontFamily: typography.fontFamily.Montserrat.Regular,
-                  }}>
-                  {dayjs(bookingDetails?.CheckInDate).format('DD MMM YYYY')}{' '}
-                  {dayjs(bookingDetails?.CheckOutDate).format('DD MMM YYYY')}
-                </Text>
+                <View style={{flexDirection: 'row', gap: 5}}>
+                  <Text
+                    style={{
+                      fontFamily: typography.fontFamily.Montserrat.Regular,
+                    }}>
+                    {dayjs(bookingDetails?.CheckInDate).format('DD MMM YYYY')}
+                  </Text>
+                  <Image
+                    source={Images.LEFT_ARROW}
+                    style={{
+                      width: Matrics.s(20),
+                      height: Matrics.s(20),
+                      resizeMode: 'contain',
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: typography.fontFamily.Montserrat.Regular,
+                    }}>
+                    {dayjs(bookingDetails?.CheckOutDate).format('DD MMM YYYY')}
+                  </Text>
+                </View>
               </View>
               <View
                 style={{
@@ -214,7 +229,10 @@ const BookingDetail = ({route}) => {
                   gap: 10,
                   marginTop: 10,
                 }}>
-                <DownloadButton invoicePath={bookingDetails?.invoicePath} />
+                <DownloadButton
+                  title={'Download'}
+                  invoicePath={bookingDetails?.invoicePath}
+                />
                 {!isBookingCancelled && (
                   <CancelBookingButton
                     cancelBooking={handleCancelBooking}

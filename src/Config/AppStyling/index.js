@@ -3,7 +3,7 @@ import {StyleSheet, Text} from 'react-native';
 import COLOR from './colors';
 import typography from './typography';
 import AppStyle from './styles';
-import Matrics, {Scale} from './Matrics';
+import Matrics from './Matrics';
 
 const appliedCommanStyle = () => {
   const oldTextRender = Text.render;
@@ -31,4 +31,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export {COLOR, typography, AppStyle, appliedCommanStyle, Matrics, Scale};
+export {COLOR, typography, AppStyle, appliedCommanStyle, Matrics};

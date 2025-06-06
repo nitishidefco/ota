@@ -16,7 +16,7 @@ import {
 import Config from 'react-native-config';
 import {LoginManager, Profile, AccessToken} from 'react-native-fbsdk-next';
 import {errorToast} from '../../Helpers/ToastMessage';
-import { appleAuth } from '@invertase/react-native-apple-authentication';
+import {appleAuth} from '@invertase/react-native-apple-authentication';
 
 const initialState = {
   isLoading: false,
@@ -257,7 +257,7 @@ export const sendOtpToBackendThunk = createAsyncThunk(
 
 export const appleLogin = createAsyncThunk(
   'auth/appleLogin',
-  async (_, { rejectWithValue }) => {
+  async (_, {rejectWithValue}) => {
     try {
       // Request Apple authentication
       const appleAuthResponse = await appleAuth.performRequest({
@@ -271,22 +271,24 @@ export const appleLogin = createAsyncThunk(
       }
 
       // Get user details
-      const { identityToken, email, fullName } = appleAuthResponse;
-      
+      const {identityToken, email, fullName} = appleAuthResponse;
+
       const details = {
         apple_id: identityToken,
-        name: fullName ? `${fullName.givenName} ${fullName.familyName}`.trim() : '',
+        name: fullName
+          ? `${fullName.givenName} ${fullName.familyName}`.trim()
+          : '',
         email: email || '',
       };
 
       // Call your backend API with the Apple credentials
-      const response = await socialLogin({ details: details });
+      const response = await socialLogin({details: details});
       return response?.data?.data;
     } catch (error) {
       console.log('Apple sign in error', error);
       return rejectWithValue(error.message || 'Apple login failed');
     }
-  }
+  },
 );
 
 const authSlice = createSlice({
@@ -464,6 +466,7 @@ const authSlice = createSlice({
         saveToken(action.payload.token);
       })
       .addCase(appleLogin.rejected, (state, action) => {
+        console.log('action.payload apple login rejected', action.payload);
         state.isLoading = false;
         state.isError = true;
         state.errorMessage = action.payload;

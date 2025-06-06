@@ -5,7 +5,7 @@ import {COLOR, typography} from '../../../Config/AppStyling';
 import dayjs from 'dayjs';
 
 const CheckInDateCard = ({date}) => {
-  const formattedDate = dayjs(date).format('D MMM YYYY');
+  const formattedDate = dayjs.utc(date).format('D MMM YYYY');
   return (
     <View style={{flexDirection: 'row', alignItems: 'center', gap: 5}}>
       <Calendar color={COLOR.DARK_TEXT_COLOR} size={20} />

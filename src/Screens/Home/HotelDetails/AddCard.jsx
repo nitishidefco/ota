@@ -1,26 +1,20 @@
-import {View, Text, StyleSheet, Alert} from 'react-native';
+import {View, Text, StyleSheet, Alert, TextInput} from 'react-native';
 import React, {useCallback, useState, useEffect} from 'react';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import KeyboardAwareScrollViewBoilerplate from '../../../Components/UI/KeyboardAwareScrollViewBoilerplate';
 import NormalHeader from '../../../Components/UI/NormalHeader';
-import {
-  CardField,
-  createPaymentMethod,
-  useStripe,
-} from '@stripe/stripe-react-native';
+import {CardField, createPaymentMethod} from '@stripe/stripe-react-native';
 import {COLOR, Matrics, typography} from '../../../Config/AppStyling';
 import {useDispatch} from 'react-redux';
 import {saveCardThunk} from '../../../Redux/Reducers/BookingOverviewReducer/BookingListSlice';
 import {errorToast, success} from '../../../Helpers/ToastMessage';
+import InteractiveCard from '../../../Components/UI/InteractiveCard';
 
 const AddCard = () => {
   const navigation = useNavigation();
-  const route = useRoute();
   const dispatch = useDispatch();
-  const {createToken} = useStripe();
 
   const [cardDetails, setCardDetails] = useState(null);
-  const [paymentMethodId, setPaymentMethodId] = useState(null);
   const [formComplete, setFormComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,68 +22,115 @@ const AddCard = () => {
     navigation.goBack();
   };
 
-  const createPaymentToken = async () => {
-    try {
-      const {error, token} = await createToken({
-        type: 'Card',
-        currency: 'usd',
-      });
+  const handleCardChange = useCallback(
+    async details => {
+      console.log('CardField raw details:', details);
 
-      if (error) {
-        errorToast(error.message);
-        return null;
+      if (!details) {
+        setFormComplete(false);
+        setCardDetails(null);
+        return;
       }
 
-      return token;
-    } catch (err) {
-      errorToast('Failed to create payment token');
-      return null;
-    }
-  };
+      // Format the card details for display
+      const formattedCardDetails = {
+        number: details.last4 ? `**** **** **** ${details.last4}` : '',
+        expiryDate:
+          details.expiryMonth && details.expiryYear
+            ? `${details.expiryMonth
+                .toString()
+                .padStart(2, '0')}/${details.expiryYear.toString().slice(-2)}`
+            : '',
+        holderName: cardDetails?.holderName || '',
+        validNumber: details.validNumber,
+        validCVC: details.validCVC,
+        validExpiryDate: details.validExpiryDate,
+        complete: details.complete,
+        brand: details.brand || 'CARD',
+      };
+
+      setCardDetails(formattedCardDetails);
+
+      // Only set form complete if ALL validations pass AND the card is complete
+      const isValid =
+        details.complete &&
+        details.validNumber === 'Valid' &&
+        details.validCVC === 'Valid' &&
+        details.validExpiryDate === 'Valid';
+
+      console.log('Card validation:', {
+        complete: details.complete,
+        validNumber: details.validNumber,
+        validCVC: details.validCVC,
+        validExpiryDate: details.validExpiryDate,
+        isValid,
+      });
+
+      setFormComplete(isValid);
+    },
+    [cardDetails?.holderName],
+  );
 
   const handleNextPress = async () => {
-    if (!formComplete || !paymentMethodId) {
+    if (!formComplete) {
       errorToast('Please enter valid card details');
       return;
     }
 
     setIsLoading(true);
     try {
-      const token = await createPaymentToken();
-      if (!token) {
-        errorToast('Something went wrong');
+      console.log('Creating payment method...');
+
+      const billingDetails = {
+        name: cardDetails?.holderName || 'Card Holder',
+        email: 'user@example.com',
+        address: {
+          country: 'US',
+        },
+      };
+
+      console.log('Billing details:', billingDetails);
+
+      const {error, paymentMethod} = await createPaymentMethod({
+        paymentMethodType: 'Card',
+        paymentMethodData: {
+          billingDetails,
+        },
+      });
+
+      console.log('createPaymentMethod response:', {error, paymentMethod});
+
+      if (error) {
+        console.error('Payment method creation error:', error);
+        errorToast(error.message);
         return;
       }
+
+      if (!paymentMethod) {
+        console.error('No payment method returned');
+        errorToast('Failed to create payment method');
+        return;
+      }
+
+      console.log('Payment method created successfully:', paymentMethod);
+
       const details = {
-        cardToken: token.id,
+        cardToken: paymentMethod.id,
       };
-      console.log('details', details);
 
-      console.log('About to dispatch saveCardThunk...');
+      console.log('Sending to backend:', details);
+
       const result = await dispatch(saveCardThunk({details}));
-      console.log('dispatch result:', result);
-      console.log('result.payload:', result.payload);
-      console.log('result.meta:', result.meta);
 
-      // Check if the action was fulfilled
       if (saveCardThunk.fulfilled.match(result)) {
         const response = result.payload;
-        console.log('response after unwrap:', response);
-        console.log('response type:', typeof response);
-        console.log('response status:', response?.status);
-
         if (response && response.status) {
           success('Card saved successfully!');
           navigation.navigate('HotelPaymentsPage');
         } else {
-          console.log('Response or status is falsy:', {
-            response,
-            status: response?.status,
-          });
           errorToast('Failed to save card. Please try again.');
         }
       } else {
-        console.log('Action was rejected:', result.error);
         errorToast('Failed to save card. Please try again.');
       }
     } catch (error) {
@@ -100,43 +141,12 @@ const AddCard = () => {
     }
   };
 
-  const handleCardChange = useCallback(async cardDetails => {
-    if (!cardDetails) {
-      setFormComplete(false);
-      setCardDetails(null);
-      setPaymentMethodId(null);
-      return;
-    }
-
-    setCardDetails(cardDetails);
-    const isValid =
-      cardDetails.validNumber === 'Valid' &&
-      cardDetails.validCVC === 'Valid' &&
-      cardDetails.validExpiryDate === 'Valid' &&
-      cardDetails.complete;
-
-    if (isValid) {
-      try {
-        const {paymentMethod, error} = await createPaymentMethod({
-          paymentMethodType: 'Card',
-        });
-
-        if (error) {
-          console.error('Payment method creation error:', error);
-          setFormComplete(false);
-          return;
-        }
-
-        setPaymentMethodId(paymentMethod.id);
-      } catch (err) {
-        console.error('Error creating payment method:', err);
-        setFormComplete(false);
-        return;
-      }
-    }
-
-    setFormComplete(isValid);
-  }, []);
+  const handleCardHolderChange = text => {
+    setCardDetails(prev => ({
+      ...prev,
+      holderName: text,
+    }));
+  };
 
   return (
     <View style={styles.container}>
@@ -156,18 +166,37 @@ const AddCard = () => {
           <Text style={styles.subtitle}>
             Your card details are secure and encrypted
           </Text>
-          <CardField
-            postalCodeEnabled={false}
-            autofocus={true}
-            placeholders={{
-              number: '4242 4242 4242 4242',
-              expiration: 'MM/YY',
-              cvc: 'CVC',
-            }}
-            cardStyle={styles.cardField}
-            style={styles.cardForm}
-            onCardChange={handleCardChange}
-          />
+
+          <View style={styles.cardDisplayContainer}>
+            <InteractiveCard cardDetails={cardDetails} />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Card Holder Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter card holder name"
+              placeholderTextColor={COLOR.GRAY}
+              value={cardDetails?.holderName || ''}
+              onChangeText={handleCardHolderChange}
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={styles.cardFieldContainer}>
+            <Text style={styles.inputLabel}>Card Details</Text>
+            <CardField
+              postalCodeEnabled={false}
+              placeholders={{
+                number: '4242 4242 4242 4242',
+                expiration: 'MM/YY',
+                cvc: 'CVC',
+              }}
+              cardStyle={styles.cardField}
+              style={styles.cardForm}
+              onCardChange={handleCardChange}
+            />
+          </View>
         </View>
       </KeyboardAwareScrollViewBoilerplate>
     </View>
@@ -192,7 +221,34 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSizes.fs14,
     fontFamily: typography.fontFamily.Montserrat.Regular,
     color: COLOR.GRAY,
-    marginBottom: Matrics.vs(24),
+    marginBottom: Matrics.vs(40),
+  },
+  cardDisplayContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Matrics.vs(20),
+  },
+  inputContainer: {
+    marginBottom: Matrics.vs(20),
+  },
+  inputLabel: {
+    fontSize: typography.fontSizes.fs14,
+    fontFamily: typography.fontFamily.Montserrat.SemiBold,
+    color: COLOR.BLACK,
+    marginBottom: Matrics.vs(8),
+  },
+  input: {
+    height: Matrics.vs(50),
+    borderWidth: 1.5,
+    borderColor: COLOR.PRIMARY,
+    borderRadius: 8,
+    paddingHorizontal: Matrics.s(16),
+    fontSize: typography.fontSizes.fs16,
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+    color: COLOR.BLACK,
+  },
+  cardFieldContainer: {
+    marginTop: Matrics.vs(20),
   },
   cardForm: {
     width: '100%',

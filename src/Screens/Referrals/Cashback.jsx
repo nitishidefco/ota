@@ -8,13 +8,17 @@ import {
   ActivityIndicator,
   ScrollView,
   Modal,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import NormalHeader from '../../Components/UI/NormalHeader';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
-import {getCashbackListThunk} from '../../Redux/Reducers/ReferralReducer/ReferralListSlice';
+import {
+  getCashbackListThunk,
+  getReferralListThunk,
+} from '../../Redux/Reducers/ReferralReducer/ReferralListSlice';
 import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import i18n from '../../i18n/i18n';
@@ -22,9 +26,11 @@ import i18n from '../../i18n/i18n';
 const Cashback = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const {cashbackList, isLoading, error} = useSelector(
+  const {cashbackList, isLoading, error, referralList} = useSelector(
     state => state.referralList,
   );
+  console.log('cashbackList', cashbackList);
+  console.log('referralList', referralList);
 
   // Local state
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -71,19 +77,26 @@ const Cashback = () => {
       case 'bus':
         return Images.BUS_ICON;
       default:
-        return Images.FLIGHT_ICON; // Default icon
+        return Images.FLIGHT_ICON;
     }
   };
 
   const loadCashback = useCallback(
     async (page = 1, type = null) => {
       try {
-        console.log('Loading cashback', page, limit, 'type:', type);
         const params = {pageCount: page, limit: limit};
         if (type) {
           params.type = type;
         }
         await dispatch(getCashbackListThunk(params));
+        const thunkParams = {
+          pageCount: page,
+          limit: limit,
+          statusType: null,
+          isNewFilter: false,
+        };
+
+        await dispatch(getReferralListThunk(thunkParams)).unwrap();
       } catch (err) {
         console.error('Error loading cashback:', err);
       } finally {
@@ -105,7 +118,6 @@ const Cashback = () => {
       setCurrentFilter(selectedFilter);
       setCurrentFilterType(filterType);
 
-      // Reset and reload data with new filter
       hasInitialized.current = false;
       loadCashback(1, filterType);
     }
@@ -282,13 +294,42 @@ const Cashback = () => {
             navigation.navigate('Referral');
           }}
         />
-
+        <View
+          style={{
+            marginTop: Matrics.vs(20),
+            paddingHorizontal: Matrics.s(6),
+          }}>
+          <View
+            style={{
+              backgroundColor: COLOR.PRIMARY,
+              padding: Matrics.s(12),
+              borderRadius: Matrics.s(12),
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingVertical: Matrics.vs(16),
+            }}>
+            <Image source={Images.WALLET} style={{width: 30, height: 30}} />
+            <Text
+              style={{
+                color: COLOR.WHITE,
+                fontFamily: typography.fontFamily.Montserrat.Bold,
+                fontSize: typography.fontSizes.fs30,
+                marginTop: Matrics.vs(8),
+              }}>
+              $
+              {Number(
+                cashbackList?.total_cashback + referralList?.data?.total_amount,
+              ).toFixed(2)}
+            </Text>
+          </View>
+        </View>
         {/* Cashback Summary Cards */}
         <View
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
+            alignItems: 'center',
+            justifyContent: 'center',
             paddingHorizontal: Matrics.s(6),
+            marginTop: Matrics.vs(6),
           }}>
           <View
             style={{
@@ -300,12 +341,11 @@ const Cashback = () => {
               paddingHorizontal: Matrics.s(12),
               paddingVertical: Matrics.vs(16),
               borderRadius: Matrics.s(12),
-              marginRight: Matrics.s(8),
               marginVertical: Matrics.vs(16),
               backgroundColor: COLOR.WHITE,
               boxShadow: '0 4px 8px 0 rgba(139, 92, 246, 0.15)',
             }}>
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, alignItems: 'center'}}>
               <Text
                 style={{
                   fontSize: Matrics.s(12),
@@ -328,51 +368,7 @@ const Cashback = () => {
                 alignSelf: 'flex-end',
               }}>
               <Image
-                source={Images.DIAMOND_ICON}
-                style={{width: 30, height: 30}}
-                resizeMethod="contain"
-              />
-            </View>
-          </View>
-          <View
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              borderWidth: 1,
-              borderColor: COLOR.PRIMARY,
-              paddingHorizontal: Matrics.s(12),
-              paddingVertical: Matrics.vs(16),
-              borderRadius: Matrics.s(12),
-              marginLeft: Matrics.s(8),
-              marginVertical: Matrics.vs(16),
-              backgroundColor: COLOR.WHITE,
-              boxShadow: '0 4px 8px 0 rgba(139, 92, 246, 0.15)',
-            }}>
-            <View style={{flex: 1}}>
-              <Text
-                style={{
-                  fontSize: Matrics.s(12),
-                  fontFamily: typography.fontFamily.Montserrat.Regular,
-                  color: COLOR.PRIMARY,
-                }}>
-                {i18n.t('Cashback.totalEarning')}
-              </Text>
-              <Text
-                style={{
-                  fontSize: Matrics.s(26),
-                  fontFamily: typography.fontFamily.Montserrat.Bold,
-                  color: COLOR.PRIMARY,
-                }}>
-                ${cashbackList?.total_earning || '0.00'}
-              </Text>
-            </View>
-            <View
-              style={{
-                alignSelf: 'flex-end',
-              }}>
-              <Image
-                source={Images.COIN_ICON}
+                source={Images.MONEY_MONEY}
                 style={{width: 30, height: 30}}
                 resizeMethod="contain"
               />
@@ -424,7 +420,7 @@ const Cashback = () => {
 const styles = StyleSheet.create({
   container: {
     borderRadius: Matrics.s(12),
-    marginVertical: Matrics.vs(16),
+    marginVertical: Matrics.vs(10),
   },
   headerContainer: {
     borderTopLeftRadius: Matrics.s(12),
@@ -492,7 +488,7 @@ const styles = StyleSheet.create({
   },
   amountText: {
     fontFamily: typography.fontFamily.Montserrat.Medium,
-    color: COLOR.TITLE_COLOR,
+    color: COLOR.WARNING,
   },
   cashbackText: {
     fontFamily: typography.fontFamily.Montserrat.Medium,

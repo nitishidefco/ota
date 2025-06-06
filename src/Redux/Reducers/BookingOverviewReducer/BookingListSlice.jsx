@@ -35,9 +35,9 @@ export const getBookingListThunk = createAsyncThunk(
 
 export const cancelBookingThunk = createAsyncThunk(
   'booking/cancelBooking',
-  async ({bookingNo, gds}, {rejectWithValue}) => {
+  async ({bookingNo, provider}, {rejectWithValue}) => {
     try {
-      const response = await cancelBooking({bookingNo, gds});
+      const response = await cancelBooking({bookingNo, provider});
       return response.data;
     } catch (error) {
       return rejectWithValue('Error cancelling booking', error);

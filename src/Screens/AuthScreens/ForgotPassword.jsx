@@ -138,7 +138,15 @@ const ForgotPassword = () => {
     </>
   );
   return Platform.OS === 'android' ? (
-    <SafeAreaView style={styles.safeAreaView}>{renderContent()}</SafeAreaView>
+    <SafeAreaView
+      style={[
+        styles.safeAreaView,
+        {
+          paddingTop: '7%',
+        },
+      ]}>
+      {renderContent()}
+    </SafeAreaView>
   ) : (
     <View style={{flex: 1}}>{renderContent()}</View>
   );

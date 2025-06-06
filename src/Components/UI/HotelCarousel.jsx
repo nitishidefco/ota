@@ -23,16 +23,23 @@ const HotelCarousel = React.memo(({images}) => {
   const [failedImages, setFailedImages] = useState(0);
   const [currentImages, setCurrentImages] = useState(() => {
     console.log('HotelCarousel received images prop:', images);
-    // Filter out null/undefined and ensure we have valid URLs
-    const filteredImages =
-      images?.filter(
+    // Handle both single string URL and array of URLs
+    if (images) {
+      // If images is a single string, convert to array
+      const imageArray = Array.isArray(images) ? images : [images];
+
+      // Filter out null/undefined and ensure we have valid URLs
+      const filteredImages = imageArray.filter(
         item =>
           item !== null &&
           item !== undefined &&
           typeof item === 'string' &&
           item.trim() !== '',
-      ) || [];
-    return filteredImages.length > 0 ? filteredImages : FALLBACK_IMAGES;
+      );
+
+      return filteredImages.length > 0 ? filteredImages : FALLBACK_IMAGES;
+    }
+    return FALLBACK_IMAGES;
   });
 
   // Process images: Always add BASE_API_URL to all URLs
@@ -116,8 +123,8 @@ const HotelCarousel = React.memo(({images}) => {
     <View style={styles.carouselContainer}>
       <Carousel
         ref={carouselRef}
-        width={Matrics.screenWidth}
-        height={225}
+        width={Matrics?.screenWidth}
+        height={Matrics.vs(200)}
         data={processedImages}
         renderItem={renderItem}
         loop={true}
@@ -145,12 +152,13 @@ const styles = StyleSheet.create({
     marginTop: Matrics.s(7),
   },
   image: {
-    width: Matrics.screenWidth * 0.95,
-    height: Matrics.screenHeight * 0.3,
-    borderRadius: Matrics.s(7),
+    width: Matrics?.screenWidth * 0.95,
+    height: Matrics.vs(200),
+    borderRadius: Matrics.s(10),
   },
   carousel: {
-    width: Matrics.screenWidth,
+    width: Matrics?.screenWidth,
+    height: Matrics.vs(200),
   },
   carouselContainer: {
     position: 'relative',
@@ -162,13 +170,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Matrics.s(20),
     position: 'absolute',
-    width: Matrics.screenWidth,
+    width: Matrics?.screenWidth,
     top: 100,
   },
   controlButtons: {
     width: Matrics.s(30),
     height: Matrics.s(30),
     resizeMode: 'contain',
+  },
+  paginationContainer: {
+    width: Matrics?.screenWidth,
+    position: 'absolute',
+    bottom: Matrics.vs(10),
+  },
+  paginationDot: {
+    width: Matrics?.screenWidth,
+    height: Matrics.vs(20),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

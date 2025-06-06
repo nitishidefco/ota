@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     // marginHorizontal: Matrics.s(10),
     margin: 'auto',
-    marginTop: Matrics.vs(10),
+    marginVertical: Matrics.vs(10),
     width: Matrics.screenWidth * 0.7,
   },
   filterSortItem: {

@@ -17,10 +17,14 @@ import AuthScreenHeaders from '../../Components/UI/AuthScreenHeaders';
 import {useNavigation} from '@react-navigation/native';
 import i18n from '../../i18n/i18n';
 import {useDispatch, useSelector} from 'react-redux';
-import {facebookLogin, googleLogin, appleLogin} from '../../Redux/Reducers/AuthSlice';
+import {
+  facebookLogin,
+  googleLogin,
+  appleLogin,
+} from '../../Redux/Reducers/AuthSlice';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import CustomLoader from '../../Components/Loader/CustomLoader';
-import { appleAuth } from '@invertase/react-native-apple-authentication';
+import {appleAuth} from '@invertase/react-native-apple-authentication';
 
 const Login = () => {
   const navigation = useNavigation();
@@ -35,7 +39,6 @@ const Login = () => {
     try {
       // Check if Apple Sign In is available
       const isAppleAuthSupported = await appleAuth.isSupported;
-      
       if (!isAppleAuthSupported) {
         console.log('Apple Sign In is not supported on this device');
         return;
@@ -55,7 +58,7 @@ const Login = () => {
           exiting={FadeOut.duration(25)}
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            height: Matrics.screenHeight,
+            height: Matrics?.screenHeight,
             position: 'absolute',
             top: 0,
             left: 0,
@@ -84,14 +87,18 @@ const Login = () => {
               isActive={true}
               iconName={'EMAIL'}
               handlePress={() => navigation.navigate('LoginWithEmail')}
-              width={globalLanguage === 'ar' ? Matrics.s(160) : Matrics.s(150)}
+              width={
+                globalLanguage === 'ar' ? Matrics?.s(160) : Matrics?.s(150)
+              }
             />
             <LoginOptionButton
               title={i18n.t('MainScreen.phone')}
               isActive={false}
               iconName={'PHONE'}
               handlePress={() => navigation.navigate('LoginWithPhone')}
-              width={globalLanguage === 'ar' ? Matrics.s(160) : Matrics.s(150)}
+              width={
+                globalLanguage === 'ar' ? Matrics?.s(160) : Matrics?.s(150)
+              }
             />
           </View>
           <View style={styles.lastContainer}>
@@ -117,11 +124,13 @@ const Login = () => {
                 activeOpacity={0.7}>
                 <Image style={styles.socialIcons} source={Images.FACEBOOK} />
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAppleLogin}
-                activeOpacity={0.7}>
-                <Image style={styles.socialIcons} source={Images.APPLE} />
-              </TouchableOpacity>
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  onPress={handleAppleLogin}
+                  activeOpacity={0.7}>
+                  <Image style={styles.socialIcons} source={Images.APPLE} />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -146,14 +155,14 @@ const styles = StyleSheet.create({
     paddinTop: '7%',
   },
   halfCircle: {
-    width: Matrics.screenWidth * 2.5,
-    height: Matrics.screenWidth * 2.5,
+    width: Matrics?.screenWidth * 2.5,
+    height: Matrics?.screenWidth * 2.5,
     backgroundColor: 'white',
     position: 'absolute',
     alignItems: 'center',
-    bottom: -Matrics.screenWidth * 1.95,
-    left: -Matrics.screenWidth * 0.76,
-    borderRadius: Matrics.screenWidth * 1.5,
+    bottom: -Matrics?.screenWidth * 1.95,
+    left: -Matrics?.screenWidth * 0.76,
+    borderRadius: Matrics?.screenWidth * 1.5,
     //     zIndex: 2,
   },
   topContainer: {
@@ -161,73 +170,73 @@ const styles = StyleSheet.create({
   },
   headerBottomContainer: {
     position: 'absolute',
-    top: Matrics.screenHeight * 0.47,
+    top: Matrics?.screenHeight * 0.47,
   },
   appLogoContainer: {
-    width: Matrics.screenWidth,
+    width: Matrics?.screenWidth,
   },
   appLogo: {
-    width: Matrics.screenWidth * 0.4,
+    width: Matrics?.screenWidth * 0.4,
     resizeMode: 'contain',
     alignSelf: 'center',
   },
   pageTitleText: {
-    fontFamily: typography.fontFamily.Montserrat.Bold,
-    fontSize: typography.fontSizes.fs22,
-    color: COLOR.TITLE_COLOR,
+    fontFamily: typography?.fontFamily?.Montserrat?.Bold,
+    fontSize: typography?.fontSizes?.fs22,
+    color: COLOR?.TITLE_COLOR,
     textAlign: 'center',
   },
   image: {
-    width: Matrics.screenWidth,
+    width: Matrics?.screenWidth,
     resizeMode: 'cover',
   },
   buttonContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-around',
-    gap: Matrics.s(20),
-    marginTop: Matrics.vs(25),
-    // paddingHorizontal: Matrics.s(20),
+    gap: Matrics?.s(20),
+    marginTop: Matrics?.vs(25),
+    // paddingHorizontal: Matrics?.s(20),
   },
   socailLoginContainer: {
     display: 'flex',
     flexDirection: 'row',
-    marginTop: Matrics.screenHeight * 0.04,
-    width: Matrics.screenWidth * 0.6,
+    marginTop: Matrics?.screenHeight * 0.04,
+    width: Matrics?.screenWidth * 0.6,
     justifyContent: 'space-around',
     alignItems: 'center',
   },
   socialIcons: {
-    width: Matrics.s(28),
-    height: Matrics.vs(28),
+    width: Matrics?.s(28),
+    height: Matrics?.vs(28),
     resizeMode: 'contain',
   },
   bottomContainer: {
     position: 'absolute',
-    top: Matrics.vs(420),
-    width: Matrics.screenWidth,
-    height: Matrics.screenHeight * 0.5,
+    top: Matrics?.vs(420),
+    width: Matrics?.screenWidth,
+    height: Matrics?.screenHeight * 0.5,
     alignItems: 'center',
     zIndex: 3,
   },
   orTextStyle: {
-    fontFamily: typography.fontFamily.Montserrat.Medium,
+    fontFamily: typography?.fontFamily?.Montserrat?.Medium,
     textAlign: 'center',
-    fontSize: typography.fontSizes.fs16,
-    marginBottom: Matrics.vs(10),
-    color: COLOR.DIM_TEXT_COLOR,
+    fontSize: typography?.fontSizes?.fs16,
+    marginBottom: Matrics?.vs(10),
+    color: COLOR?.DIM_TEXT_COLOR,
   },
   signInWith: {
-    fontFamily: typography.fontFamily.Montserrat.SemiBold,
+    fontFamily: typography?.fontFamily?.Montserrat?.SemiBold,
     textAlign: 'center',
-    fontSize: typography.fontSizes.fs18,
-    color: COLOR.DIM_TEXT_COLOR,
+    fontSize: typography?.fontSizes?.fs18,
+    color: COLOR?.DIM_TEXT_COLOR,
   },
   lastContainer: {
     flexDirection: 'column',
-    height: Matrics.screenHeight * 0.11,
+    height: Matrics?.screenHeight * 0.11,
     justifyContent: 'space-around',
-    marginTop: Matrics.screenHeight * 0.03,
+    marginTop: Matrics?.screenHeight * 0.03,
   },
 });
 

@@ -8,8 +8,11 @@ import {
   Keyboard,
   TextInput,
   Image,
+  FlatList,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo, useEffect} from 'react';
 import {Dropdown} from 'react-native-element-dropdown';
 import {CountryPicker} from 'react-native-country-codes-picker';
 import {COLOR, Matrics, typography} from '../Config/AppStyling';
@@ -18,6 +21,8 @@ import i18n from '../i18n/i18n';
 import {countryPhoneLength} from '../Utils/countryPhoneLength';
 import {Images} from '../Config';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
+import {useDispatch, useSelector} from 'react-redux';
+import {getCityDetailsThunk} from '../Redux/Reducers/HotelReducer/GetCitySlice';
 
 const GENDER_OPTIONS = [
   {label: 'Male', value: 'male'},
@@ -31,6 +36,9 @@ const DOCUMENT_TYPES = [
 ];
 
 const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
+  const dispatch = useDispatch();
+  const {cityDetails, loadingCityDetails} = useSelector(state => state.getCity);
+
   const isPrimaryGuest = guestIndex === 0;
   const [formData, setFormData] = useState({
     firstName: guestData?.firstName || '',
@@ -67,6 +75,70 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
       c => c.phone === formData.countryCode.replace('+', ''),
     ) || null,
   );
+  const [showCityFlatList, setShowCityFlatList] = useState(false);
+  const [selectedCityIndex, setSelectedCityIndex] = useState(null);
+
+  // Debounced search function for city
+  const debouncedSearchFunction = useMemo(
+    () =>
+      debounce(async searchText => {
+        if (searchText.length < 2) {
+          return;
+        }
+        try {
+          console.log('[debouncedSearch] Searching for city:', searchText);
+          const response = await dispatch(
+            getCityDetailsThunk({cityName: searchText}),
+          );
+          console.log('[debouncedSearch] API Response:', response);
+          console.log('[debouncedSearch] City Details:', response.payload);
+        } catch (error) {
+          console.error('Error getting city details', error);
+        }
+      }, 500),
+    [dispatch],
+  );
+
+  const debouncedSearch = useCallback(
+    searchText => {
+      debouncedSearchFunction(searchText);
+    },
+    [debouncedSearchFunction],
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSearchFunction.cancel();
+    };
+  }, [debouncedSearchFunction]);
+
+  const handleCityFlatListShow = text => {
+    if (text.length === 0) {
+      setShowCityFlatList(false);
+    } else {
+      setShowCityFlatList(true);
+    }
+  };
+
+  const handleCityFlatListPress = (cityName, index) => {
+    console.log('[handleCityFlatListPress] Pressed city:', cityName);
+    console.log('[handleCityFlatListPress] City details:', cityDetails[index]);
+    Keyboard.dismiss();
+    setSelectedCityIndex(index);
+    setFormData(prev => ({...prev, city: cityName}));
+
+    // Set country from the selected city details
+    if (cityDetails[index]?.countryName) {
+      setFormData(prev => ({...prev, country: cityDetails[index].countryName}));
+      setErrors(prev => ({
+        ...prev,
+        country: validateText(cityDetails[index].countryName, 'Country'),
+      }));
+    }
+
+    setShowCityFlatList(false);
+    setErrors(prev => ({...prev, city: validateText(cityName, 'City')}));
+  };
 
   // Validation functions
   const validateText = (value, fieldName) => {
@@ -162,17 +234,22 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
   };
 
   // Debounced validation for text and numeric inputs
-  const debouncedValidate = useCallback(
-    debounce((field, value, validateFn) => {
-      setErrors(prev => ({...prev, [field]: validateFn(value)}));
-    }, 300),
-    [selectedCountry],
-  );
+  const debouncedValidate = debounce((field, value, validateFn) => {
+    setErrors(prev => ({...prev, [field]: validateFn(value)}));
+  }, 300);
 
   // Handle input changes
   const handleTextChange = (field, value, validateFn) => {
     setFormData(prev => ({...prev, [field]: value}));
     debouncedValidate(field, value, validateFn);
+  };
+
+  // Special handler for city input with search functionality
+  const handleCityChange = value => {
+    debouncedSearch(value);
+    handleCityFlatListShow(value);
+    setFormData(prev => ({...prev, city: value}));
+    setErrors(prev => ({...prev, city: validateText(value, 'City')}));
   };
 
   const handleDropdownChange = (field, value, validateFn) => {
@@ -262,7 +339,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>First Name *</Text>
+            <Text style={styles.label}>
+              First Name <Text style={styles.asterisk}>*</Text>
+            </Text>
             <TextInput
               style={[
                 styles.input,
@@ -284,7 +363,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
             ) : null}
           </View>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Last Name *</Text>
+            <Text style={styles.label}>
+              Last Name <Text style={styles.asterisk}>*</Text>
+            </Text>
             <TextInput
               style={[styles.input, errors.lastName ? styles.inputError : null]}
               placeholder="Enter your last name"
@@ -303,7 +384,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
             ) : null}
           </View>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Gender *</Text>
+            <Text style={styles.label}>
+              Gender <Text style={styles.asterisk}>*</Text>
+            </Text>
             <Dropdown
               style={[
                 styles.dropdown,
@@ -328,7 +411,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
             ) : null}
           </View>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Age *</Text>
+            <Text style={styles.label}>
+              Age <Text style={styles.asterisk}>*</Text>
+            </Text>
             <TextInput
               style={[styles.input, errors.age ? styles.inputError : null]}
               placeholder="Enter age"
@@ -346,7 +431,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
           {isPrimaryGuest && (
             <>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Document Type *</Text>
+                <Text style={styles.label}>
+                  Document Type <Text style={styles.asterisk}>*</Text>
+                </Text>
                 <Dropdown
                   style={[
                     styles.dropdown,
@@ -375,7 +462,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
                 ) : null}
               </View>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Document Number *</Text>
+                <Text style={styles.label}>
+                  Document Number <Text style={styles.asterisk}>*</Text>
+                </Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -397,7 +486,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
                 ) : null}
               </View>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Address *</Text>
+                <Text style={styles.label}>
+                  Address <Text style={styles.asterisk}>*</Text>
+                </Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -419,26 +510,83 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
                 ) : null}
               </View>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>City *</Text>
-                <TextInput
-                  style={[styles.input, errors.city ? styles.inputError : null]}
-                  placeholder="Enter city"
-                  placeholderTextColor="#999"
-                  value={formData.city}
-                  onChangeText={value =>
-                    handleTextChange(
-                      'city',
-                      value,
-                      validateText.bind(null, 'City'),
-                    )
-                  }
-                />
+                <Text style={styles.label}>
+                  City <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <View style={styles.cityInputContainer}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.city ? styles.inputError : null,
+                    ]}
+                    placeholder="Enter city"
+                    placeholderTextColor="#999"
+                    value={formData.city}
+                    onChangeText={handleCityChange}
+                    onFocus={() => {
+                      setFormData(prev => ({...prev, city: ''}));
+                      setShowCityFlatList(false);
+                    }}
+                    keyboardShouldPersistTaps="handled"
+                    multiline={Platform.OS === 'android' ? true : false}
+                    scrollEnabled={true}
+                  />
+                  <View style={styles.cityDropdownContainer}>
+                    {loadingCityDetails && showCityFlatList ? (
+                      <View style={styles.cityFlatListStyle}>
+                        <ActivityIndicator
+                          size="large"
+                          color={COLOR.PRIMARY}
+                          style={styles.loader}
+                        />
+                      </View>
+                    ) : (
+                      showCityFlatList &&
+                      cityDetails?.length > 0 && (
+                        <FlatList
+                          data={cityDetails}
+                          style={styles.cityFlatListStyle}
+                          keyExtractor={(item, index) => index.toString()}
+                          keyboardShouldPersistTaps="always"
+                          nestedScrollEnabled={true}
+                          showsVerticalScrollIndicator={true}
+                          onScrollBeginDrag={() => {
+                            Keyboard.dismiss();
+                          }}
+                          renderItem={({item, index}) => (
+                            <TouchableOpacity
+                              style={styles.cityItem}
+                              onPress={() =>
+                                handleCityFlatListPress(item.cityName, index)
+                              }
+                              activeOpacity={0.7}>
+                              <Image
+                                source={Images.DROPDOWN_LOCATION}
+                                style={styles.cityLocationIcon}
+                              />
+                              <View style={styles.cityTextContainer}>
+                                <Text style={styles.cityName}>
+                                  {item.cityName}
+                                </Text>
+                                <Text style={styles.destinationName}>
+                                  {item.destinationName}
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          )}
+                        />
+                      )
+                    )}
+                  </View>
+                </View>
                 {errors.city ? (
                   <Text style={styles.errorText}>{errors.city}</Text>
                 ) : null}
               </View>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Country *</Text>
+                <Text style={styles.label}>
+                  Country <Text style={styles.asterisk}>*</Text>
+                </Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -460,7 +608,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
                 ) : null}
               </View>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Postal Code *</Text>
+                <Text style={styles.label}>
+                  Postal Code <Text style={styles.asterisk}>*</Text>
+                </Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -482,7 +632,9 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
                 ) : null}
               </View>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Phone Number *</Text>
+                <Text style={styles.label}>
+                  Phone Number <Text style={styles.asterisk}>*</Text>
+                </Text>
                 <View style={styles.phoneNumberContainer}>
                   <TouchableOpacity
                     onPress={() => setShowCountryPicker(true)}
@@ -551,13 +703,11 @@ const GuestForm = ({guestIndex, guestData, onSave, onCancel}) => {
             </>
           )}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Email *</Text>
+            <Text style={styles.label}>
+              Email <Text style={styles.asterisk}>*</Text>
+            </Text>
             <TextInput
-              style={[
-                styles.input,
-                errors.email ? styles.inputError : null,
-                {height: 40, maxHeight: 40},
-              ]}
+              style={[styles.input, errors.email ? styles.inputError : null]}
               placeholder="Enter email"
               placeholderTextColor="#999"
               value={formData.email}
@@ -605,6 +755,7 @@ const styles = StyleSheet.create({
     borderRadius: Matrics.s(10), // Increased from 4px
     padding: Matrics.s(10),
     paddingVertical: Matrics.vs(8), // Increased from 10px
+    height: Matrics.vs(42), // Consistent height for all inputs
     fontSize: Matrics.s(16),
     fontFamily: typography.fontFamily.Montserrat.Regular,
     borderWidth: 1,
@@ -615,6 +766,7 @@ const styles = StyleSheet.create({
     borderRadius: Matrics.s(10),
     padding: Matrics.s(10),
     paddingVertical: Matrics.vs(8),
+    height: Matrics.vs(48), // Consistent height for all dropdowns
     fontSize: Matrics.s(16),
     fontFamily: typography.fontFamily.Montserrat.Bold,
     borderWidth: 1,
@@ -655,7 +807,7 @@ const styles = StyleSheet.create({
   countryPicker: {
     width: Matrics.screenWidth * 0.2,
     backgroundColor: '#fff',
-    height: Matrics.vs(38),
+    height: Matrics.vs(42), // Match input height
     borderRadius: Matrics.s(10),
     padding: Matrics.s(10),
     paddingVertical: Matrics.vs(8),
@@ -681,6 +833,63 @@ const styles = StyleSheet.create({
     fontSize: Matrics.s(14),
     color: COLOR.WHITE,
     fontFamily: typography.fontFamily.Montserrat.Bold,
+  },
+  asterisk: {
+    color: '#e74c3c',
+  },
+  cityInputContainer: {
+    position: 'relative',
+    width: '100%',
+  },
+  cityDropdownContainer: {
+    position: 'absolute',
+    top: Matrics.vs(43),
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: 'white',
+    borderRadius: Matrics.s(10),
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  cityFlatListStyle: {
+    maxHeight: Matrics.vs(200),
+    backgroundColor: 'white',
+    borderRadius: Matrics.s(10),
+    paddingHorizontal: Matrics.s(10),
+  },
+  cityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Matrics.vs(12),
+    borderBottomWidth: 1,
+    borderBottomColor: COLOR.BORDER_COLOR,
+  },
+  cityLocationIcon: {
+    width: Matrics.s(20),
+    height: Matrics.s(20),
+    resizeMode: 'contain',
+    marginRight: Matrics.s(10),
+  },
+  cityTextContainer: {
+    flex: 1,
+  },
+  cityName: {
+    fontSize: Matrics.s(15),
+    fontFamily: typography.fontFamily.Montserrat.SemiBold,
+    color: '#000',
+  },
+  destinationName: {
+    fontSize: Matrics.s(13),
+    fontFamily: typography.fontFamily.Montserrat.Regular,
+    color: '#666',
+    marginTop: Matrics.vs(2),
+  },
+  loader: {
+    marginTop: Matrics.vs(10),
   },
 });
 

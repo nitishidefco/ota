@@ -4,7 +4,7 @@ import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {ConfirmationModalContext} from '../../Context/ConfirmationModalContext';
 
-const ConfirmationModal = ({title, handleYesPressed}) => {
+const ConfirmationModal = ({title, handleYesPressed, handleNoPressed}) => {
   const {showCancelModal, setShowCancelModal} = useContext(
     ConfirmationModalContext,
   );
@@ -55,7 +55,7 @@ const ConfirmationModal = ({title, handleYesPressed}) => {
               borderRadius: Matrics.s(5),
             }}
             activeOpacity={0.7}
-            onPress={() => setShowCancelModal(!showCancelModal)}>
+            onPress={handleNoPressed}>
             <Text
               style={{
                 fontFamily: typography.fontFamily.Montserrat.SemiBold,

@@ -38,19 +38,23 @@ const Booking = () => {
     cancelBookingLoading,
     currentCancellingBookingId,
   } = useSelector(state => state.bookingList);
-  console.log('bookingList', bookingList);
   const handleCancelBooking = useCallback((bookingId, gds) => {
-    console.log('Cancel booking for ID:', bookingId, gds);
     setSelectedBookingId(bookingId);
     setSelectedGds(gds);
     setShowCancelModal(true);
   }, []);
-
+  console.log('bookingList', bookingList);
   const confirmCancelBooking = useCallback(() => {
     if (selectedBookingId && selectedGds) {
+      console.log('selectedBookingId', selectedBookingId);
+      console.log('selectedGds', selectedGds);
       dispatch(
-        cancelBookingThunk({bookingNo: selectedBookingId, gds: selectedGds}),
+        cancelBookingThunk({
+          bookingNo: selectedBookingId,
+          provider: selectedGds,
+        }),
       ).then(result => {
+        console.log('result for cancel booking', result);
         if (!result.error) {
           success(i18n.t('Booking.bookingCancelledSuccessfully'));
         }
@@ -79,30 +83,33 @@ const Booking = () => {
     }, [dispatch]),
   );
   const renderItem = useCallback(
-    ({item}) => (
-      <BookingControllerCard
-        name={`${item?.Holder_details?.Name || ''} ${
-          item?.Holder_details?.Surname || ''
-        }`}
-        status={item?.Status}
-        date={item?.OrderDate}
-        bookingPrice={Number(item?.totalAmount).toFixed(2)}
-        invoicePath={item?.invoicePath}
-        bookingId={item?.BookingID}
-        gds={item?.provider}
-        checkInDate={item?.CheckInDate}
-        onCancelBooking={handleCancelBooking}
-        cancelBookingLoading={cancelBookingLoading}
-        currentCancellingBookingId={currentCancellingBookingId}
-        onPress={() =>
-          navigation.navigate('BookingDetails', {
-            booking_no: item?.BookingID,
-            provider: item?.provider,
-            booking_Id: item?._id,
-          })
-        }
-      />
-    ),
+    ({item}) => {
+      console.log('item', item);
+      return (
+        <BookingControllerCard
+          name={`${item?.Holder_details?.Name || ''} ${
+            item?.Holder_details?.Surname || ''
+          }`}
+          status={item?.Status}
+          date={item?.OrderDate}
+          bookingPrice={Number(item?.totalAmount).toFixed(2)}
+          invoicePath={item?.invoicePath}
+          bookingId={item?.BookingID}
+          gds={item?.provider}
+          checkInDate={item?.CheckInDate}
+          onCancelBooking={handleCancelBooking}
+          cancelBookingLoading={cancelBookingLoading}
+          currentCancellingBookingId={currentCancellingBookingId}
+          onPress={() =>
+            navigation.navigate('BookingDetails', {
+              booking_no: item?.BookingID,
+              provider: item?.provider,
+              booking_Id: item?._id,
+            })
+          }
+        />
+      );
+    },
     [
       navigation,
       handleCancelBooking,

@@ -1,9 +1,8 @@
 import React, {useCallback, useRef} from 'react';
-import {StyleSheet, View, Image, Dimensions} from 'react-native';
+import {StyleSheet, View, Image} from 'react-native';
 import Gallery from 'react-native-awesome-gallery';
 import {useNavigation, useRoute} from '@react-navigation/native';
-
-const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
+import {Matrics} from '../../../Config/AppStyling';
 
 const renderItem = ({item}) => {
   const imageSource = typeof item === 'string' ? {uri: item} : item;
@@ -52,8 +51,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   image: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
+    width: Matrics.screenWidth,
+    height: Matrics.screenHeight,
     backgroundColor: '#000',
   },
 });

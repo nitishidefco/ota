@@ -6,7 +6,6 @@ import {
   View,
   Text,
   Pressable,
-  Dimensions,
 } from 'react-native';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import {Images} from '../../Config';
@@ -16,8 +15,6 @@ import {
   initializeCurrency,
 } from '../../Redux/Reducers/CurrencyReducer';
 import {HeaderOptionContext} from '../../Context/HeaderOptionContext';
-
-const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
 const CurrencySelector = () => {
   const dispatch = useDispatch();
@@ -136,8 +133,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
+    width: Matrics.screenWidth,
+    height: Matrics.screenHeight,
     zIndex: 999,
     backgroundColor: 'transparent',
   },

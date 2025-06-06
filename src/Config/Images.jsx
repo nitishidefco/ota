@@ -153,4 +153,6 @@ export default {
   MONEY_MONEY: require('../Assets/Images/money-money.png'),
   COPY_ICON: require('../Assets/Images/copy-icon.png'),
   SHARE_ICON: require('../Assets/Images/share-icon.png'),
+  LEFT_ARROW: require('../Assets/Images/left_arrow.png'),
+  WALLET: require('../Assets/Images/wallet.png'),
 };

@@ -18,15 +18,12 @@ import debounce from 'lodash/debounce';
 import DropDownPicker from 'react-native-dropdown-picker';
 /* --------------------------- External libraries --------------------------- */
 import DateTimePicker, {useDefaultStyles} from 'react-native-ui-datepicker';
-import {CalendarList, DateData} from 'react-native-calendars';
-import CalendarPicker from 'react-native-calendar-picker';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(isSameOrBefore);
 dayjs.extend(duration);
 import Modal from 'react-native-modal';
-import CalendarModal from '../CalendarModal';
 
 /* ------------------------------- Middlewares ------------------------------ */
 import {getCityDetailsThunk} from '../../../Redux/Reducers/HotelReducer/GetCitySlice';
@@ -509,42 +506,87 @@ const HotelSearchCard = () => {
           </>
         )}
       </TouchableOpacity>
-      {/* Date picker model */}
-      <CalendarModal
+      {/* Date picker modal */}
+      <Modal
         isVisible={showDatePicker}
-        hotelStayStartDate={hotelStayStartDate}
-        hotelStayEndDate={hotelStayEndDate}
-        onClose={() => setShowDatePicker(false)}>
-        <CalendarPicker
-          allowRangeSelection={true}
-          minDate={minDate}
-          todayBackgroundColor={COLOR.PRIMARY}
-          selectedDayColor={COLOR.PRIMARY}
-          selectedDayTextColor={COLOR.WHITE}
-          scrollable={true}
-          monthTitleStyle={{
-            fontFamily: typography.fontFamily.Montserrat.Bold,
-            fontSize: typography.fontSizes.fs14,
-          }}
-          yearTitleStyle={{
-            fontFamily: typography.fontFamily.Montserrat.Bold,
-            fontSize: typography.fontSizes.fs14,
-          }}
-          textStyle={{
-            fontFamily: typography.fontFamily.Montserrat.Medium,
-          }}
-          selectedStartDate={hotelStayStartDate}
-          selectedEndDate={hotelStayEndDate}
-          onDateChange={(date, type) => {
-            if (type === 'START_DATE') {
-              setHotelStayStartDate(date);
-            } else if (type === 'END_DATE') {
-              setHotelStayEndDate(date);
-            }
-          }}
-         
-        />
-      </CalendarModal>
+        onBackdropPress={() => setShowDatePicker(false)}
+        onBackButtonPress={() => setShowDatePicker(false)}
+        hideModalContentWhileAnimating={true}
+        backdropTransitionOutTiming={0}
+        style={{
+          justifyContent: 'space-around',
+          flexDirection: 'column-reverse',
+        }}>
+        <View
+          style={{
+            backgroundColor: COLOR.WHITE,
+            padding: Matrics.s(10),
+            borderRadius: Matrics.s(10),
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Text
+              style={{
+                fontFamily: typography.fontFamily.Montserrat.Medium,
+                fontSize: typography.fontSizes.fs14,
+                color: COLOR.DARK_TEXT_COLOR,
+              }}>
+              {hotelStayStartDate
+                ? dayjs(hotelStayStartDate).format('MM-DD-YYYY')
+                : 'Check-In'}
+            </Text>
+            <Text
+              style={{
+                fontFamily: typography.fontFamily.Montserrat.Medium,
+                fontSize: typography.fontSizes.fs14,
+                color: COLOR.DARK_TEXT_COLOR,
+                marginLeft: Matrics.s(10),
+              }}>
+              {hotelStayEndDate
+                ? dayjs(hotelStayEndDate).format('MM-DD-YYYY')
+                : 'Check-Out'}
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={{
+                fontFamily: typography.fontFamily.Montserrat.Medium,
+                fontSize: typography.fontSizes.fs14,
+                color: COLOR.PRIMARY,
+              }}>
+              {dayjs(hotelStayEndDate).diff(dayjs(hotelStayStartDate), 'day') >
+              0
+                ? dayjs(hotelStayEndDate).diff(dayjs(hotelStayStartDate), 'day')
+                : 0}{' '}
+              Nights
+            </Text>
+          </View>
+        </View>
+
+        <View>
+          <DateTimePicker
+            showOutsideDays={false}
+            navigationPosition="right"
+            mode="range"
+            startDate={hotelStayStartDate}
+            endDate={hotelStayEndDate}
+            onChange={({startDate, endDate}) => {
+              setHotelStayStartDate(startDate);
+              setHotelStayEndDate(endDate);
+            }}
+            minDate={dayjs()}
+            styles={datePickerStyles}
+            containerHeight={230}
+          />
+        </View>
+      </Modal>
       {/* Guests modal */}
       <Modal
         isVisible={showGuestsModal}
@@ -954,41 +996,26 @@ const datePickerStyles = StyleSheet.create({
   outside_label: {
     color: COLOR.DARK_TEXT_COLOR,
   },
-  disabled: {
-    backgroundColor: '#F5F5F5',
-    marginVertical: Matrics.s(2),
-  },
   disabled_label: {
     color: COLOR.DIM_TEXT_COLOR,
+    fontSize: typography.fontSizes.fs14,
+    fontFamily: typography.fontFamily.Montserrat.Regular,
   },
   days: {
     backgroundColor: 'white',
-    borderBottomRightRadius: Matrics.s(5),
-    borderBottomLeftRadius: Matrics.s(5),
-  },
-  day: {
-    // width: Matrics.s(30), // Fixed width for consistency
-    height: Matrics.vs(25), // Reduced height for the day itself
-    justifyContent: 'center', // Center the label vertically
-    alignItems: 'center',
-  },
-  day_cell: {
-    // width: Matrics.s(30),
-    height: Matrics.s(25),
-    // backgroundColo: 'red',
+    borderBottomRightRadius: Matrics.s(10),
+    borderBottomLeftRadius: Matrics.s(10),
   },
 
   day_label: {
     color: 'black',
     fontSize: typography.fontSizes.fs14,
-    fontFamily: typography.fontFamily.Montserrat.Medium,
+    fontFamily: typography.fontFamily.Montserrat.Regular,
   },
 
   weekdays: {
-    //     display: 'none', // Hide week labels
     backgroundColor: COLOR.WHITE,
-    height: Matrics.vs(20),
-    paddingHorizontal: Matrics.s(10),
+    height: Matrics.vs(30),
   },
   weekday_label: {
     fontFamily: typography.fontFamily.Montserrat.SemiBold,
@@ -1000,11 +1027,11 @@ const datePickerStyles = StyleSheet.create({
     color: 'black',
   },
   header: {
-    height: Matrics.vs(45),
+    height: Matrics.vs(50),
     backgroundColor: COLOR.WHITE,
     padding: Matrics.s(10),
-    borderTopLeftRadius: Matrics.s(5),
-    borderTopEndRadius: Matrics.s(5),
+    borderTopLeftRadius: Matrics.s(10),
+    borderTopEndRadius: Matrics.s(10),
   },
   year_selector_label: {
     fontSize: typography.fontSizes.fs20,
@@ -1012,9 +1039,6 @@ const datePickerStyles = StyleSheet.create({
   },
   selected: {
     backgroundColor: COLOR.PRIMARY,
-    marginTop: Matrics.vs(5),
-    marginLeft: Matrics.s(5),
-    borderRadius: Matrics.s(10),
   },
   selected_label: {
     color: 'white',
@@ -1023,62 +1047,54 @@ const datePickerStyles = StyleSheet.create({
     backgroundColor: COLOR.PRIMARY,
     borderTopLeftRadius: Matrics.s(10),
     borderBottomLeftRadius: Matrics.s(10),
-    marginLeft: Matrics.s(5),
-    marginTop: Matrics.vs(5),
   },
   range_middle: {
     backgroundColor: COLOR.RANGE_MIDDLE,
-    marginTop: Matrics.vs(5),
   },
   range_end: {
     backgroundColor: COLOR.PRIMARY,
-    marginRight: Matrics.s(5),
     borderTopRightRadius: Matrics.s(10),
     borderBottomRightRadius: Matrics.s(10),
-    marginTop: Matrics.vs(5),
   },
   range_start_label: {
     color: COLOR.WHITE,
+    fontFamily: typography.fontFamily.Montserrat.SemiBold,
   },
   range_end_label: {
     color: COLOR.WHITE,
+    fontFamily: typography.fontFamily.Montserrat.SemiBold,
   },
   range_middle_label: {
     color: COLOR.BLACK,
+    fontFamily: typography.fontFamily.Montserrat.Medium,
   },
   button_next: {
-    // backgroundColor: COLOR.PRIMARY,
-    padding: Matrics.s(8),
+    backgroundColor: COLOR.PRIMARY,
+    padding: Matrics.s(10),
     borderRadius: Matrics.s(10),
   },
   button_prev: {
-    // backgroundColor: COLOR.PRIMARY,
-    padding: Matrics.s(8),
+    backgroundColor: COLOR.PRIMARY,
+    padding: Matrics.s(10),
     borderRadius: Matrics.s(10),
   },
-  button_prev_image: {
-    color: COLOR.WHITE,
-  },
+
   today: {
     borderWidth: 1,
     borderColor: COLOR.PRIMARY,
     borderRadius: Matrics.s(10),
-    marginTop: Matrics.vs(5),
-    marginLeft: Matrics.s(5),
   },
   today_label: {
     color: COLOR.BLACK,
   },
   months: {
     backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderBottomLeftRadius: Matrics.s(10),
     borderBottomRightRadius: Matrics.s(10),
   },
-  month: {
-    // position: 'absolute',
-    top: -30,
-    // left: 15,
-  },
+  month: {},
   month_label: {
     fontFamily: typography.fontFamily.Montserrat.Medium,
   },

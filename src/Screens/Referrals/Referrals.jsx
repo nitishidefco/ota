@@ -24,12 +24,14 @@ import {Images} from '../../Config';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {success} from '../../Helpers/ToastMessage';
+
 const Referrals = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const {referralList, isLoading, error} = useSelector(
+  const {referralList, isLoading, error, cashbackList} = useSelector(
     state => state.referralList,
   );
+  console.log('referralList', referralList);
 
   // Local state for filtering and UI
   const [currentFilter, setCurrentFilter] = useState('All');
@@ -255,14 +257,14 @@ const Referrals = () => {
     </Modal>
   );
 
-  const renderTableHeader = () => (
+  const renderFixedHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTitleContainer}>
         <Text style={styles.headerTitle}>Referrals List</Text>
         <TouchableOpacity
-          style={styles.filterDropdownButton}
+          style={styles.filterButton}
           onPress={() => setShowDropdown(true)}>
-          <Text style={styles.filterDropdownText}>{currentFilter}</Text>
+          <Text style={styles.filterText}>{currentFilter}</Text>
           <Image
             source={Images.DOWN_ARROW_GRAY}
             style={{
@@ -273,26 +275,71 @@ const Referrals = () => {
           />
         </TouchableOpacity>
       </View>
+    </View>
+  );
 
-      <View style={styles.tableHeader}>
-        <Text style={[styles.headerText, {flex: 0.5}]}>#</Text>
-        <Text style={[styles.headerText, {flex: 1.5}]}>Date of Refer</Text>
-        <Text style={[styles.headerText, {flex: 1.2}]}>Amount</Text>
-        <Text style={[styles.headerText, {flex: 1}]}>Status</Text>
-      </View>
+  const renderTableHeader = () => (
+    <View style={styles.tableHeader}>
+      <Text style={[styles.headerText, {width: 60, textAlign: 'center'}]}>
+        #
+      </Text>
+      <Text style={[styles.headerText, {width: 140, paddingLeft: 8}]}>
+        Name
+      </Text>
+      <Text style={[styles.headerText, {width: 160, paddingLeft: 8}]}>
+        Email
+      </Text>
+      <Text style={[styles.headerText, {width: 120, paddingLeft: 8}]}>
+        Phone No.
+      </Text>
+      <Text
+        style={[
+          styles.headerText,
+          {width: 120, textAlign: 'right', paddingRight: 8},
+        ]}>
+        Cashback Earned
+      </Text>
+      <Text style={[styles.headerText, {width: 120, paddingLeft: 8}]}>
+        Referral Date
+      </Text>
+      <Text style={[styles.headerText, {width: 100, paddingLeft: 8}]}>
+        Status
+      </Text>
     </View>
   );
 
   const renderRow = ({item, index}) => (
     <View style={[styles.tableRow, index % 2 === 0 && styles.evenRow]}>
-      <Text style={[styles.cellText, {flex: 0.5}]}>{index + 1}</Text>
-      <Text style={[styles.cellText, {flex: 1.5}]}>
-        {formatDate(item.referral_date)}
+      <Text style={[styles.cellText, {width: 60, textAlign: 'center'}]}>
+        {index + 1}
       </Text>
-      <Text style={[styles.cellText, styles.amountText, {flex: 1.2}]}>
+      <Text
+        style={[styles.cellText, {width: 140, paddingLeft: 8}]}
+        numberOfLines={2}>
+        {item?.referred_user_name || item?.name || 'N/A'}
+      </Text>
+      <Text
+        style={[styles.cellText, {width: 160, paddingLeft: 8}]}
+        numberOfLines={2}>
+        {item?.referred_user_email || item?.email || 'N/A'}
+      </Text>
+      <Text
+        style={[styles.cellText, {width: 120, paddingLeft: 8}]}
+        numberOfLines={1}>
+        {item?.referred_user_phone || item?.phone || 'N/A'}
+      </Text>
+      <Text
+        style={[
+          styles.cellText,
+          styles.amountText,
+          {width: 120, textAlign: 'right', paddingRight: 8},
+        ]}>
         ${item?.amount || '0.00'}
       </Text>
-      <View style={{flex: 1}}>
+      <Text style={[styles.cellText, {width: 120, paddingLeft: 8}]}>
+        {formatDate(item.referral_date)}
+      </Text>
+      <View style={{width: 100, alignItems: 'flex-start', paddingLeft: 8}}>
         <View style={getStatusStyle(item.status)}>
           <Text style={getStatusTextStyle(item.status)}>
             {getDisplayStatus(item.status)}
@@ -373,6 +420,36 @@ const Referrals = () => {
           showRightButton={false}
           onCrossPress={() => navigation.goBack()}
         />
+
+        <View
+          style={{
+            marginTop: Matrics.vs(10),
+            paddingHorizontal: Matrics.s(6),
+          }}>
+          <View
+            style={{
+              backgroundColor: COLOR.PRIMARY,
+              padding: Matrics.s(12),
+              borderRadius: Matrics.s(12),
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingVertical: Matrics.vs(16),
+            }}>
+            <Image source={Images.WALLET} style={{width: 30, height: 30}} />
+            <Text
+              style={{
+                color: COLOR.WHITE,
+                fontFamily: typography.fontFamily.Montserrat.Bold,
+                fontSize: typography.fontSizes.fs30,
+                marginTop: Matrics.vs(8),
+              }}>
+              $
+              {Number(
+                cashbackList?.total_cashback + referralList?.data?.total_amount,
+              ).toFixed(2)}
+            </Text>
+          </View>
+        </View>
         <View
           style={{
             flexDirection: 'row',
@@ -490,24 +567,33 @@ const Referrals = () => {
 
         {/* Referrals Table */}
         <View style={styles.container}>
+          {/* Fixed Header - Not Scrollable */}
+          {renderFixedHeader()}
+
           {error ? (
-            <>
-              {renderTableHeader()}
-              {renderErrorState()}
-            </>
+            renderErrorState()
           ) : (
-            <FlatList
-              data={referralList.data.data}
-              renderItem={renderRow}
-              keyExtractor={(item, index) => `${item?.id || index}-${index}`}
-              ListHeaderComponent={renderTableHeader}
-              ListFooterComponent={renderFooter}
-              ListEmptyComponent={!isLoading ? renderEmptyState : null}
-              showsVerticalScrollIndicator={false}
-              style={styles.table}
-              onEndReached={referralList.hasMore ? handleLoadMore : null}
-              onEndReachedThreshold={0.1}
-            />
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}>
+              <View style={styles.tableContainer}>
+                <FlatList
+                  data={referralList.data.data}
+                  renderItem={renderRow}
+                  keyExtractor={(item, index) =>
+                    `${item?.id || index}-${index}`
+                  }
+                  ListHeaderComponent={renderTableHeader}
+                  ListFooterComponent={renderFooter}
+                  ListEmptyComponent={!isLoading ? renderEmptyState : null}
+                  showsVerticalScrollIndicator={false}
+                  style={styles.table}
+                  scrollEnabled={false}
+                  onEndReached={referralList.hasMore ? handleLoadMore : null}
+                  onEndReachedThreshold={0.1}
+                />
+              </View>
+            </ScrollView>
           )}
         </View>
         {renderDropdown()}
@@ -539,19 +625,20 @@ const styles = StyleSheet.create({
     paddingVertical: Matrics.vs(7),
     borderBottomWidth: 1,
     borderBottomColor: COLOR.BORDER_COLOR,
+    backgroundColor: COLOR.WHITE,
   },
   headerTitle: {
     fontSize: Matrics.s(16),
     fontFamily: typography.fontFamily.Montserrat.Bold,
     color: COLOR.TITLE_COLOR,
   },
-  filterDropdownButton: {
+  filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Matrics.s(12),
     paddingVertical: Matrics.vs(8),
   },
-  filterDropdownText: {
+  filterText: {
     fontSize: Matrics.s(14),
     fontFamily: typography.fontFamily.Montserrat.Medium,
     color: COLOR.TITLE_COLOR,
@@ -608,9 +695,9 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    paddingHorizontal: Matrics.s(16),
     paddingVertical: Matrics.vs(12),
     backgroundColor: COLOR.SMALL_CARD_BACKGROUND,
+    width: 822, // Updated total width: 60+140+160+120+120+120+100 = 822
   },
   headerText: {
     fontSize: Matrics.s(14),
@@ -619,14 +706,15 @@ const styles = StyleSheet.create({
   },
   table: {
     borderRadius: Matrics.s(12),
+    width: 822, // Match header width
   },
   tableRow: {
     flexDirection: 'row',
-    paddingHorizontal: Matrics.s(16),
     paddingVertical: Matrics.vs(16),
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: COLOR.BORDER_COLOR,
+    width: 822, // Match header width
   },
   evenRow: {
     backgroundColor: '#FAFAFA',
@@ -674,6 +762,9 @@ const styles = StyleSheet.create({
     fontSize: Matrics.s(14),
     color: COLOR.DANGER,
     textAlign: 'center',
+  },
+  tableContainer: {
+    minWidth: 822, // Ensure minimum width
   },
 });
 

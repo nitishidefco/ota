@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: Matrics.s(16),
     fontFamily: typography.fontFamily.Montserrat.Bold,
-    color: COLOR.TITLE_COLOR,
+    color: COLOR?.TITLE_COLOR,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: Matrics.s(14),
     fontFamily: typography.fontFamily.Montserrat.Medium,
-    color: COLOR.TITLE_COLOR,
+    color: COLOR?.TITLE_COLOR,
   },
   tableRow: {
     flexDirection: 'row',

@@ -15,7 +15,7 @@ dayjs.extend(duration);
 const CalendarModal = ({
   isVisible,
   onClose,
-  children,
+  children = null,
   hotelStayStartDate,
   hotelStayEndDate,
 }) => {

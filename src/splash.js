@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   bottomElipseImage: {
     position: 'relative',
-    width: Matrics.screenWidth * 0.5,
+    width: Matrics?.screenWidth * 0.5,
     bottom: -Matrics.vs(70),
     resizeMode: 'contain',
   },

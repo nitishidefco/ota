@@ -7,7 +7,7 @@ import {success, errorToast} from '../../../Helpers/ToastMessage';
 import {useSelector} from 'react-redux';
 import i18n from '../../../i18n/i18n';
 
-const DownloadButton = ({invoicePath}) => {
+const DownloadButton = ({invoicePath, title}) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Get authentication tokens from Redux store
@@ -49,7 +49,6 @@ const DownloadButton = ({invoicePath}) => {
         // Use DocumentDir for iOS
         filePath = `${dirs.DocumentDir}/${fileName}`;
       }
-
 
       // Configure download options based on platform
       let config = {
@@ -183,6 +182,11 @@ const DownloadButton = ({invoicePath}) => {
           resizeMode: 'contain',
         }}
       />
+      {title && <Text style={{
+        fontFamily: typography.fontFamily.Montserrat.Medium,
+        fontSize: typography.fontSizes.fs12,
+        color: COLOR.SUCCESS,
+      }}>{title}</Text>}
       {/* <Text
         style={{
           fontFamily: typography.fontFamily.Montserrat.Medium,

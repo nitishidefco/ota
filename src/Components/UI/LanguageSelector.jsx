@@ -6,7 +6,6 @@ import {
   Text,
   Alert,
   Pressable,
-  Dimensions,
 } from 'react-native';
 import React, {useContext, useRef} from 'react';
 import {COLOR, Matrics, typography} from '../../Config/AppStyling';
@@ -16,8 +15,6 @@ import {useDispatch} from 'react-redux';
 import RNRestart from 'react-native-restart';
 import {HeaderOptionContext} from '../../Context/HeaderOptionContext';
 import {useTranslation} from 'react-i18next';
-
-const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
 const LanguageSelector = () => {
   const dispatch = useDispatch();
@@ -153,8 +150,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
+    width: Matrics.screenWidth,
+    height: Matrics.screenHeight,
     zIndex: 999,
     backgroundColor: 'transparent',
   },
